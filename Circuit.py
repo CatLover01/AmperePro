@@ -197,7 +197,7 @@ class Circuit(QMainWindow):
         if self.selection is not None:
             cote = cercle.cote
             index_cercle = self.elements.index(cercle)
-            element = self.selection.__class__()
+            element = self.selection
             self.elements[index_cercle] = element
             self.scene.removeItem(cercle)
 
