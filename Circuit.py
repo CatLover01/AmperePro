@@ -34,7 +34,7 @@ class Circuit(QMainWindow):
         self.vue.setScene(self.scene)
         self.setCentralWidget(self.vue)
 
-        batterie = toolbar_dispositifs['Batterie'].__class__()
+        batterie = toolbar_dispositifs['Batterie']
 
         batterie.item_instance = self.ajouter_pixmap(batterie)
         batterie.cote = "haut"
@@ -161,7 +161,7 @@ class Circuit(QMainWindow):
         if self.selection is not None:
             cote = cercle.cote
             index_cercle = self.elements.index(cercle)
-            element = self.selection.__class__()
+            element = self.selection
             self.elements[index_cercle] = element
             self.scene.removeItem(cercle)
 
