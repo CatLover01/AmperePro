@@ -3,6 +3,7 @@ from PySide6.QtGui import QIcon, QPixmap, QColorConstants, QPainter, QPen, Qt, Q
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPushButton, QVBoxLayout, QLabel, \
     QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsPathItem, QGraphicsEllipseItem
 
+import Dispositifs
 from Dispositifs import toolbar_dispositifs, LED
 
 
@@ -18,8 +19,15 @@ class Circuit(QMainWindow):
         toolbar = QToolBar()
         self.addToolBar(toolbar)
 
+        icon_main = QIcon("images/toolbar/main.png")
+        bouton_main = QPushButton()
+        bouton_main.setIcon(icon_main)
+        bouton_main.setIconSize(QSize(45, 45))
+        bouton_main.clicked.connect(self.main_clicked)
+        toolbar.addWidget(bouton_main)
+
+
         for dispositif in toolbar_dispositifs.values():
-            nom = dispositif.nom
             bouton = QPushButton()
             bouton.setIcon(QIcon(dispositif.image_toolbar))
             bouton.setIconSize(QSize(45, 45))
@@ -45,12 +53,40 @@ class Circuit(QMainWindow):
                          CercleCliquable(0, 0, self.diametre_cercle, self, "droite"),
                          CercleCliquable(0, 0, self.diametre_cercle, self, "bas"),
                          CercleCliquable(0, 0, self.diametre_cercle, self, "gauche")]
+        elements_sans_points = self.retire_cercles()
 
         self.circuit_fil = QGraphicsPathItem()
         self.dessiner_fond()
-        self.dessiner_circuit()
+        self.dessiner_circuit(elements_sans_points)
+
+    def retire_cercles(self):
+        liste_clean = []
+        for element in self.elements:
+            if not isinstance(element, CercleCliquable):
+                liste_clean.append(element)
+            else:
+                element.hide()
+        return liste_clean
+
+    def afficher_cercles(self):
+        for element in self.elements:
+            if isinstance(element, CercleCliquable):
+                element.show()
+
+    def main_clicked(self):
+        if self.selection is not None:
+            self.selection = None
+            elements_sans_points = self.retire_cercles()
+            self.dessiner_fond()
+            self.dessiner_circuit(elements_sans_points)
+
 
     def toolbar_clicked(self, dispositif):
+        if self.selection == None:
+            self.afficher_cercles()
+            self.dessiner_fond()
+            self.dessiner_circuit(self.elements)
+
         self.selection = dispositif
 
     def dessiner_fond(self):
@@ -58,7 +94,7 @@ class Circuit(QMainWindow):
         self.scene.setBackgroundBrush(QColorConstants.White)
         self.scene.setSceneRect(0, 0, self.scene_size.width(), self.scene_size.height())
 
-    def dessiner_circuit(self):
+    def dessiner_circuit(self, elements):
         marge_element = 100
         marge_coins = 50
         milieu = QPointF(self.scene.width()/2, self.scene_size.height()/2)
@@ -81,7 +117,7 @@ class Circuit(QMainWindow):
                              "droite": 0,
                              "bas": 0,
                              "gauche": 0}
-        for element in self.elements:
+        for element in elements:
             nb_elements_cotes[element.cote] += 1
 
         hauteur = marge_element * (max(nb_elements_cotes["gauche"], nb_elements_cotes["droite"]) - 1) + 2 * marge_coins
@@ -114,8 +150,8 @@ class Circuit(QMainWindow):
 
             return pos, angle
 
-        for i in range(len(self.elements)):
-            element = self.elements[i]
+        for i in range(len(elements)):
+            element = elements[i]
 
             position, angle = trouver_pos(element.cote, i)
 
@@ -148,7 +184,7 @@ class Circuit(QMainWindow):
         pixmap = QPixmap(element.image_circuit)
         pixmap_scaled = pixmap.scaled(element.scale, element.scale, Qt.AspectRatioMode.KeepAspectRatio)
 
-        pixmap_item = QGraphicsPixmapItem(pixmap_scaled)
+        pixmap_item = Dispositifs.Item(element)
         pixmap_item.setPixmap(pixmap_scaled)
 
         pixmap_item.setZValue(1)
@@ -161,7 +197,7 @@ class Circuit(QMainWindow):
         if self.selection is not None:
             cote = cercle.cote
             index_cercle = self.elements.index(cercle)
-            element = self.selection
+            element = self.selection.__class__()
             self.elements[index_cercle] = element
             self.scene.removeItem(cercle)
 
@@ -176,8 +212,9 @@ class Circuit(QMainWindow):
             if element_precedant.cote != element.cote or not isinstance(element_precedant, CercleCliquable):
                 self.elements.insert(index_cercle, CercleCliquable(0, 0, self.diametre_cercle, self, cote))
 
+
             self.dessiner_fond()
-            self.dessiner_circuit()
+            self.dessiner_circuit(self.elements)
 
 
 class CercleCliquable(QGraphicsEllipseItem):
