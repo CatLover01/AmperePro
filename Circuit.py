@@ -1,5 +1,3 @@
-import math
-
 from PySide6.QtCore import QSize, QPoint, QPointF
 from PySide6.QtGui import QIcon, QPixmap, QColorConstants, QPainter, QPen, Qt, QPainterPath, QBrush, QColor
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPushButton, QVBoxLayout, QLabel, \
@@ -39,10 +37,14 @@ class Circuit(QMainWindow):
         batterie = toolbar_dispositifs['Batterie'].__class__()
 
         batterie.item_instance = self.ajouter_pixmap(batterie)
+        batterie.cote = "haut"
 
         self.diametre_cercle = 25
         self.elements = [batterie,
-                         CercleCliquable(0, 0, self.diametre_cercle, self)]
+                         CercleCliquable(0, 0, self.diametre_cercle, self, "haut"),
+                         CercleCliquable(0, 0, self.diametre_cercle, self, "droite"),
+                         CercleCliquable(0, 0, self.diametre_cercle, self, "bas"),
+                         CercleCliquable(0, 0, self.diametre_cercle, self, "gauche")]
 
         self.circuit_fil = QGraphicsPathItem()
         self.dessiner_fond()
@@ -64,6 +66,9 @@ class Circuit(QMainWindow):
         largeur_min = 200
         hauteur_min = 100
 
+        centre_x = self.scene_size.width()/2
+        centre_y = self.scene_size.height()/2
+
         self.scene.addItem(self.circuit_fil)
         path = QPainterPath()
 
@@ -72,73 +77,58 @@ class Circuit(QMainWindow):
         pen.setWidth(epaisseur_fil)
         self.circuit_fil.setPen(pen)
 
-        total = len(self.elements)
+        nb_elements_cotes = {"haut": 0,
+                             "droite": 0,
+                             "bas": 0,
+                             "gauche": 0}
+        for element in self.elements:
+            nb_elements_cotes[element.cote] += 1
 
-        def nombre_elements_cote(min_ajout):
-            nombre_elements = math.floor(total / 4)
-            reste = total % 4
-            if reste >= min_ajout:
-                nombre_elements += 1
+        hauteur = marge_element * (max(nb_elements_cotes["gauche"], nb_elements_cotes["droite"]) - 1) + 2 * marge_coins
+        largeur = marge_element * (max(nb_elements_cotes["haut"], nb_elements_cotes["bas"]) - 1) + 2 * marge_coins
 
-            return nombre_elements
+        hauteur = max(hauteur, hauteur_min)
+        largeur = max(largeur, largeur_min)
 
-        haut = nombre_elements_cote(2)
-        droite = nombre_elements_cote(3)
-        bas = nombre_elements_cote(1)
-        gauche = nombre_elements_cote(4)
+        def trouver_pos(cote, index):
+            mult = -1
+            angle = 0
+            nombres = list(nb_elements_cotes.values())
+            for i in range(4):
+                if nombres[i] > index:
+                    break
+                else:
+                    index -= nombres[i]
+                    angle += 90
 
-        largeur = (bas - 1) * marge_element + 2 * marge_coins
-        if largeur < largeur_min:
-            largeur = largeur_min
-        hauteur = (droite - 1) * marge_element + 2 * marge_coins
-        if hauteur < hauteur_min:
-            hauteur = hauteur_min
+            if cote == "haut" or cote == "bas":
+                if cote == "bas":
+                    mult = 1
+                pos = QPointF(centre_x + mult * (nb_elements_cotes[cote]-1)/2 * marge_element - mult * index * marge_element,
+                              centre_y + mult * hauteur/2)
+            else:
+                if cote == "gauche":
+                    mult = 1
+                pos = QPointF(centre_x - mult * largeur/2,
+                              centre_y + mult * (nb_elements_cotes[cote]-1)/2 * marge_element - mult * index * marge_element)
 
-        path.moveTo(milieu.x() - largeur/2, milieu.y() - hauteur/2)
-        path.lineTo(milieu.x() + largeur/2, milieu.y() - hauteur/2)
-        path.lineTo(milieu.x() + largeur/2, milieu.y() + hauteur/2)
-        path.lineTo(milieu.x() - largeur/2, milieu.y() + hauteur/2)
-        path.lineTo(milieu.x() - largeur/2, milieu.y() - hauteur/2)
+            return pos, angle
 
-        for i in range(haut):
-            position = QPointF(milieu.x() - haut/2 * marge_element + i * marge_element + marge_coins,
-                               milieu.y() - hauteur/2)
-
+        for i in range(len(self.elements)):
             element = self.elements[i]
-            if isinstance(element, CercleCliquable):
-                element.setPos(position)
+
+            position, angle = trouver_pos(element.cote, i)
+
+            if not isinstance(element, CercleCliquable):
+                self.placer_pixmap(element, position, angle)
             else:
-                self.placer_pixmap(element, position, 0)
-
-        for i in range(droite):
-            position = QPointF(milieu.x() + largeur/2,
-                               milieu.y() - droite/2 * marge_element + i * marge_element + marge_coins)
-
-            element = self.elements[i + haut]
-            if isinstance(element, CercleCliquable):
                 element.setPos(position)
-            else:
-                self.placer_pixmap(element, position, 90)
 
-        for i in range(bas):
-            position = QPointF(milieu.x() + bas/2 * marge_element - i * marge_element - marge_coins,
-                               milieu.y() + hauteur/2)
-
-            element = self.elements[i + haut + droite]
-            if isinstance(element, CercleCliquable):
-                element.setPos(position)
-            else:
-                self.placer_pixmap(element, position, 180)
-
-        for i in range(gauche):
-            position = QPointF(milieu.x() - largeur / 2,
-                               milieu.y() + gauche / 2 * marge_element - i * marge_element - marge_coins)
-
-            element = self.elements[i + haut + droite + bas]
-            if isinstance(element, CercleCliquable):
-                element.setPos(position)
-            else:
-                self.placer_pixmap(element, position, 270)
+        path.moveTo(QPointF(centre_x - largeur/2, centre_y + hauteur/2))
+        path.lineTo(QPointF(centre_x + largeur/2, centre_y + hauteur/2))
+        path.lineTo(QPointF(centre_x + largeur/2, centre_y - hauteur/2))
+        path.lineTo(QPointF(centre_x - largeur/2, centre_x - hauteur/2))
+        path.closeSubpath()
 
         self.circuit_fil.setPath(path)
 
@@ -169,25 +159,29 @@ class Circuit(QMainWindow):
 
     def bouton_cercle_click(self, cercle):
         if self.selection is not None:
+            cote = cercle.cote
             index_cercle = self.elements.index(cercle)
             element = self.selection.__class__()
             self.elements[index_cercle] = element
             self.scene.removeItem(cercle)
 
             element.item_instance = self.ajouter_pixmap(element)
+            element.cote = cote
 
-            if not isinstance(self.elements[(index_cercle + 1) % len(self.elements)], CercleCliquable):
-                self.elements.insert(index_cercle + 1, CercleCliquable(0, 0, self.diametre_cercle, self))
+            element_suivant = self.elements[(index_cercle + 1) % len(self.elements)]
+            if element_suivant.cote != element.cote or not isinstance(element_suivant, CercleCliquable):
+                self.elements.insert(index_cercle + 1, CercleCliquable(0, 0, self.diametre_cercle, self, cote))
 
-            if not isinstance(self.elements[index_cercle - 1], CercleCliquable):
-                self.elements.insert(index_cercle, CercleCliquable(0, 0, self.diametre_cercle, self))
+            element_precedant = self.elements[index_cercle - 1]
+            if element_precedant.cote != element.cote or not isinstance(element_precedant, CercleCliquable):
+                self.elements.insert(index_cercle, CercleCliquable(0, 0, self.diametre_cercle, self, cote))
 
             self.dessiner_fond()
             self.dessiner_circuit()
 
 
 class CercleCliquable(QGraphicsEllipseItem):
-    def __init__(self, x, y, diametre, main_window):
+    def __init__(self, x, y, diametre, main_window, cote):
         super().__init__(x - diametre/2, y - diametre/2, diametre, diametre)
         self.main_window = main_window
         self.diametre = diametre
@@ -195,6 +189,7 @@ class CercleCliquable(QGraphicsEllipseItem):
         self.main_window.scene.addItem(self)
 
         self.setAcceptHoverEvents(True)
+        self.cote = cote
 
         crayon = QPen()
         crayon.setColor(QColorConstants.Black)

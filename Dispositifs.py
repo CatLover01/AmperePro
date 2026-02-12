@@ -7,6 +7,7 @@ class Batterie:
         self.rotate = True
 
         self.item_instance = None
+        self.cote = None
 
 
 class LED:
@@ -18,6 +19,7 @@ class LED:
         self.rotate = True
 
         self.item_instance = None
+        self.cote = None
 
 
 class Resistor:
@@ -29,6 +31,7 @@ class Resistor:
         self.rotate = True
 
         self.item_instance = None
+        self.cote = None
 
 
 class Diode:
@@ -40,6 +43,7 @@ class Diode:
         self.rotate = True
 
         self.item_instance = None
+        self.cote = None
 
 
 class Interrupteur:
@@ -51,6 +55,7 @@ class Interrupteur:
         self.rotate = True
 
         self.item_instance = None
+        self.cote = None
 
 
 class Voltmetre:
@@ -62,6 +67,7 @@ class Voltmetre:
         self.rotate = False
 
         self.item_instance = None
+        self.cote = None
 
 
 class Amperemetre:
