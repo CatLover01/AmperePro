@@ -1,8 +1,11 @@
-import math
-
 from PySide6.QtGui import QPixmap, Qt, QTransform
 from PySide6.QtWidgets import QGraphicsPixmapItem
-from PySide6.scripts.qtpy2cpp_lib import qt
+
+# Faudrait peut-être créer une classe abstraite pour les composantes
+# Chaque classe a un nom (sûrement inutile et à enlever), son image dans la tool bar et dans le circuit,
+# le scale de son image dans le circuit, si il doit se tourner (les composantes qui ont des lettre sur
+# l'image peuvent pas). item_instance est leur QGraphicsPixmapItem et cote le cote ou ils sont
+# Et def clicked est appelé quand leur item_instance est cliqué
 
 
 class Batterie:
@@ -133,16 +136,18 @@ class Amperemetre:
         pass
 
 
+# Classe des item_instance des composantes
 class Item(QGraphicsPixmapItem):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
 
+    # appel la fonction clicked de sa composante parente
     def mousePressEvent(self, event):
         self.parent.clicked()
 
 
-toolbar_dispositifs = {
+toolbar_composantes = {
     "Batterie": Batterie(),
     "LED": LED(),
     "Resistor": Resistor(),
