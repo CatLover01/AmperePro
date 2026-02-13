@@ -1,3 +1,10 @@
+import math
+
+from PySide6.QtGui import QPixmap, Qt, QTransform
+from PySide6.QtWidgets import QGraphicsPixmapItem
+from PySide6.scripts.qtpy2cpp_lib import qt
+
+
 class Batterie:
     def __init__(self):
         self.nom = "Batterie"
@@ -8,6 +15,9 @@ class Batterie:
 
         self.item_instance = None
         self.cote = None
+
+    def clicked(self):
+        pass
 
 
 class LED:
@@ -20,6 +30,15 @@ class LED:
 
         self.item_instance = None
         self.cote = None
+        self.sens = 1
+
+    def clicked(self):
+        # Flip la LED
+        transform = QTransform()
+        transform.scale(-1, 1)
+        pixmap_flipped = self.item_instance.pixmap().transformed(transform)
+        self.item_instance.setPixmap(pixmap_flipped)
+        self.sens *= -1
 
 
 class Resistor:
@@ -27,11 +46,14 @@ class Resistor:
         self.nom = "Resistor"
         self.image_toolbar = "images/toolbar/resistor.jpg"
         self.image_circuit = "images/circuit/resistor.png"
-        self.scale = 55
+        self.scale = 56
         self.rotate = True
 
         self.item_instance = None
         self.cote = None
+
+    def clicked(self):
+        pass
 
 
 class Diode:
@@ -44,18 +66,42 @@ class Diode:
 
         self.item_instance = None
         self.cote = None
+        self.sens = 1
+
+    def clicked(self):
+        #Flip la diode
+        transform = QTransform()
+        transform.scale(-1, 1)
+        pixmap_flipped = self.item_instance.pixmap().transformed(transform)
+        self.item_instance.setPixmap(pixmap_flipped)
+        self.sens *= -1
 
 
 class Interrupteur:
     def __init__(self):
         self.nom = "Interrupteur"
         self.image_toolbar = "images/toolbar/interrupteur.jpg"
-        self.image_circuit = "images/circuit/interrupteur_ouvert.png"
+        self.image_ouvert = "images/circuit/interrupteur_ouvert.png"
+        self.image_ferme = "images/circuit/interrupteur_ferme.png"
         self.scale = 45
         self.rotate = True
 
+        self.image_circuit = self.image_ouvert
         self.item_instance = None
         self.cote = None
+        self.ouvert = True
+
+    def clicked(self):
+        if self.image_circuit == self.image_ouvert:
+            self.image_circuit = self.image_ferme
+        else:
+            self.image_circuit = self.image_ouvert
+
+        pixmap = QPixmap(self.image_circuit)
+        pixmap_scaled = pixmap.scaled(self.scale, self.scale, Qt.AspectRatioMode.KeepAspectRatio)
+
+        self.item_instance.setPixmap(pixmap_scaled)
+        self.ouvert = False
 
 
 class Voltmetre:
@@ -69,6 +115,9 @@ class Voltmetre:
         self.item_instance = None
         self.cote = None
 
+    def clicked(self):
+        pass
+
 
 class Amperemetre:
     def __init__(self):
@@ -79,6 +128,18 @@ class Amperemetre:
         self.rotate = False
 
         self.item_instance = None
+
+    def clicked(self):
+        pass
+
+
+class Item(QGraphicsPixmapItem):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+
+    def mousePressEvent(self, event):
+        self.parent.clicked()
 
 
 toolbar_dispositifs = {
