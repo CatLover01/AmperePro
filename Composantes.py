@@ -1,6 +1,12 @@
 from PySide6.QtGui import QPixmap, Qt, QTransform
 from PySide6.QtWidgets import QGraphicsPixmapItem
 
+# Faudrait peut-être créer une classe abstraite pour les composantes
+# Chaque classe a un nom (sûrement inutile et à enlever), son image dans la tool bar et dans le circuit,
+# le scale de son image dans le circuit, si il doit se tourner (les composantes qui ont des lettre sur
+# l'image peuvent pas). item_instance est leur QGraphicsPixmapItem et cote le cote ou ils sont
+# Et def clicked est appelé quand leur item_instance est cliqué
+
 
 class Batterie:
     def __init__(self):
@@ -16,6 +22,7 @@ class Batterie:
     def clicked(self):
         pass
 
+
 class LED:
     def __init__(self):
         self.nom = "LED"
@@ -26,14 +33,14 @@ class LED:
 
         self.item_instance = None
         self.cote = None
-        # 1 si elle va du sens horaire sinon -1
         self.sens = 1
 
     def clicked(self):
+        # Flip la LED
         transform = QTransform()
-        transform.scale(-1, -1)
-        pixmap = self.item_instance.pixmap().transformed(transform, Qt.TransformationMode.SmoothTransformation)
-        self.item_instance.setPixmap(pixmap)
+        transform.scale(-1, 1)
+        pixmap_flipped = self.item_instance.pixmap().transformed(transform)
+        self.item_instance.setPixmap(pixmap_flipped)
         self.sens *= -1
 
 
@@ -42,7 +49,7 @@ class Resistor:
         self.nom = "Resistor"
         self.image_toolbar = "images/toolbar/resistor.jpg"
         self.image_circuit = "images/circuit/resistor.png"
-        self.scale = 55
+        self.scale = 56
         self.rotate = True
 
         self.item_instance = None
@@ -50,6 +57,7 @@ class Resistor:
 
     def clicked(self):
         pass
+
 
 class Diode:
     def __init__(self):
@@ -61,32 +69,32 @@ class Diode:
 
         self.item_instance = None
         self.cote = None
-        #1 si elle va du sens horaire sinon -1
         self.sens = 1
 
     def clicked(self):
+        #Flip la diode
         transform = QTransform()
-        transform.scale(-1, -1)
-        pixmap = self.item_instance.pixmap().transformed(transform, Qt.TransformationMode.SmoothTransformation)
-        self.item_instance.setPixmap(pixmap)
+        transform.scale(-1, 1)
+        pixmap_flipped = self.item_instance.pixmap().transformed(transform)
+        self.item_instance.setPixmap(pixmap_flipped)
         self.sens *= -1
+
 
 class Interrupteur:
     def __init__(self):
         self.nom = "Interrupteur"
         self.image_toolbar = "images/toolbar/interrupteur.jpg"
-        self.image_ferme = "images/circuit/interrupteur_ferme.png"
         self.image_ouvert = "images/circuit/interrupteur_ouvert.png"
-
-        self.image_circuit = self.image_ouvert
+        self.image_ferme = "images/circuit/interrupteur_ferme.png"
         self.scale = 45
         self.rotate = True
 
+        self.image_circuit = self.image_ouvert
         self.item_instance = None
         self.cote = None
+        self.ouvert = True
 
     def clicked(self):
-
         if self.image_circuit == self.image_ouvert:
             self.image_circuit = self.image_ferme
         else:
@@ -96,6 +104,8 @@ class Interrupteur:
         pixmap_scaled = pixmap.scaled(self.scale, self.scale, Qt.AspectRatioMode.KeepAspectRatio)
 
         self.item_instance.setPixmap(pixmap_scaled)
+        self.ouvert = False
+
 
 class Voltmetre:
     def __init__(self):
@@ -111,6 +121,7 @@ class Voltmetre:
     def clicked(self):
         pass
 
+
 class Amperemetre:
     def __init__(self):
         self.nom = "Amperemetre"
@@ -124,15 +135,19 @@ class Amperemetre:
     def clicked(self):
         pass
 
+
+# Classe des item_instance des composantes
 class Item(QGraphicsPixmapItem):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
 
+    # appel la fonction clicked de sa composante parente
     def mousePressEvent(self, event):
         self.parent.clicked()
 
-toolbar_dispositifs = {
+
+toolbar_composantes = {
     "Batterie": Batterie(),
     "LED": LED(),
     "Resistor": Resistor(),
