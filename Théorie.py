@@ -26,7 +26,7 @@ Texte = {
         "- Composante qui limite le courant. \n"
         "- Unité : Ohms (Ω) \n"
         "- Loi d'Ohm : V = R · I \n"
-        "- Baisse l'intensité du courant"
+        "- Baisse l'intensité du courant. \n"
         "- V en Volts, R en Ohms, I en Ampères"
     ),
     "DEL": (
