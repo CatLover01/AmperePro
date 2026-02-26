@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSize
-from PySide6.QtGui import Qt, QIcon
+from PySide6.QtGui import Qt, QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar
+    QGraphicsView, QToolBar, QGridLayout
 from enum import Enum
 
 from Circuit import Circuit
@@ -19,7 +19,7 @@ class AmperePro(QMainWindow):
         self.setWindowTitle("AmpèrePro")
         self.setMinimumSize(500, 500)
 
-        main_layout = QVBoxLayout()
+        main_layout = QGridLayout()
         main_widget = QWidget()
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
@@ -28,24 +28,54 @@ class AmperePro(QMainWindow):
         self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.subtitle = QLabel("Choisis un mode pour continuer!")
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(self.title)
-        main_layout.addWidget(self.subtitle)
+
+        main_layout.addWidget(self.title, 0, 0, 2, 0)
+        #main_layout.addWidget(self.subtitle, 0, 1)
+
+        #Logo
+
+        logo = QPixmap("./images/Menu/AmperePro_logo_resized.png")
+        affichage_logo = QLabel()
+        affichage_logo.setPixmap(logo)
+        main_layout.addWidget(affichage_logo, 1, 1)
 
         # Modes
-        mode_layout = QHBoxLayout()
-        main_layout.addLayout(mode_layout)
+        mode_layout = QVBoxLayout()
+        main_layout.addLayout(mode_layout, 1, 0, )
 
         # Mode Niveau
         mode_niveau = QPushButton()
-        mode_niveau.setText("Niveau")
+        mode_niveau.setText("Mode Niveau")
         mode_niveau.clicked.connect(lambda: self.change_mode(Mode.Niveau))
         mode_layout.addWidget(mode_niveau)
 
         # Mode Libre
         mode_libre = QPushButton()
-        mode_libre.setText("Libre")
+        mode_libre.setText(" Mode Libre")
         mode_libre.clicked.connect(lambda: self.change_mode(Mode.Libre))
         mode_layout.addWidget(mode_libre)
+
+        # Charger circuit
+
+        charger_circuit = QPushButton()
+        charger_circuit.setText("Charger Circuit électrique")
+        mode_layout.addWidget(charger_circuit)
+
+        # Documentation
+        documentation = QPushButton()
+        documentation.setText("Documentation")
+        mode_layout.addWidget(documentation)
+
+        # à propos
+        bouton_propos = QPushButton()
+        bouton_propos.setText("à Propos")
+        mode_layout.addWidget(bouton_propos)
+
+        # Quitter
+        bouton_quitter = QPushButton()
+        bouton_quitter.setText("Quitter")
+        bouton_quitter.clicked.connect(lambda: self.close())
+        mode_layout.addWidget(bouton_quitter)
 
         self.graphic_view = QGraphicsView()
 
