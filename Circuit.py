@@ -202,6 +202,25 @@ class Circuit:
         self.dessiner_circuit(self.elements)
 
 
+class LoisPhysiques:
+    def loi_ohm(self, resistance, intensite):
+        tension = resistance * intensite
+        return tension
+
+    def resistance_serie(self, *args):
+        res_eq = 0
+        for arg in args:
+            res_eq += arg
+        return res_eq
+
+    def resistance_parallele(self, *args):
+        res_eq_partielle = 0
+        for arg in args:
+            res_eq_partielle += 1 / arg
+
+        return 1 / res_eq_partielle
+
+
 class CercleCliquable(QGraphicsEllipseItem):
     def __init__(self, x, y, diametre, main_window, cote):
         super().__init__(x - diametre / 2, y - diametre / 2, diametre, diametre)
