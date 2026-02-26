@@ -17,7 +17,7 @@ class AmperePro(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AmpèrePro")
-        self.setFixedSize(500, 500)
+        self.setMinimumSize(500, 500)
 
         main_layout = QVBoxLayout()
         main_widget = QWidget()
@@ -26,7 +26,7 @@ class AmperePro(QMainWindow):
 
         self.title = QLabel("AmpèrePro")
         self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.subtitle = QLabel("Choisie un mode pour continuer!")
+        self.subtitle = QLabel("Choisis un mode pour continuer!")
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(self.title)
         main_layout.addWidget(self.subtitle)
@@ -93,6 +93,14 @@ class AmperePro(QMainWindow):
         main_bouton.setIconSize(QSize(45, 45))
         main_bouton.clicked.connect(new_circuit.main_click)
         toolbar.addWidget(main_bouton)
+
+        # Ajoute le bouton fil à la toolbar
+        fil_icone = QIcon("images/toolbar/fil.webp")
+        fil_bouton = QPushButton()
+        fil_bouton.setIcon(fil_icone)
+        fil_bouton.setIconSize(QSize(45, 45))
+        fil_bouton.clicked.connect(new_circuit.fil_click)
+        toolbar.addWidget(fil_bouton)
 
         # Ajouter un bouton dans la toolbar pour chaque composante
         for dispositif in toolbar_composantes.values():
