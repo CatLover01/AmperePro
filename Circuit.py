@@ -3,46 +3,18 @@ from PySide6.QtGui import QIcon, QPixmap, QColorConstants, QPen, Qt, QPainterPat
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPushButton, QVBoxLayout, QLabel, \
     QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsPathItem, QGraphicsEllipseItem
 
-import Composantes
-from Composantes import toolbar_composantes
+from Composantes import toolbar_composantes, Item
 
 
-class Circuit(QMainWindow):
+class Circuit:
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Circuit")
-
         self.selection = None
 
         self.scene_size = QSize(500, 500)
         self.diametre_cercle = 25
 
-        toolbar = QToolBar()
-        self.addToolBar(toolbar)
-
-        # Ajoute le bouton main à la toolbar
-        main_icone = QIcon("images/toolbar/main.png")
-        main_bouton = QPushButton()
-        main_bouton.setIcon(main_icone)
-        main_bouton.setIconSize(QSize(45, 45))
-        main_bouton.clicked.connect(self.main_click)
-        toolbar.addWidget(main_bouton)
-
-        # Ajouter un bouton dans la toolbar pour chaque composante
-        for dispositif in toolbar_composantes.values():
-            bouton = QPushButton()
-            bouton.setIcon(QIcon(dispositif.image_toolbar))
-            bouton.setIconSize(QSize(45, 45))
-
-            bouton.clicked.connect(lambda _, x=dispositif: self.toolbar_clicked(x))
-
-            toolbar.addWidget(bouton)
-
         # Fenêtre de jeu
-        self.vue = QGraphicsView()
         self.scene = QGraphicsScene()
-        self.vue.setScene(self.scene)
-        self.setCentralWidget(self.vue)
 
         # Crée le circuit de base composé d'une batterie et de cercles cliquables
         batterie = toolbar_composantes['Batterie']
@@ -99,7 +71,7 @@ class Circuit(QMainWindow):
 
         self.selection = dispositif
 
-    #Dessine le fond de la scène et efface le path
+    # Dessine le fond de la scène et efface le path
     def dessiner_fond(self):
         self.circuit_fil.setPath(QPainterPath())
         self.scene.setBackgroundBrush(QColorConstants.White)
@@ -115,8 +87,8 @@ class Circuit(QMainWindow):
         largeur_min = 200
         hauteur_min = 100
 
-        centre_x = self.scene_size.width()/2
-        centre_y = self.scene_size.height()/2
+        centre_x = self.scene_size.width() / 2
+        centre_y = self.scene_size.height() / 2
 
         self.scene.addItem(self.circuit_fil)
         path = QPainterPath()
@@ -153,13 +125,15 @@ class Circuit(QMainWindow):
             if cote == "haut" or cote == "bas":
                 if cote == "bas":
                     mult = 1
-                pos = QPointF(centre_x + mult * (nb_elements_cotes[cote]-1)/2 * marge_element - mult * index * marge_element,
-                              centre_y + mult * hauteur/2)
+                pos = QPointF(
+                    centre_x + mult * (nb_elements_cotes[cote] - 1) / 2 * marge_element - mult * index * marge_element,
+                    centre_y + mult * hauteur / 2)
             else:
                 if cote == "gauche":
                     mult = 1
-                pos = QPointF(centre_x - mult * largeur/2,
-                              centre_y + mult * (nb_elements_cotes[cote]-1)/2 * marge_element - mult * index * marge_element)
+                pos = QPointF(centre_x - mult * largeur / 2,
+                              centre_y + mult * (nb_elements_cotes[
+                                                     cote] - 1) / 2 * marge_element - mult * index * marge_element)
 
             return pos, angle
 
@@ -173,10 +147,10 @@ class Circuit(QMainWindow):
             else:
                 element.setPos(position)
 
-        path.moveTo(QPointF(centre_x - largeur/2, centre_y + hauteur/2))
-        path.lineTo(QPointF(centre_x + largeur/2, centre_y + hauteur/2))
-        path.lineTo(QPointF(centre_x + largeur/2, centre_y - hauteur/2))
-        path.lineTo(QPointF(centre_x - largeur/2, centre_x - hauteur/2))
+        path.moveTo(QPointF(centre_x - largeur / 2, centre_y + hauteur / 2))
+        path.lineTo(QPointF(centre_x + largeur / 2, centre_y + hauteur / 2))
+        path.lineTo(QPointF(centre_x + largeur / 2, centre_y - hauteur / 2))
+        path.lineTo(QPointF(centre_x - largeur / 2, centre_x - hauteur / 2))
         path.closeSubpath()
 
         self.circuit_fil.setPath(path)
@@ -197,7 +171,7 @@ class Circuit(QMainWindow):
         pixmap = QPixmap(element.image_circuit)
         pixmap_scaled = pixmap.scaled(element.scale, element.scale, Qt.AspectRatioMode.KeepAspectRatio)
 
-        pixmap_item = Composantes.Item(element)
+        pixmap_item = Item(element)
         pixmap_item.setPixmap(pixmap_scaled)
 
         pixmap_item.setZValue(1)
@@ -230,7 +204,7 @@ class Circuit(QMainWindow):
 
 class CercleCliquable(QGraphicsEllipseItem):
     def __init__(self, x, y, diametre, main_window, cote):
-        super().__init__(x - diametre/2, y - diametre/2, diametre, diametre)
+        super().__init__(x - diametre / 2, y - diametre / 2, diametre, diametre)
         self.main_window = main_window
         self.diametre = diametre
         self.setZValue(1)
@@ -257,10 +231,3 @@ class CercleCliquable(QGraphicsEllipseItem):
     def hoverLeaveEvent(self, event):
         pinceau = QBrush(QColorConstants.White)
         self.setBrush(pinceau)
-
-
-if __name__ == "__main__":
-    app = QApplication()
-    window = Circuit()
-    window.show()
-    app.exec()
