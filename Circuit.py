@@ -16,6 +16,8 @@ class Circuit:
         # Fenêtre de jeu
         self.scene = QGraphicsScene()
 
+        self.fil_debute_cercle = None
+
         # Crée le circuit de base composé d'une batterie et de cercles cliquables
         batterie = toolbar_composantes['Batterie']
         batterie.item_instance = self.ajouter_pixmap(batterie)
@@ -51,6 +53,15 @@ class Circuit:
         for element in self.elements:
             if isinstance(element, CercleCliquable):
                 element.show()
+
+    def fil_click(self):
+        if self.selection is None:
+            self.dessiner_fond()
+            self.afficher_cercles()
+            self.afficher_cercles()
+            self.dessiner_circuit(self.elements)
+
+        self.selection = "fil"
 
     # Appelée lorsque la main est appuyé, change la selection et enlève les cercles du circuit
     def main_click(self):
@@ -150,7 +161,7 @@ class Circuit:
         path.moveTo(QPointF(centre_x - largeur / 2, centre_y + hauteur / 2))
         path.lineTo(QPointF(centre_x + largeur / 2, centre_y + hauteur / 2))
         path.lineTo(QPointF(centre_x + largeur / 2, centre_y - hauteur / 2))
-        path.lineTo(QPointF(centre_x - largeur / 2, centre_x - hauteur / 2))
+        path.lineTo(QPointF(centre_x - largeur / 2, centre_y - hauteur / 2))
         path.closeSubpath()
 
         self.circuit_fil.setPath(path)
@@ -180,26 +191,55 @@ class Circuit:
 
         return pixmap_item
 
+    def ajouter_fil(self, cercle_1, cercle_2):
+        pass
+
     def bouton_cercle_click(self, cercle):
-        cote = cercle.cote
-        index_cercle = self.elements.index(cercle)
-        element = self.selection.__class__()
-        self.elements[index_cercle] = element
-        self.scene.removeItem(cercle)
+        if self.selection != "fil":
+            cote = cercle.cote
+            index_cercle = self.elements.index(cercle)
+            element = self.selection.__class__()
+            self.elements[index_cercle] = element
+            self.scene.removeItem(cercle)
 
-        element.item_instance = self.ajouter_pixmap(element)
-        element.cote = cote
+            element.item_instance = self.ajouter_pixmap(element)
+            element.cote = cote
 
-        element_suivant = self.elements[(index_cercle + 1) % len(self.elements)]
-        if element_suivant.cote != element.cote or not isinstance(element_suivant, CercleCliquable):
-            self.elements.insert(index_cercle + 1, CercleCliquable(0, 0, self.diametre_cercle, self, cote))
+            element_suivant = self.elements[(index_cercle + 1) % len(self.elements)]
+            if element_suivant.cote != element.cote or not isinstance(element_suivant, CercleCliquable):
+                self.elements.insert(index_cercle + 1, CercleCliquable(0, 0, self.diametre_cercle, self, cote))
 
-        element_precedant = self.elements[index_cercle - 1]
-        if element_precedant.cote != element.cote or not isinstance(element_precedant, CercleCliquable):
-            self.elements.insert(index_cercle, CercleCliquable(0, 0, self.diametre_cercle, self, cote))
+            element_precedant = self.elements[index_cercle - 1]
+            if element_precedant.cote != element.cote or not isinstance(element_precedant, CercleCliquable):
+                self.elements.insert(index_cercle, CercleCliquable(0, 0, self.diametre_cercle, self, cote))
 
-        self.dessiner_fond()
-        self.dessiner_circuit(self.elements)
+            self.dessiner_fond()
+            self.dessiner_circuit(self.elements)
+        elif not self.fil_debute_cercle:
+            cercle.changer_couleur(QColorConstants.Red)
+            cercle.selectionne = True
+            self.fil_debute_cercle = cercle
+        else:
+            self.ajouter_fil(self.fil_debute_cercle, cercle)
+
+
+class LoisPhysiques:
+    def loi_ohm(self, resistance, intensite):
+        tension = resistance * intensite
+        return tension
+
+    def resistance_serie(self, *args):
+        res_eq = 0
+        for arg in args:
+            res_eq += arg
+        return res_eq
+
+    def resistance_parallele(self, *args):
+        res_eq_partielle = 0
+        for arg in args:
+            res_eq_partielle += 1 / arg
+
+        return 1 / res_eq_partielle
 
 
 class CercleCliquable(QGraphicsEllipseItem):
@@ -218,16 +258,21 @@ class CercleCliquable(QGraphicsEllipseItem):
         crayon.setWidth(3)
         self.setPen(crayon)
 
-        pinceau = QBrush(QColorConstants.White)
+        self.selectionne = False
+
+        self.changer_couleur(QColorConstants.White)
+
+    def changer_couleur(self, couleur):
+        pinceau = QBrush(couleur)
         self.setBrush(pinceau)
 
     def mousePressEvent(self, event):
         self.main_window.bouton_cercle_click(self)
 
     def hoverEnterEvent(self, event):
-        pinceau = QBrush(QColorConstants.Gray)
-        self.setBrush(pinceau)
+        if not self.selectionne:
+            self.changer_couleur(QColorConstants.Gray)
 
     def hoverLeaveEvent(self, event):
-        pinceau = QBrush(QColorConstants.White)
-        self.setBrush(pinceau)
+        if not self.selectionne:
+            self.changer_couleur(QColorConstants.White)
