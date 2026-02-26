@@ -1,5 +1,5 @@
 from PySide6.QtCore import QSize
-from PySide6.QtGui import Qt, QIcon, QPixmap
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QToolBar, QGridLayout
 from enum import Enum
@@ -25,7 +25,14 @@ class AmperePro(QMainWindow):
         self.setCentralWidget(main_widget)
 
         self.title = QLabel("AmpèrePro")
-        self.title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        self.title.setStyleSheet("color:yellow")
+
+        police = QFont()
+        police.setPointSize(32)
+        self.title.setFont(police)
+
+
         self.subtitle = QLabel("Choisis un mode pour continuer!")
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -34,7 +41,7 @@ class AmperePro(QMainWindow):
 
         #Logo
 
-        logo = QPixmap("./images/Menu/AmperePro_logo_resized.png")
+        logo = QPixmap("./images/Menu/AmperePro_logo.png")
         affichage_logo = QLabel()
         affichage_logo.setPixmap(logo)
         main_layout.addWidget(affichage_logo, 1, 1)
@@ -68,7 +75,7 @@ class AmperePro(QMainWindow):
 
         # à propos
         bouton_propos = QPushButton()
-        bouton_propos.setText("à Propos")
+        bouton_propos.setText("À Propos")
         mode_layout.addWidget(bouton_propos)
 
         # Quitter
