@@ -27,6 +27,7 @@ class CercleCliquable(QGraphicsEllipseItem):
 
         self.changer_couleur(QColorConstants.White)
 
+
     def changer_couleur(self, couleur):
         pinceau = QBrush(couleur)
         self.setBrush(pinceau)
@@ -68,6 +69,8 @@ class Circuit:
                          CercleCliquable(0, 0, self.diametre_cercle, self, Cote.Gauche)]
 
         self.circuit_fil = QGraphicsPathItem()
+        # pour garder en mémoire les fils ajoutés au circuit de base.
+        self.fils = []
 
         elements_sans_cercles = self.retirer_cercles()
 
@@ -204,6 +207,9 @@ class Circuit:
         path.closeSubpath()
 
         self.circuit_fil.setPath(path)
+        # on dessine les fils ajoutés et si on a modifié autre chose, on repositionne les fils
+        self.dessiner_fils()
+
 
     def placer_pixmap(self, element, pos, angle):
         item = element.item_instance
@@ -217,8 +223,37 @@ class Circuit:
         item.setRotation(angle)
 
     def ajouter_fil(self, cercle_1, cercle_2):
-        pass
+        # on ajoute les coordonées des cercles qui doivent être reliés
+        self.fils.append((cercle_1, cercle_2))
 
+        # on déselectionne les cercles et on réinitialise fil_debute_cercle
+        cercle_1.selectionne = False
+        cercle_1.changer_couleur(QColorConstants.White)
+        self.fil_debute_cercle = None
+
+        # on redessine
+        self.dessiner_fils()
+
+
+    def dessiner_fils(self):
+        rayon = self.diametre_cercle/2
+
+        # on veut que les fils partent du milieu des cercles. On crée alors un sous path reliant les emplacements
+        for cercle_1, cercle_2 in self.fils:
+            position_1 = cercle_1.scenePos()
+            position_2 = cercle_2.scenePos()
+            chemin = QPainterPath()
+            # on créer (moveTo) le sous path à 1 et on dessine jusqu'à 2
+            chemin = QPainterPath()
+            chemin.moveTo(position_1)
+            chemin.lineTo(position_2)
+
+            fil = QGraphicsPathItem(chemin)
+            crayon = QPen()
+            crayon.setColor(QColorConstants.Black)
+            crayon.setWidth(4)
+            fil.setPen(crayon)
+            self.scene.addItem(fil)
 
     def bouton_cercle_click(self, cercle):
         if self.selection != "fil":

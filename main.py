@@ -124,7 +124,7 @@ class AmperePro(QMainWindow):
         self.setCentralWidget(self.graphic_view)
 
         toolbar = QToolBar()
-        # Don't allow the user to hide the toolbar
+        # ne permet pas à l'utilisateur de cacher la toolbar.
         toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
 
         class ToolbarButton(QPushButton):
