@@ -110,7 +110,7 @@ class Circuit:
             self.dessiner_circuit(elements)
 
     # Appelée lorsque une composante est appuyée dans la toolbar, change la sélection
-    # et affiche les cercles si c'est pas déjà le cas
+    # et affiche les cercles si ce n'est pas déjà le cas
     def toolbar_clicked(self, dispositif: ComposanteBase):
         if self.selection is None:
             self.dessiner_fond()
