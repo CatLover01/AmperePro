@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from PySide6.QtCore import QSize
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
@@ -5,7 +7,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
 from enum import Enum
 
 from Circuit import Circuit
-from Composantes import toolbar_composantes
+from Composantes import toolbar_composantes, ComposanteBase
 
 
 class Mode(Enum):
@@ -122,10 +124,20 @@ class AmperePro(QMainWindow):
         self.setCentralWidget(self.graphic_view)
 
         toolbar = QToolBar()
+        # Don't allow the user to hide the toolbar
+        toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
+
+        class ToolbarButton(QPushButton):
+            def __init__(self, nom: str):
+                super().__init__()
+                self.nom = nom
+
+            def enterEvent(self, event):
+                self.setToolTip(self.nom)
 
         # Ajoute le bouton main à la toolbar
         main_icone = QIcon("images/toolbar/main.png")
-        main_bouton = QPushButton()
+        main_bouton = ToolbarButton("Main")
         main_bouton.setIcon(main_icone)
         main_bouton.setIconSize(QSize(45, 45))
         main_bouton.clicked.connect(new_circuit.main_click)
@@ -133,20 +145,20 @@ class AmperePro(QMainWindow):
 
         # Ajoute le bouton fil à la toolbar
         fil_icone = QIcon("images/toolbar/fil.webp")
-        fil_bouton = QPushButton()
+        fil_bouton = ToolbarButton("Fil")
         fil_bouton.setIcon(fil_icone)
         fil_bouton.setIconSize(QSize(45, 45))
         fil_bouton.clicked.connect(new_circuit.fil_click)
         toolbar.addWidget(fil_bouton)
 
+
         # Ajouter un bouton dans la toolbar pour chaque composante
-        for dispositif in toolbar_composantes.values():
-            bouton = QPushButton()
-            bouton.setIcon(QIcon(dispositif.image_toolbar))
+        for composante in toolbar_composantes.values():
+            bouton = ToolbarButton(composante.nom)
+            bouton.setIcon(QIcon(composante.image_toolbar))
             bouton.setIconSize(QSize(45, 45))
 
-            bouton.clicked.connect(lambda _, x=dispositif: new_circuit.toolbar_clicked(x))
-
+            bouton.clicked.connect(lambda _, c=composante: new_circuit.toolbar_clicked(c))
             toolbar.addWidget(bouton)
 
         self.addToolBar(toolbar)

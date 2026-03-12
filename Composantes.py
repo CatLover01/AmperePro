@@ -1,157 +1,172 @@
+from collections.abc import Callable
+from enum import Enum
+
 from PySide6.QtGui import QPixmap, Qt, QTransform
 from PySide6.QtWidgets import QGraphicsPixmapItem
-
-# Faudrait peut-être créer une classe abstraite pour les composantes
-# Chaque classe a un nom (sûrement inutile et à enlever), son image dans la tool bar et dans le circuit,
-# le scale de son image dans le circuit, si il doit se tourner (les composantes qui ont des lettre sur
-# l'image peuvent pas). item_instance est leur QGraphicsPixmapItem et cote le cote ou ils sont
-# Et def clicked est appelé quand leur item_instance est cliqué
+from abc import ABC
 
 
-class Batterie:
+class Cote(Enum):
+    Gauche = 1
+    Droite = 2
+    Haut = 3
+    Bas = 4
+
+
+# Type de composante dont nous supportons
+class Type(Enum):
+    Batterie = 1
+    LED = 2
+    Resistor = 3
+    Diode = 4
+    Interrupteur = 5
+    Voltmetre = 6
+    Amperemetre = 7
+
+
+# Description will be used for the documentation within the app
+class ComposanteBase(ABC):
+    def __init__(self, type: Type, nom: str, image_toolbar: str, image_circuit: str, scale: int,
+                 description: str):
+        self.type = type
+        self.nom = nom
+        self.description = description
+        self.image_toolbar = image_toolbar
+        self.image_circuit = image_circuit
+        self.scale = scale
+
+
+class Batterie(ComposanteBase):
     def __init__(self):
-        self.nom = "Batterie"
-        self.image_toolbar = "images/toolbar/batterie.jpg"
-        self.image_circuit = "images/circuit/batterie.png"
-        self.scale = 40
-        self.rotate = True
-
-        self.item_instance = None
-        self.cote = None
-
-    def clicked(self):
-        pass
+        super().__init__(Type.Batterie, "Batterie", "images/toolbar/batterie.jpg",
+                         "images/circuit/batterie.png", 40, "A faire...")
 
 
-class LED:
+class LED(ComposanteBase):
     def __init__(self):
-        self.nom = "LED"
-        self.image_toolbar = "images/toolbar/LED.webp"
-        self.image_circuit = "images/circuit/LED.png"
-        self.scale = 68
-        self.rotate = True
-
-        self.item_instance = None
-        self.cote = None
-        self.sens = 1
-
-    def clicked(self):
-        # Flip la LED
-        transform = QTransform()
-        transform.scale(-1, 1)
-        pixmap_flipped = self.item_instance.pixmap().transformed(transform)
-        self.item_instance.setPixmap(pixmap_flipped)
-        self.sens *= -1
+        super().__init__(Type.LED, "LED", "images/toolbar/LED.webp", "images/circuit/LED.png", 68,
+                         "- Diode qui émet de la lumière quand le courant passe dans le bon sens"
+                         "- Elle a une polarité : anode (+) et cathode (-). \n"
+                         "- On met souvent une résistance en série une LED pour évitr trop de courant"
+                         )
 
 
-class Resistor:
+class Resistor(ComposanteBase):
     def __init__(self):
-        self.nom = "Resistor"
-        self.image_toolbar = "images/toolbar/resistor.jpg"
-        self.image_circuit = "images/circuit/resistor.png"
-        self.scale = 56
-        self.rotate = True
-
-        self.item_instance = None
-        self.cote = None
-
-    def clicked(self):
-        pass
+        super().__init__(Type.Resistor, "Résisteur", "images/toolbar/resistor.jpg",
+                         "images/circuit/resistor.png", 56,
+                         "- Composante qui limite le courant. \n"
+                         "- Unité : Ohms (Ω) \n"
+                         "- Loi d'Ohm : V = R · I \n"
+                         "- Baisse l'intensité du courant. \n"
+                         "- V en Volts, R en Ohms, I en Ampères"
+                         )
 
 
-class Diode:
+class Diode(ComposanteBase):
     def __init__(self):
-        self.nom = "Diode"
-        self.image_toolbar = "images/toolbar/diode.jpg"
-        self.image_circuit = "images/circuit/diode.png"
-        self.scale = 30
-        self.rotate = True
-
-        self.item_instance = None
-        self.cote = None
-        self.sens = 1
-
-    def clicked(self):
-        #Flip la diode
-        transform = QTransform()
-        transform.scale(-1, 1)
-        pixmap_flipped = self.item_instance.pixmap().transformed(transform)
-        self.item_instance.setPixmap(pixmap_flipped)
-        self.sens *= -1
+        super().__init__(Type.Diode, "Diode", "images/toolbar/diode.jpg", "images/circuit/diode.png", 30,
+                         "- Laisse passer le courant dans un seul sens ( en résumé ). \n"
+                         "- Polarité importante. \n"
+                         "- Utile pour boquer le retour de courant ou redresser un signal "
+                         )
 
 
-class Interrupteur:
+class Interrupteur(ComposanteBase):
     def __init__(self):
-        self.nom = "Interrupteur"
-        self.image_toolbar = "images/toolbar/interrupteur.jpg"
-        self.image_ouvert = "images/circuit/interrupteur_ouvert.png"
-        self.image_ferme = "images/circuit/interrupteur_ferme.png"
-        self.scale = 45
-        self.rotate = True
-
-        self.image_circuit = self.image_ouvert
-        self.item_instance = None
-        self.cote = None
-        self.ouvert = True
-
-    def clicked(self):
-        if self.image_circuit == self.image_ouvert:
-            self.image_circuit = self.image_ferme
-        else:
-            self.image_circuit = self.image_ouvert
-
-        pixmap = QPixmap(self.image_circuit)
-        pixmap_scaled = pixmap.scaled(self.scale, self.scale, Qt.AspectRatioMode.KeepAspectRatio)
-
-        self.item_instance.setPixmap(pixmap_scaled)
-        self.ouvert = False
+        super().__init__(Type.Interrupteur, "Interrupteur", "images/toolbar/interrupteur.jpg",
+                         "images/circuit/interrupteur_ouvert.png", 45,
+                         "- Sert à ouvrir ou fermer un circuit. \n"
+                         "- Ouvert : le courant ne passe pas. \n"
+                         "- Fermé : le courant peut passer ( si le circuit est complet )."
+                         )
 
 
-class Voltmetre:
+class Voltmetre(ComposanteBase):
     def __init__(self):
-        self.nom = "Voltmetres"
-        self.image_toolbar = "images/toolbar/voltmetre.jpg"
-        self.image_circuit = "images/circuit/voltmetre.png"
-        self.scale = 40
-        self.rotate = False
-
-        self.item_instance = None
-        self.cote = None
-
-    def clicked(self):
-        pass
+        super().__init__(Type.Voltmetre, "Voltmètre", "images/toolbar/voltmetre.jpg",
+                         "images/circuit/voltmetre.png", 40,
+                         "- Sert à mesurer la tension (différence de potentiel) entre deux points. \n "
+                         "- Unité : Volt (V). \n "
+                         "- Se branche en parallèle aux bornes de la composante dont on veut mesurer la tension. \n"
+                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas déranger le circuit."
+                         )
 
 
-class Amperemetre:
+class Amperemetre(ComposanteBase):
     def __init__(self):
-        self.nom = "Amperemetre"
-        self.image_toolbar = "images/toolbar/amperemetre.jpg"
-        self.image_circuit = "images/circuit/amperemetre.png"
-        self.scale = 40
-        self.rotate = False
-
-        self.item_instance = None
-
-    def clicked(self):
-        pass
+        super().__init__(Type.Amperemetre, "Ampèremètre", "images/toolbar/amperemetre.jpg",
+                         "images/circuit/amperemetre.png", 40,
+                         "- Sert à mesurer le courant électrique qui traverse une branche. \n"
+                         "- Unité : Ampères (A). \n "
+                         "- Se branche en série dans la branche où on veut mesurer le courant \n"
+                         "- Idéalement, la résistance dans l'ampèremètre est très faible."
+                         )
 
 
 # Classe des item_instance des composantes
 class Item(QGraphicsPixmapItem):
-    def __init__(self, parent):
-        super().__init__()
-        self.parent = parent
+    def __init__(self, pixmap, callback: Callable):
+        super().__init__(pixmap)
+        self.callback = callback
 
     # appel la fonction clicked de sa composante parente
     def mousePressEvent(self, event):
-        self.parent.clicked()
+        self.callback()
+
+
+class Composante:
+    def __init__(self, composante: Type):
+        self.base = toolbar_composantes[composante]
+        self.item_instance = None
+        self.cote: Cote | None = None
+
+        match composante:
+            case Type.Interrupteur:
+                self.ouvert = True
+                self.image_ferme = "images/circuit/interrupteur_ferme.png"
+
+    def ajouter_pixmap(self) -> QGraphicsPixmapItem:
+        pixmap = QPixmap(self.base.image_circuit)
+        pixmap_scaled = pixmap.scaled(self.base.scale, self.base.scale, Qt.AspectRatioMode.KeepAspectRatio)
+        pixmap_item = Item(pixmap_scaled, self.clicked)
+
+        pixmap_item.setZValue(1)
+        self.item_instance = pixmap_item
+
+        # Retourner pour l'ajouter à la scène
+        return pixmap_item
+
+    def clicked(self):
+        if self.item_instance is None:
+            return
+
+        match self.base.type:
+            case Type.LED | Type.Diode:
+                transform = QTransform()
+                transform.scale(-1, 1)
+                pixmap_flipped = self.item_instance.pixmap().transformed(transform)
+                self.item_instance.setPixmap(pixmap_flipped)
+
+            case Type.Interrupteur:
+                if self.ouvert:
+                    image = self.image_ferme
+                else:
+                    # Image circuit est ouvert par défault dans la classe de base
+                    image = self.base.image_circuit
+
+                self.ouvert = not self.ouvert
+
+                pixmap = QPixmap(image)
+                pixmap_scaled = pixmap.scaled(self.base.scale, self.base.scale, Qt.AspectRatioMode.KeepAspectRatio)
+                self.item_instance.setPixmap(pixmap_scaled)
 
 
 toolbar_composantes = {
-    "Batterie": Batterie(),
-    "LED": LED(),
-    "Resistor": Resistor(),
-    "Diode": Diode(),
-    "Interrupteur": Interrupteur(),
-    "Voltmetre": Voltmetre(),
-    "Amperemetre": Amperemetre()}
+    Type.Batterie: Batterie(),
+    Type.LED: LED(),
+    Type.Resistor: Resistor(),
+    Type.Diode: Diode(),
+    Type.Interrupteur: Interrupteur(),
+    Type.Voltmetre: Voltmetre(),
+    Type.Amperemetre: Amperemetre()}
