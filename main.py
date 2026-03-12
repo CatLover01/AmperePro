@@ -57,34 +57,39 @@ class AmperePro(QMainWindow):
         mode_niveau.setText("Mode Niveau")
         mode_niveau.clicked.connect(lambda: self.change_mode(Mode.Niveau))
         mode_layout.addWidget(mode_niveau)
+        mode_niveau.setStyleSheet("QPushButton:hover { background-color: gray; color: white; }")
 
         # Mode Libre
         mode_libre = QPushButton()
         mode_libre.setText(" Mode Libre")
         mode_libre.clicked.connect(lambda: self.change_mode(Mode.Libre))
         mode_layout.addWidget(mode_libre)
+        mode_libre.setStyleSheet("QPushButton:hover { background-color: gray; color: white; }")
 
         # Charger circuit
-
         charger_circuit = QPushButton()
         charger_circuit.setText("Charger Circuit électrique")
         mode_layout.addWidget(charger_circuit)
+        charger_circuit.setStyleSheet("QPushButton:hover { background-color: gray; color: white; }")
 
         # Documentation
         documentation = QPushButton()
         documentation.setText("Documentation")
         mode_layout.addWidget(documentation)
+        documentation.setStyleSheet("QPushButton:hover { background-color: gray; color: white; }")
 
         # à propos
         bouton_propos = QPushButton()
         bouton_propos.setText("À Propos")
         mode_layout.addWidget(bouton_propos)
+        bouton_propos.setStyleSheet("QPushButton:hover { background-color: gray; color: white; }")
 
         # Quitter
         bouton_quitter = QPushButton()
         bouton_quitter.setText("Quitter")
         bouton_quitter.clicked.connect(lambda: self.close())
         mode_layout.addWidget(bouton_quitter)
+        bouton_quitter.setStyleSheet("QPushButton:hover { background-color: gray; color: white; }")
 
         self.graphic_view = QGraphicsView()
 
@@ -166,6 +171,10 @@ class AmperePro(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication()
+    app.setStyle("Fusion")
+
+    with open("StyleSheet.qss") as f:
+        app.setStyleSheet(f.read())
     window = AmperePro()
     window.show()
     app.exec()
