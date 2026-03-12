@@ -1,9 +1,8 @@
 from enum import Enum
-
 from PySide6.QtCore import QSize, QPoint, QPointF
 from PySide6.QtGui import QIcon, QPixmap, QColorConstants, QPen, Qt, QPainterPath, QBrush, QColor
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPushButton, QVBoxLayout, QLabel, \
-    QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsPathItem, QGraphicsEllipseItem
+    QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsPathItem, QGraphicsEllipseItem, QGraphicsLineItem
 
 from Composantes import Type, Composante, ComposanteBase, Cote
 
@@ -220,6 +219,7 @@ class Circuit:
     def ajouter_fil(self, cercle_1, cercle_2):
         pass
 
+
     def bouton_cercle_click(self, cercle):
         if self.selection != "fil":
             cote = cercle.cote
@@ -252,17 +252,20 @@ class Circuit:
 
 
 class LoisPhysiques:
-    def loi_ohm(self, resistance, intensite):
+    @staticmethod
+    def loi_ohm(resistance, intensite):
         tension = resistance * intensite
         return tension
 
-    def resistance_serie(self, *args):
+    @staticmethod
+    def resistance_serie(*args):
         res_eq = 0
         for arg in args:
             res_eq += arg
         return res_eq
 
-    def resistance_parallele(self, *args):
+    @staticmethod
+    def resistance_parallele(*args):
         res_eq_partielle = 0
         for arg in args:
             res_eq_partielle += 1 / arg
