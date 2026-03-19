@@ -1,9 +1,7 @@
-from collections.abc import Callable
-
 from PySide6.QtCore import QSize, QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QGridLayout, QMenuBar, QMenu
+    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea
 from enum import Enum
 
 from Circuit import Circuit
@@ -21,15 +19,42 @@ class AmperePro(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        styleMain = QFile("StyleSheet/StyleMainWindow.qss")
-        if styleMain.open(QFile.ReadOnly | QFile.Text):
-            stream = QTextStream(styleMain)
+        style_main = QFile("StyleMainWindow.qss")
+        if style_main.open(QFile.ReadOnly | QFile.Text):
+            stream = QTextStream(style_main)
             self.setStyleSheet(stream.readAll())
-            styleMain.close()
+            style_main.close()
 
         self.setWindowTitle("AmpèrePro")
         self.setMinimumSize(500, 500)
 
+        self.title = None
+        self.init_main_window()
+
+        # Menus
+        menu_bar = self.menuBar()
+        menu_aide = QMenu("Aide")
+
+        # Documentation
+        documentation_action = QAction("Documentation", self)
+        documentation_action.triggered.connect(self.ouvrir_documentation)
+        menu_aide.addAction(documentation_action)
+
+        # À propos
+        a_propos_action = QAction("À Propos", self)
+        # aide_action.triggered.connect() ouvrir a propos
+        menu_aide.addAction(a_propos_action)
+
+        menu_bar.addMenu(menu_aide)
+
+        # Quitter
+        quitter_action = QAction("Quitter", self)
+        quitter_action.triggered.connect(self.close)
+        menu_bar.addAction(quitter_action)
+
+        self.graphic_view = QGraphicsView()
+
+    def init_main_window(self):
         main_layout = QVBoxLayout()
         main_widget = QWidget()
         main_widget.setLayout(main_layout)
@@ -77,11 +102,11 @@ class AmperePro(QMainWindow):
 
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
-        styleDocu = QFile("StyleSheet/StyleDocumentation.qss")
-        if styleDocu.open(QFile.ReadOnly | QFile.Text):
-            stream_Docu = QTextStream(styleDocu)
-            self.fenetre_doc.setStyleSheet(stream_Docu.readAll())
-            styleDocu.close()
+        style_docu = QFile("StyleDocumentation.qss")
+        if style_docu.open(QFile.ReadOnly | QFile.Text):
+            stream_docu = QTextStream(style_docu)
+            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+            style_docu.close()
 
         self.fenetre_doc.show()
 
@@ -109,16 +134,16 @@ class AmperePro(QMainWindow):
         self.graphic_view = QGraphicsView()
 
     def change_mode(self, new_mode: Mode):
+        main_layout = QVBoxLayout()
+        main_widget = QWidget()
+        main_widget.setLayout(main_layout)
+        self.setCentralWidget(main_widget)
+        main_layout.addWidget(self.title)
+
         match new_mode:
             case Mode.Libre:
-                main_layout = QVBoxLayout()
-                main_widget = QWidget()
-                main_widget.setLayout(main_layout)
-                self.setCentralWidget(main_widget)
-
                 subtitle = QLabel("Crée un nouveau circuit!")
                 subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                main_layout.addWidget(self.title)
                 main_layout.addWidget(subtitle)
 
                 # Nouvelle Section Mode libre
@@ -138,7 +163,40 @@ class AmperePro(QMainWindow):
                 # mode_libre_layout.addLayout(preview_circuit)
 
             case Mode.Niveau:
-                pass  # TODO
+                # Liste de config json pour tout les niveaux
+                # devrait probablement être dans niveau/1.json et niveau/2.json ...
+                niveau = [".", ".", ".", ".", ".", ".", "."]
+
+                scroll_area = QScrollArea()
+                main_layout.addWidget(scroll_area)
+
+                widget = QWidget()
+                niveau_layout = QVBoxLayout(widget)
+
+                for index, file_path in enumerate(niveau):
+                    group_box = QGroupBox(f"Niveau {index + 1}")
+                    group_box_layout = QHBoxLayout()
+                    group_box.setLayout(group_box_layout)
+
+                    # bouton débuter et la group box devrait être disabled si le niveau de l'utilisateur est initial
+                    # Doit sauvegarder en json pour savoir ou l'utilisateur est rendu et guarder le progret
+                    button = QPushButton("Débuter")
+                    group_box_layout.addWidget(button)
+
+                    # Ici on pourrait généré un preview selon le json
+                    #preview_image = QPixmap()
+                    #label = QLabel(pixmap=preview_image)
+                    #group_box_layout.addWidget(label)
+
+                    niveau_layout.addWidget(group_box)
+
+                scroll_area.setWidget(widget)
+
+        # Bouton pour retourner au menu initial
+        retour_arriere = QPushButton("Retour en Arrière")
+        retour_arriere.clicked.connect(self.init_main_window)
+        main_layout.addWidget(retour_arriere)
+
 
     def add_circuit(self):
         new_circuit = Circuit()
