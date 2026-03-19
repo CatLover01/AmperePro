@@ -40,9 +40,9 @@ class Batterie(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Batterie, "Batterie", "images/toolbar/batterie.jpg",
                          "images/circuit/batterie.png", 40,
-                         "- Fournit l’énergie électrique au circuit. \n"
-                         "- Crée une différence de potentiel (tension). \n"
-                         "- Possède une borne positive (+) et négative (-). \n"
+                         "- Fournit l’énergie électrique au circuit. <br>"
+                         "- Crée une différence de potentiel (tension). <br>"
+                         "- Possède une borne positive (+) et négative (-). <br>"
                          "- Permet au courant de circuler dans le circuit."
                          )
 
@@ -50,8 +50,8 @@ class Batterie(ComposanteBase):
 class LED(ComposanteBase):
     def __init__(self):
         super().__init__(Type.LED, "LED", "images/toolbar/LED.webp", "images/circuit/LED.png", 68,
-                         "- Diode qui émet de la lumière quand le courant passe dans le bon sens \n"
-                         "- Elle a une polarité : anode (+) et cathode (-). \n"
+                         "- Diode qui émet de la lumière quand le courant passe dans le bon sens <br>"
+                         "- Elle a une polarité : anode (+) et cathode (-). <br>"
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
                          )
 
@@ -60,10 +60,10 @@ class Resistor(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Resistor, "Résisteur", "images/toolbar/resistor.jpg",
                          "images/circuit/resistor.png", 56,
-                         "- Composante qui limite le courant. \n"
-                         "- Unité : Ohms (Ω) \n"
-                         "- Loi d'Ohm : V = R · I \n"
-                         "- Baisse l'intensité du courant. \n"
+                         "- Composante qui limite le courant. <br>"
+                         "- Unité : Ohms (Ω) <br>"
+                         "- Loi d'Ohm : V = R · I <br>"
+                         "- Baisse l'intensité du courant. <br>"
                          "- V en Volts, R en Ohms, I en Ampères"
                          )
 
@@ -71,8 +71,8 @@ class Resistor(ComposanteBase):
 class Diode(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Diode, "Diode", "images/toolbar/diode.jpg", "images/circuit/diode.png", 30,
-                         "- Laisse passer le courant dans un seul sens ( en résumé ). \n"
-                         "- Polarité importante. \n"
+                         "- Laisse passer le courant dans un seul sens ( en résumé ). <br>"
+                         "- Polarité importante. <br>"
                          "- Utile pour boquer le retour de courant ou redresser un signal "
                          )
 
@@ -81,8 +81,8 @@ class Interrupteur(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Interrupteur, "Interrupteur", "images/toolbar/interrupteur.jpg",
                          "images/circuit/interrupteur_ouvert.png", 45,
-                         "- Sert à ouvrir ou fermer un circuit. \n"
-                         "- Ouvert : le courant ne passe pas. \n"
+                         "- Sert à ouvrir ou fermer un circuit. <br>"
+                         "- Ouvert : le courant ne passe pas. <br>"
                          "- Fermé : le courant peut passer ( si le circuit est complet )."
                          )
 
@@ -91,9 +91,9 @@ class Voltmetre(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Voltmetre, "Voltmètre", "images/toolbar/voltmetre.jpg",
                          "images/circuit/voltmetre.png", 40,
-                         "- Sert à mesurer la tension (différence de potentiel) entre deux points. \n "
-                         "- Unité : Volt (V). \n "
-                         "- Se branche en parallèle aux bornes de la composante dont on veut mesurer la tension. \n"
+                         "- Sert à mesurer la tension (différence de potentiel) entre deux points. <br> "
+                         "- Unité : Volt (V). <br> "
+                         "- Se branche en parallèle aux bornes de la composante dont on veut mesurer la tension. <br>"
                          "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas déranger le circuit."
                          )
 
@@ -102,9 +102,9 @@ class Amperemetre(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Amperemetre, "Ampèremètre", "images/toolbar/amperemetre.jpg",
                          "images/circuit/amperemetre.png", 40,
-                         "- Sert à mesurer le courant électrique qui traverse une branche. \n"
-                         "- Unité : Ampères (A). \n "
-                         "- Se branche en série dans la branche où on veut mesurer le courant \n"
+                         "- Sert à mesurer le courant électrique qui traverse une branche. <br>"
+                         "- Unité : Ampères (A). <br> "
+                         "- Se branche en série dans la branche où on veut mesurer le courant <br>"
                          "- Idéalement, la résistance dans l'ampèremètre est très faible."
                          )
 

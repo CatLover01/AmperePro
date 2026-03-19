@@ -17,24 +17,24 @@ Texte = {
         "- 1/R_eq = 1/R1 + 1/R2 + 1/R3 \n"
     ),
  "Loi d'Ohm": (
-        "Loi d'Ohm \n\n"
-        "- Relation entre tension, courant et résistance. \n"
-        "- Formule : V = R · I \n"
+
+        "- Relation entre tension, courant et résistance. <br>"
+        "- Formule : V = R · I <br>"
         "- V en Volts, R en Ohms, I en Ampères"
     ),
 
     "Loi de Kirchhoff": (
-        "Loi de Kirchhoff \n\n"
-        "Loi des noeuds : \n"
-        "- La somme des courants entrants = somme des courants sortants. \n\n"
-        "Loi des mailles : \n"
+
+        "Loi des noeuds : <br>"
+        "- La somme des courants entrants = somme des courants sortants. <br><br>"
+        "Loi des mailles : <br>"
         "- La somme des tensions dans une boucle = 0."
     ),
 
     "Puissance électrique": (
-        "Puissance électrique \n\n"
-        "- Mesure l’énergie consommée. \n"
-        "- Formule : P = V · I \n"
+
+        "- Mesure l’énergie consommée. <br>"
+        "- Formule : P = V · I <br>"
         "- Unité : Watt (W)"
     )
 }
