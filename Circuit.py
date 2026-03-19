@@ -3,6 +3,8 @@ from PySide6.QtCore import QSize, QPoint, QPointF
 from PySide6.QtGui import QIcon, QPixmap, QColorConstants, QPen, Qt, QPainterPath, QBrush, QColor
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPushButton, QVBoxLayout, QLabel, \
     QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsPathItem, QGraphicsEllipseItem, QGraphicsLineItem
+import numpy as np
+from scipy.linalg import solve
 
 from Composantes import Type, Composante, ComposanteBase, Cote
 
@@ -39,7 +41,16 @@ class Serie:
                 tension += composante.tension
         return res, tension
 
+    def ajouter_composante(self, cercle, type):
+        nouvelle_composante = Composante(type)
+        index_cercle = self.composantes.index(cercle)
+        self.composantes.insert(index_cercle, nouvelle_composante)
+        nouveau_cercle = CercleCliquable(self, self.main_window)
+        self.composantes.insert(index_cercle, nouveau_cercle)
+        self.calculs()
+
     def ajouter_noeud(self, cercle):
+        # s'il a déjà des noeuds, on travaille à partir de ceux-cis
         if isinstance(cercle, CercleCliquable):
             index_point = self.composantes.index(cercle)
             nouveau_noeud = Noeud()
@@ -57,7 +68,7 @@ class Serie:
 
             return nouveau_noeud
 
-        # Si on a recu liste de deux cercles puisque c'est la serie de base sans noeud
+        # Si on a reçu liste de deux cercles puisque c'est la serie de base sans noeud
         else:
             index_min = min(self.composantes.index(cercle[0]), self.composantes.index(cercle[1]))
             index_max = max(self.composantes.index(cercle[0]), self.composantes.index(cercle[1]))
@@ -129,6 +140,9 @@ class Circuit:
 
         # Fenêtre de jeu
         self.scene = QGraphicsScene()
+        self.fils = []
+
+        self.noeuds = ()
 
         self.circuit_fil = QGraphicsPathItem()
 
@@ -174,6 +188,7 @@ class Circuit:
         largeur_min = 200
         hauteur_min = 100
 
+        """
         centre_x = self.scene_size.width() / 2
         centre_y = self.scene_size.height() / 2
 
@@ -204,7 +219,7 @@ class Circuit:
             angle = 0
             nombres = list(nb_elements_cotes.values())
 
-            """
+            
             for i in range(4):
                 if nombres[i] > index:
                     break
@@ -259,6 +274,27 @@ class Circuit:
         item.setTransformOriginPoint(pivot)
         item.setRotation(angle)
 
+    def calculer_voltage(self):
+        mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
+        mat_B = np.zeros((len(self.noeuds) - 1, 1))
+
+        noeud_zero = self.noeuds[-1]
+        noeud_zero.voltage = 0
+        for i in range(len(self.noeuds) - 1):
+            j_noeud = i
+            for info in self.noeuds[i].info_voisins:
+                j_voisin = info[1]
+                serie = info[0]
+
+                mat_A[i, j_noeud] += 1 / serie.resistance
+                mat_B[i, 0] -= serie.tension / serie.resistance
+                if self.noeuds[j_voisin] != noeud_zero:
+                    mat_A[i, j_voisin] -= 1 / serie.resistance
+
+        mat_X = solve(mat_A, mat_B)
+        for i in range(len(mat_X)):
+            self.noeuds[i].voltage = mat_X[i][0]
+
     def ajouter_fil(self, cercle_1, cercle_2):
         # on ajoute les coordonées des cercles qui doivent être reliés
         self.fils.append((cercle_1, cercle_2))
@@ -271,29 +307,25 @@ class Circuit:
         # on redessine
         self.dessiner_fils()
 
-
     def dessiner_fils(self):
-        rayon = self.diametre_cercle/2
 
-        # on veut que les fils partent du milieu des cercles. On crée alors un sous path reliant les emplacements
+        # on veut que les fils partent du milieu des cercles
         for cercle_1, cercle_2 in self.fils:
             position_1 = cercle_1.scenePos()
             position_2 = cercle_2.scenePos()
-            chemin = QPainterPath()
-            # on créer (moveTo) le sous path à 1 et on dessine jusqu'à 2
-            chemin = QPainterPath()
-            chemin.moveTo(position_1)
-            chemin.lineTo(position_2)
 
-            fil = QGraphicsPathItem(chemin)
-            crayon = QPen()
-            crayon.setColor(QColorConstants.Black)
-            crayon.setWidth(4)
-            fil.setPen(crayon)
-            self.scene.addItem(fil)
+        # on veut tracer un rectangle. on cachera la partie "à l'intérieur."
+        longueur_x = 0
+        longueur_y = 0
+        # on veut d'abord ajouter en x et y la longueur pour créer le coin intérieur
+        longueur_x += abs(position_1.x()-position_2.x())
+        longueur_y += abs(position_1.y()-position_2.y())
+        # on veut ensuite ajouter la partie extérieure.
 
     def bouton_cercle_click(self, cercle):
         if self.selection != "fil":
+            cercle.serie_parente.ajouter_composante(self.selection.type)
+            """
             cote = cercle.cote
             index_cercle = self.elements.index(cercle)
             new_composante = Composante(self.selection.type)
@@ -313,6 +345,7 @@ class Circuit:
 
             self.dessiner_fond()
             self.dessiner_circuit(self.elements)
+            """
 
         elif not self.fil_debute_cercle:
             cercle.changer_couleur(QColorConstants.Red)
@@ -341,5 +374,4 @@ class LoisPhysiques:
         res_eq_partielle = 0
         for arg in args:
             res_eq_partielle += 1 / arg
-
         return 1 / res_eq_partielle
