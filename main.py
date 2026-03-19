@@ -167,6 +167,10 @@ class AmperePro(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication()
+    app.setStyle("Fusion")
+
+    with open("StyleSheet.qss") as f:
+        app.setStyleSheet(f.read())
     window = AmperePro()
     window.show()
     app.exec()
