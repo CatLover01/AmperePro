@@ -103,6 +103,7 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(a_propos_button)
         a_propos_button.clicked.connect(self.ouvrir_a_propos)
 
+
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
         style_docu = QFile("StyleDocumentation.qss")
