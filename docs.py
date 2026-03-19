@@ -1,3 +1,4 @@
+from PySide6 import QtCore
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QListWidget, QLabel, QPushButton
@@ -41,7 +42,11 @@ class DocumentationWindow(QMainWindow):
         # texte à droite
         self.label = QLabel("Clique sur un sujet")
 
+        self.label.setFixedSize(450, 400)
+        self.label.setAlignment(QtCore.Qt.AlignTop)
         self.label.setAlignment(Qt.AlignTop)
+        self.label.setStyleSheet("border: 1px solid black; padding: 8px;")
+        self.label.setWordWrap(True)
 
         # connecter le clic
         self.liste.itemClicked.connect(self.changer_texte)
@@ -52,6 +57,10 @@ class DocumentationWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
+        bouton_retour = QPushButton("Retour")
+        bouton_retour.clicked.connect(self.close)
+        layout.addWidget(bouton_retour)
+
     def changer_texte(self, item):
         texte_selectionne = item.text()
 
@@ -59,7 +68,8 @@ class DocumentationWindow(QMainWindow):
             self.label.setText(Texte["Série / Parallèle"])
             return
 
+
         for composante in toolbar_composantes.values():
             if texte_selectionne == composante.nom:
-                self.label.setText(composante.description)
+                self.label.setText(composante.nom + "\n\n" + composante.description)
                 return

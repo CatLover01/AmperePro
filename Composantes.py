@@ -45,7 +45,7 @@ class Batterie(ComposanteBase):
 class LED(ComposanteBase):
     def __init__(self):
         super().__init__(Type.LED, "LED", "images/toolbar/LED.webp", "images/circuit/LED.png", 68,
-                         "- Diode qui émet de la lumière quand le courant passe dans le bon sens"
+                         "- Diode qui émet de la lumière quand le courant passe dans le bon sens \n"
                          "- Elle a une polarité : anode (+) et cathode (-). \n"
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
                          )
