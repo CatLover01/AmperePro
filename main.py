@@ -21,7 +21,7 @@ class AmperePro(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        styleMain = QFile("StyleMainWindow.qss")
+        styleMain = QFile("StyleSheet/StyleMainWindow.qss")
         if styleMain.open(QFile.ReadOnly | QFile.Text):
             stream = QTextStream(styleMain)
             self.setStyleSheet(stream.readAll())
@@ -77,7 +77,7 @@ class AmperePro(QMainWindow):
 
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
-        styleDocu = QFile("StyleDocumentation.qss")
+        styleDocu = QFile("StyleSheet/StyleDocumentation.qss")
         if styleDocu.open(QFile.ReadOnly | QFile.Text):
             stream_Docu = QTextStream(styleDocu)
             self.fenetre_doc.setStyleSheet(stream_Docu.readAll())
