@@ -45,6 +45,7 @@ class Batterie(ComposanteBase):
                          "- Possède une borne positive (+) et négative (-). <br>"
                          "- Permet au courant de circuler dans le circuit."
                          )
+        self.tension = 100
 
 
 class LED(ComposanteBase):
@@ -58,7 +59,7 @@ class LED(ComposanteBase):
 
 class Resistor(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Resistor, "Résisteur", "images/toolbar/resistor.jpg",
+        super().__init__(Type.Resistor, "Résistor", "images/toolbar/resistor.jpg",
                          "images/circuit/resistor.png", 56,
                          "- Composante qui limite le courant. <br>"
                          "- Unité : Ohms (Ω) <br>"
@@ -66,6 +67,7 @@ class Resistor(ComposanteBase):
                          "- Baisse l'intensité du courant. <br>"
                          "- V en Volts, R en Ohms, I en Ampères"
                          )
+        self.resistance = 100
 
 
 class Diode(ComposanteBase):

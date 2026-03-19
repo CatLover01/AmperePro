@@ -3,6 +3,8 @@ from PySide6.QtCore import QSize, QPoint, QPointF
 from PySide6.QtGui import QIcon, QPixmap, QColorConstants, QPen, Qt, QPainterPath, QBrush, QColor
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPushButton, QVBoxLayout, QLabel, \
     QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsPathItem, QGraphicsEllipseItem, QGraphicsLineItem
+import numpy as np
+from scipy.linalg import solve
 
 from Composantes import Type, Composante, ComposanteBase, Cote
 
@@ -21,7 +23,6 @@ class Serie:
         self.resistance, self.tension = self.calculs()
         self.coins = []
         self.main_window = main_window
-        self.infos = []
 
         self.composantes = []
         for i in range(composantes):
@@ -39,6 +40,14 @@ class Serie:
             if hasattr(composante, 'tension'):
                 tension += composante.tension
         return res, tension
+
+    def ajouter_composante(self, cercle, type):
+        nouvelle_composante = Composante(type)
+        index_cercle = self.composantes.index(cercle)
+        self.composantes.insert(index_cercle, nouvelle_composante)
+        nouveau_cercle = CercleCliquable(self, self.main_window)
+        self.composantes.insert(index_cercle, nouveau_cercle)
+        self.calculs()
 
     def ajouter_noeud(self, cercle):
         # s'il a déjà des noeuds, on travaille à partir de ceux-cis
@@ -133,6 +142,8 @@ class Circuit:
         self.scene = QGraphicsScene()
         self.fils = []
 
+        self.noeuds = ()
+
         self.circuit_fil = QGraphicsPathItem()
 
     def fil_click(self):
@@ -177,10 +188,10 @@ class Circuit:
         largeur_min = 200
         hauteur_min = 100
 
+        """
         centre_x = self.scene_size.width() / 2
         centre_y = self.scene_size.height() / 2
 
-        """
         self.scene.addItem(self.circuit_fil)
         path = QPainterPath()
 
@@ -208,6 +219,7 @@ class Circuit:
             angle = 0
             nombres = list(nb_elements_cotes.values())
 
+            
             for i in range(4):
                 if nombres[i] > index:
                     break
@@ -245,7 +257,7 @@ class Circuit:
         path.lineTo(QPointF(centre_x + largeur / 2, centre_y - hauteur / 2))
         path.lineTo(QPointF(centre_x - largeur / 2, centre_y - hauteur / 2))
         path.closeSubpath()
-    
+
         self.circuit_fil.setPath(path)
         # on dessine les fils ajoutés et si on a modifié autre chose, on repositionne les fils
         self.dessiner_fils()
@@ -261,6 +273,27 @@ class Circuit:
         pivot = QPointF(item.pixmap().width() / 2, item.pixmap().height() / 2)
         item.setTransformOriginPoint(pivot)
         item.setRotation(angle)
+
+    def calculer_voltage(self):
+        mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
+        mat_B = np.zeros((len(self.noeuds) - 1, 1))
+
+        noeud_zero = self.noeuds[-1]
+        noeud_zero.voltage = 0
+        for i in range(len(self.noeuds) - 1):
+            j_noeud = i
+            for info in self.noeuds[i].info_voisins:
+                j_voisin = info[1]
+                serie = info[0]
+
+                mat_A[i, j_noeud] += 1 / serie.resistance
+                mat_B[i, 0] -= serie.tension / serie.resistance
+                if self.noeuds[j_voisin] != noeud_zero:
+                    mat_A[i, j_voisin] -= 1 / serie.resistance
+
+        mat_X = solve(mat_A, mat_B)
+        for i in range(len(mat_X)):
+            self.noeuds[i].voltage = mat_X[i][0]
 
     def ajouter_fil(self, cercle_1, cercle_2):
         # on ajoute les coordonées des cercles qui doivent être reliés
@@ -289,13 +322,10 @@ class Circuit:
         longueur_y += abs(position_1.y()-position_2.y())
         # on veut ensuite ajouter la partie extérieure.
 
-
-
-
-
-
     def bouton_cercle_click(self, cercle):
         if self.selection != "fil":
+            cercle.serie_parente.ajouter_composante(self.selection.type)
+            """
             cote = cercle.cote
             index_cercle = self.elements.index(cercle)
             new_composante = Composante(self.selection.type)
@@ -315,6 +345,7 @@ class Circuit:
 
             self.dessiner_fond()
             self.dessiner_circuit(self.elements)
+            """
 
         elif not self.fil_debute_cercle:
             cercle.changer_couleur(QColorConstants.Red)
