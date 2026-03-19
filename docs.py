@@ -15,6 +15,27 @@ Texte = {
         "Parallèle : \n"
         "- La tension est la même sur chaqu branche. \n"
         "- 1/R_eq = 1/R1 + 1/R2 + 1/R3 \n"
+    ),
+ "Loi d'Ohm": (
+        "Loi d'Ohm \n\n"
+        "- Relation entre tension, courant et résistance. \n"
+        "- Formule : V = R · I \n"
+        "- V en Volts, R en Ohms, I en Ampères"
+    ),
+
+    "Loi de Kirchhoff": (
+        "Loi de Kirchhoff \n\n"
+        "Loi des noeuds : \n"
+        "- La somme des courants entrants = somme des courants sortants. \n\n"
+        "Loi des mailles : \n"
+        "- La somme des tensions dans une boucle = 0."
+    ),
+
+    "Puissance électrique": (
+        "Puissance électrique \n\n"
+        "- Mesure l’énergie consommée. \n"
+        "- Formule : P = V · I \n"
+        "- Unité : Watt (W)"
     )
 }
 
@@ -36,6 +57,9 @@ class DocumentationWindow(QMainWindow):
 
 
         self.liste.addItem("Série / Parallèle")
+        self.liste.addItem("Loi d'Ohm")
+        self.liste.addItem("Loi de Kirchhoff")
+        self.liste.addItem("Puissance électrique")
         for composante in toolbar_composantes.values():
             self.liste.addItem(composante.nom)
 
@@ -68,8 +92,20 @@ class DocumentationWindow(QMainWindow):
             self.label.setText(Texte["Série / Parallèle"])
             return
 
+        if texte_selectionne == "Loi d'Ohm":
+            self.label.setText("<b>Loi d'Ohm</b><br><br>" + Texte["Loi d'Ohm"])
+            return
+
+        if texte_selectionne == "Loi de Kirchhoff":
+            self.label.setText("<b>Loi de Kirchhoff</b><br><br>" + Texte["Loi de Kirchhoff"])
+            return
+
+        if texte_selectionne == "Puissance électrique":
+            self.label.setText("<b>Puissance électrique</b><br><br>" + Texte["Puissance électrique"])
+            return
+
 
         for composante in toolbar_composantes.values():
             if texte_selectionne == composante.nom:
-                self.label.setText(composante.nom + "\n\n" + composante.description)
+                self.label.setText("<b>" + composante.nom + "\n\n" + "</b><br><br>" + composante.description)
                 return
