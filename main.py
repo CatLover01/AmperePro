@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QSize, QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QToolBar, QGridLayout, QMenuBar, QMenu
@@ -20,6 +20,13 @@ class Mode(Enum):
 class AmperePro(QMainWindow):
     def __init__(self):
         super().__init__()
+
+        styleMain = QFile("StyleMainWindow.qss")
+        if styleMain.open(QFile.ReadOnly | QFile.Text):
+            stream = QTextStream(styleMain)
+            self.setStyleSheet(stream.readAll())
+            styleMain.close()
+
         self.setWindowTitle("AmpèrePro")
         self.setMinimumSize(500, 500)
 
@@ -70,6 +77,12 @@ class AmperePro(QMainWindow):
 
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
+        styleDocu = QFile("StyleDocumentation.qss")
+        if styleDocu.open(QFile.ReadOnly | QFile.Text):
+            stream_Docu = QTextStream(styleDocu)
+            self.fenetre_doc.setStyleSheet(stream_Docu.readAll())
+            styleDocu.close()
+
         self.fenetre_doc.show()
 
         # Menus
@@ -174,10 +187,6 @@ class AmperePro(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication()
-    app.setStyle("Fusion")
-
-    with open("StyleSheet.qss") as f:
-        app.setStyleSheet(f.read())
     window = AmperePro()
     window.show()
     app.exec()
