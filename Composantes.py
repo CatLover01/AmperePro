@@ -39,7 +39,12 @@ class ComposanteBase(ABC):
 class Batterie(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Batterie, "Batterie", "images/toolbar/batterie.jpg",
-                         "images/circuit/batterie.png", 40, "A faire...")
+                         "images/circuit/batterie.png", 40,
+                         "- Fournit l’énergie électrique au circuit. \n"
+                         "- Crée une différence de potentiel (tension). \n"
+                         "- Possède une borne positive (+) et négative (-). \n"
+                         "- Permet au courant de circuler dans le circuit."
+                         )
 
 
 class LED(ComposanteBase):
