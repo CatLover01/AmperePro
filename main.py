@@ -26,6 +26,7 @@ class AmperePro(QMainWindow):
             style_main.close()
 
         self.setWindowTitle("AmpèrePro")
+        self.setWindowIcon(QIcon("images/interface/AmperePro_fond_bleu.png"))
         self.setMinimumSize(500, 500)
 
         self.title = None
