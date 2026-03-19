@@ -7,6 +7,79 @@ from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPus
 from Composantes import Type, Composante, ComposanteBase, Cote
 
 
+class Noeud:
+    def __init__(self):
+        self.voltage = 0
+        self.info_voisins = []
+
+    def ajouter_info(self, serie, noeud_voisin):
+        self.info_voisins.append([serie, noeud_voisin])
+
+
+class Serie:
+    def __init__(self, composantes):
+        self.composantes = composantes
+        self.resistance, self.tension = self.calculs()
+
+        for composante in composantes:
+            composante.serie_parente = self
+
+    def calculs(self):
+        res = 0
+        tension = 0
+        for composante in self.composantes:
+            if hasattr(composante, 'resistance'):
+                res += composante.resistance
+            if hasattr(composante, 'tension'):
+                tension += composante.tension
+        return res, tension
+
+    def ajouter_noeud(self, cercle):
+        if isinstance(cercle, CercleCliquable):
+            index_point = self.composantes.index(cercle)
+            nouveau_noeud = Noeud()
+            self.composantes[index_point] = nouveau_noeud
+
+            composantes_gauche = self.composantes[:index_point + 1]
+            serie_gauche = Serie(composantes_gauche)
+            composantes_gauche[0].info_voisins.remove([self, self.composantes[-1]])
+            composantes_gauche[0].ajouter_info(serie_gauche, composantes_gauche[-1])
+
+            self.composantes = self.composantes[index_point:]
+            self.resistance, self.tension = self.calculs()
+
+            nouveau_noeud.ajouter_info(serie_gauche, composantes_gauche[0])
+
+            return nouveau_noeud
+
+        # Si on a recu liste de deux cercles puisque c'est la serie de base sans noeud
+        else:
+            index_min = min(self.composantes.index(cercle[0]), self.composantes.index(cercle[1]))
+            index_max = max(self.composantes.index(cercle[0]), self.composantes.index(cercle[1]))
+            noeud_min = Noeud()
+            noeud_max = Noeud()
+            self.composantes[index_min] = noeud_min
+            self.composantes[index_max] = noeud_max
+
+            composantes_milieu = self.composantes[index_min:index_max + 1]
+            serie_milieu = Serie(composantes_milieu)
+
+            self.composantes = self.composantes[index_max:] + self.composantes[:index_min + 1]
+            self.resistance, self.tension = self.calculs()
+
+            nouvelle_serie = Serie([noeud_min, noeud_max])
+
+            noeud_min.ajouter_info(self, noeud_max)
+            noeud_min.ajouter_info(serie_milieu, noeud_max)
+            noeud_min.ajouter_info(nouvelle_serie, noeud_max)
+
+            noeud_max.ajouter_info(serie_milieu, noeud_min)
+            noeud_max.ajouter_info(self, noeud_min)
+            noeud_max.ajouter_info(nouvelle_serie, noeud_min)
+
+            return [noeud_min, noeud_max]
+
+
 class CercleCliquable(QGraphicsEllipseItem):
     def __init__(self, x, y, diametre, main_window: "Circuit", cote):
         super().__init__(x - diametre / 2, y - diametre / 2, diametre, diametre)
@@ -26,7 +99,6 @@ class CercleCliquable(QGraphicsEllipseItem):
         self.selectionne = False
 
         self.changer_couleur(QColorConstants.White)
-
 
     def changer_couleur(self, couleur):
         pinceau = QBrush(couleur)
