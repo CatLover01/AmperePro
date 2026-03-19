@@ -1,5 +1,3 @@
-from collections.abc import Callable
-
 from PySide6.QtCore import QSize, QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
@@ -21,11 +19,11 @@ class AmperePro(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        styleMain = QFile("StyleMainWindow.qss")
-        if styleMain.open(QFile.ReadOnly | QFile.Text):
-            stream = QTextStream(styleMain)
+        style_main = QFile("StyleMainWindow.qss")
+        if style_main.open(QFile.ReadOnly | QFile.Text):
+            stream = QTextStream(style_main)
             self.setStyleSheet(stream.readAll())
-            styleMain.close()
+            style_main.close()
 
         self.setWindowTitle("AmpèrePro")
         self.setMinimumSize(500, 500)
@@ -39,7 +37,7 @@ class AmperePro(QMainWindow):
 
         # Documentation
         documentation_action = QAction("Documentation", self)
-        # documentation_action.triggered.connect() ouvrir documentation window
+        documentation_action.triggered.connect(self.ouvrir_documentation)
         menu_aide.addAction(documentation_action)
 
         # À propos
@@ -104,11 +102,11 @@ class AmperePro(QMainWindow):
 
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
-        styleDocu = QFile("StyleDocumentation.qss")
-        if styleDocu.open(QFile.ReadOnly | QFile.Text):
-            stream_Docu = QTextStream(styleDocu)
-            self.fenetre_doc.setStyleSheet(stream_Docu.readAll())
-            styleDocu.close()
+        style_docu = QFile("StyleDocumentation.qss")
+        if style_docu.open(QFile.ReadOnly | QFile.Text):
+            stream_docu = QTextStream(style_docu)
+            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+            style_docu.close()
 
         self.fenetre_doc.show()
 
