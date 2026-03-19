@@ -43,7 +43,7 @@ class AmperePro(QMainWindow):
 
         # À propos
         a_propos_action = QAction("À Propos", self)
-        # aide_action.triggered.connect() ouvrir a propos
+        a_propos_action.triggered.connect(self.ouvrir_a_propos)
         menu_aide.addAction(a_propos_action)
 
         menu_bar.addMenu(menu_aide)
@@ -100,6 +100,7 @@ class AmperePro(QMainWindow):
         a_propos_button = QPushButton()
         a_propos_button.setText("À Propos")
         main_layout.addWidget(a_propos_button)
+        a_propos_button.clicked.connect(self.ouvrir_a_propos)
 
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
@@ -109,7 +110,12 @@ class AmperePro(QMainWindow):
             self.fenetre_doc.setStyleSheet(stream_docu.readAll())
             style_docu.close()
 
-        self.fenetre_doc.show()
+            self.fenetre_doc.show()
+
+    def ouvrir_a_propos(self):
+        self.fenetre_a_propos = AProposWindow()
+        self.fenetre_a_propos.show()
+
 
     def change_mode(self, new_mode: Mode):
         main_layout = QVBoxLayout()
