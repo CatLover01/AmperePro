@@ -2,3 +2,20 @@ QWidget{
     color: #ffffff;
     background-color:#1c1c33;
 }
+QPushButton{
+    color: #ffffff;
+    background-color: #2389cf;
+    border-color: #2f90d4;
+    border-style: outset;
+    border-width: 2px;
+}
+
+QPushButton:hover{
+    color: #000000;
+    background-color: #ffffff;
+}
+
+QPushButton:pressed {
+    background-color: #FFD100;
+    border-color: #FFD100;
+}
