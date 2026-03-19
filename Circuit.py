@@ -17,12 +17,17 @@ class Noeud:
 
 
 class Serie:
-    def __init__(self, composantes):
-        self.composantes = composantes
+    def __init__(self, composantes, main_window):
         self.resistance, self.tension = self.calculs()
+        self.coins = []
+        self.main_window = main_window
 
-        for composante in composantes:
-            composante.serie_parente = self
+        self.composantes = []
+        for i in range(composantes):
+            composantes[i].serie_parente = self
+            self.composantes.append(composantes[i])
+            cercle = CercleCliquable(self, main_window)
+            self.composantes.append(cercle)
 
     def calculs(self):
         res = 0
@@ -62,12 +67,12 @@ class Serie:
             self.composantes[index_max] = noeud_max
 
             composantes_milieu = self.composantes[index_min:index_max + 1]
-            serie_milieu = Serie(composantes_milieu)
+            serie_milieu = Serie(composantes_milieu, self.main_window)
 
             self.composantes = self.composantes[index_max:] + self.composantes[:index_min + 1]
             self.resistance, self.tension = self.calculs()
 
-            nouvelle_serie = Serie([noeud_min, noeud_max])
+            nouvelle_serie = Serie([noeud_min, noeud_max], self.main_window)
 
             noeud_min.ajouter_info(self, noeud_max)
             noeud_min.ajouter_info(serie_milieu, noeud_max)
@@ -81,15 +86,15 @@ class Serie:
 
 
 class CercleCliquable(QGraphicsEllipseItem):
-    def __init__(self, x, y, diametre, main_window: "Circuit", cote):
-        super().__init__(x - diametre / 2, y - diametre / 2, diametre, diametre)
+    def __init__(self, serie: "Serie", main_window: "Circuit"):
+        super().__init__(0, 0, 0, 0)
         self.main_window = main_window
-        self.diametre = diametre
+        self.diametre = 25
         self.setZValue(1)
         self.main_window.scene.addItem(self)
+        self.serie_parente = serie
 
         self.setAcceptHoverEvents(True)
-        self.cote = cote
 
         crayon = QPen()
         crayon.setColor(QColorConstants.Black)
@@ -121,58 +126,17 @@ class Circuit:
         self.selection: ComposanteBase | None = None
 
         self.scene_size = QSize(500, 500)
-        self.diametre_cercle = 25
 
         # Fenêtre de jeu
         self.scene = QGraphicsScene()
 
-        self.fil_debute_cercle = None
-
-        # Crée le circuit de base composé d'une batterie et de cercles cliquables
-        batterie = Composante(Type.Batterie)
-        self.scene.addItem(batterie.ajouter_pixmap())
-        batterie.cote = Cote.Haut
-
-        # Soit des cercles cliquable ou des composantes
-        self.elements = [batterie,
-                         CercleCliquable(0, 0, self.diametre_cercle, self, Cote.Haut),
-                         CercleCliquable(0, 0, self.diametre_cercle, self, Cote.Droite),
-                         CercleCliquable(0, 0, self.diametre_cercle, self, Cote.Bas),
-                         CercleCliquable(0, 0, self.diametre_cercle, self, Cote.Gauche)]
-
         self.circuit_fil = QGraphicsPathItem()
-        # pour garder en mémoire les fils ajoutés au circuit de base.
-        self.fils = []
-
-        elements_sans_cercles = self.retirer_cercles()
-
-        self.dessiner_fond()
-        self.dessiner_circuit(elements_sans_cercles)
-
-    # Retourne une liste des composantes du circuit sans les cercles
-    def retirer_cercles(self):
-        liste_clean = []
-
-        for element in self.elements:
-            if isinstance(element, CercleCliquable):
-                element.hide()
-            else:
-                liste_clean.append(element)
-
-        return liste_clean
-
-    # Affiche les cercles du circuit sur la scène
-    def afficher_cercles(self):
-        for element in self.elements:
-            if isinstance(element, CercleCliquable):
-                element.show()
 
     def fil_click(self):
         if self.selection is None:
             self.dessiner_fond()
-            self.afficher_cercles()
-            self.afficher_cercles()
-            self.dessiner_circuit(self.elements)
+            # TODO Ajouter cercles
+            self.dessiner_circuit()
 
         self.selection = "fil"
 
@@ -180,18 +144,17 @@ class Circuit:
     def main_click(self):
         if self.selection is not None:
             self.selection = None
-            elements = self.retirer_cercles()
+            # TODO Retirer cercles
             self.dessiner_fond()
-            self.dessiner_circuit(elements)
+            self.dessiner_circuit()
 
     # Appelée lorsque une composante est appuyée dans la toolbar, change la sélection
     # et affiche les cercles si ce n'est pas déjà le cas
     def toolbar_clicked(self, dispositif: ComposanteBase):
         if self.selection is None:
             self.dessiner_fond()
-            self.afficher_cercles()
-            self.afficher_cercles()
-            self.dessiner_circuit(self.elements)
+            # TODO Afficher cercles
+            self.dessiner_circuit()
 
         self.selection = dispositif
 
@@ -204,7 +167,7 @@ class Circuit:
     # Trouve la longueur et hauteur du circuit pour dessiner le path
     # Change la position des composantes et cercles du circuit en respectant leur ordre et côté
     # Faudrait peut-être casser la méthode en plusieurs méthodes plus petites
-    def dessiner_circuit(self, elements: list[Composante | CercleCliquable]):
+    def dessiner_circuit(self):
         marge_element = 100
         marge_coins = 50
         epaisseur_fil = 4
@@ -226,7 +189,7 @@ class Circuit:
                              Cote.Droite: 0,
                              Cote.Bas: 0,
                              Cote.Gauche: 0}
-        for element in elements:
+        for element in self.elements:
             nb_elements_cotes[element.cote] += 1
 
         hauteur = marge_element * (
@@ -240,6 +203,8 @@ class Circuit:
             mult = -1
             angle = 0
             nombres = list(nb_elements_cotes.values())
+
+            """
             for i in range(4):
                 if nombres[i] > index:
                     break
@@ -281,7 +246,7 @@ class Circuit:
         self.circuit_fil.setPath(path)
         # on dessine les fils ajoutés et si on a modifié autre chose, on repositionne les fils
         self.dessiner_fils()
-
+        """
 
     def placer_pixmap(self, element, pos, angle):
         item = element.item_instance
