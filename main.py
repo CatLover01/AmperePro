@@ -61,7 +61,7 @@ class AmperePro(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        # Titre de notre projet, utiliser dans les sous interfaces
+        # Titre de notre projet, utilisé dans les sous-interfaces
         self.title = QLabel("AmpèrePro")
         self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.title.setStyleSheet("color:yellow")
