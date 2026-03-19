@@ -29,6 +29,7 @@ class AmperePro(QMainWindow):
         self.setMinimumSize(500, 500)
 
         self.title = None
+        self.fenetre_doc = None
         self.init_main_window()
 
         # Menus
@@ -109,29 +110,6 @@ class AmperePro(QMainWindow):
             style_docu.close()
 
         self.fenetre_doc.show()
-
-        # Menus
-        menu_bar = self.menuBar()
-        menu_aide = QMenu("Aide")
-
-        # Documentation
-        documentation_action = QAction("Documentation", self)
-        # documentation_action.triggered.connect() ouvrir documentation window
-        menu_aide.addAction(documentation_action)
-
-        # À propos
-        a_propos_action = QAction("À Propos", self)
-        # aide_action.triggered.connect() ouvrir a propos
-        menu_aide.addAction(a_propos_action)
-
-        menu_bar.addMenu(menu_aide)
-
-        # Quitter
-        quitter_action = QAction("Quitter", self)
-        quitter_action.triggered.connect(self.close)
-        menu_bar.addAction(quitter_action)
-
-        self.graphic_view = QGraphicsView()
 
     def change_mode(self, new_mode: Mode):
         main_layout = QVBoxLayout()
