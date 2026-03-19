@@ -1,7 +1,9 @@
+from collections.abc import Callable
+
 from PySide6.QtCore import QSize
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QGridLayout
+    QGraphicsView, QToolBar, QGridLayout, QMenuBar, QMenu
 from enum import Enum
 
 from Circuit import Circuit
@@ -19,11 +21,12 @@ class AmperePro(QMainWindow):
         self.setWindowTitle("AmpèrePro")
         self.setMinimumSize(500, 500)
 
-        main_layout = QGridLayout()
+        main_layout = QVBoxLayout()
         main_widget = QWidget()
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
+        # Titre de notre projet, utiliser dans les sous interfaces
         self.title = QLabel("AmpèrePro")
         self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.title.setStyleSheet("color:yellow")
@@ -32,57 +35,56 @@ class AmperePro(QMainWindow):
         police.setPointSize(32)
         self.title.setFont(police)
 
-
-        self.subtitle = QLabel("Choisis un mode pour continuer!")
-        self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        main_layout.addWidget(self.title, 0, 0, 2, 0)
-        #main_layout.addWidget(self.subtitle, 0, 1)
-
-        #Logo
-
-        logo = QPixmap("./images/Menu/AmperePro_logo.png")
-        affichage_logo = QLabel()
-        affichage_logo.setPixmap(logo)
-        main_layout.addWidget(affichage_logo, 1, 1)
+        # Logo
+        logo = QLabel(pixmap=QPixmap("images/Interface/AmperePro_logo.png"))
+        logo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        main_layout.addWidget(logo)
 
         # Modes
-        mode_layout = QVBoxLayout()
-        main_layout.addLayout(mode_layout, 1, 0, )
+        mode_layout = QHBoxLayout()
+        main_layout.addLayout(mode_layout)
 
         # Mode Niveau
-        mode_niveau = QPushButton()
-        mode_niveau.setText("Mode Niveau")
-        mode_niveau.clicked.connect(lambda: self.change_mode(Mode.Niveau))
-        mode_layout.addWidget(mode_niveau)
+        mode_niveau_button = QPushButton()
+        mode_niveau_button.setText("Mode Niveau")
+        mode_niveau_button.clicked.connect(lambda: self.change_mode(Mode.Niveau))
+        mode_layout.addWidget(mode_niveau_button)
 
         # Mode Libre
-        mode_libre = QPushButton()
-        mode_libre.setText(" Mode Libre")
-        mode_libre.clicked.connect(lambda: self.change_mode(Mode.Libre))
-        mode_layout.addWidget(mode_libre)
+        mode_libre_button = QPushButton()
+        mode_libre_button.setText(" Mode Libre")
+        mode_libre_button.clicked.connect(lambda: self.change_mode(Mode.Libre))
+        mode_layout.addWidget(mode_libre_button)
 
-        # Charger circuit
+        # Devrait ouvrir un nouveau window avec la documentation
+        documentation_button = QPushButton()
+        documentation_button.setText("Documentation")
+        main_layout.addWidget(documentation_button)
 
-        charger_circuit = QPushButton()
-        charger_circuit.setText("Charger Circuit électrique")
-        mode_layout.addWidget(charger_circuit)
+        a_propos_button = QPushButton()
+        a_propos_button.setText("À Propos")
+        main_layout.addWidget(a_propos_button)
+
+        # Menus
+        menu_bar = self.menuBar()
+        menu_aide = QMenu("Aide")
 
         # Documentation
-        documentation = QPushButton()
-        documentation.setText("Documentation")
-        mode_layout.addWidget(documentation)
+        documentation_action = QAction("Documentation", self)
+        # documentation_action.triggered.connect() ouvrir documentation window
+        menu_aide.addAction(documentation_action)
 
-        # à propos
-        bouton_propos = QPushButton()
-        bouton_propos.setText("À Propos")
-        mode_layout.addWidget(bouton_propos)
+        # À propos
+        a_propos_action = QAction("À Propos", self)
+        # aide_action.triggered.connect() ouvrir a propos
+        menu_aide.addAction(a_propos_action)
+
+        menu_bar.addMenu(menu_aide)
 
         # Quitter
-        bouton_quitter = QPushButton()
-        bouton_quitter.setText("Quitter")
-        bouton_quitter.clicked.connect(lambda: self.close())
-        mode_layout.addWidget(bouton_quitter)
+        quitter_action = QAction("Quitter", self)
+        quitter_action.triggered.connect(self.close)
+        menu_bar.addAction(quitter_action)
 
         self.graphic_view = QGraphicsView()
 
@@ -93,13 +95,15 @@ class AmperePro(QMainWindow):
                 main_widget = QWidget()
                 main_widget.setLayout(main_layout)
                 self.setCentralWidget(main_widget)
-                self.subtitle.setText("Crée un nouveau circuit!")
+
+                subtitle = QLabel("Crée un nouveau circuit!")
+                subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 main_layout.addWidget(self.title)
-                main_layout.addWidget(self.subtitle)
+                main_layout.addWidget(subtitle)
 
                 # Nouvelle Section Mode libre
                 add_circuit_button = QPushButton()
-                add_circuit_button.setText("Add circuit")
+                add_circuit_button.setText("Créer")
                 add_circuit_button.clicked.connect(self.add_circuit)
                 main_layout.addWidget(add_circuit_button)
 
@@ -122,10 +126,20 @@ class AmperePro(QMainWindow):
         self.setCentralWidget(self.graphic_view)
 
         toolbar = QToolBar()
+        # ne permet pas à l'utilisateur de cacher la toolbar.
+        toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
+
+        class ToolbarButton(QPushButton):
+            def __init__(self, nom: str):
+                super().__init__()
+                self.nom = nom
+
+            def enterEvent(self, event):
+                self.setToolTip(self.nom)
 
         # Ajoute le bouton main à la toolbar
         main_icone = QIcon("images/toolbar/main.png")
-        main_bouton = QPushButton()
+        main_bouton = ToolbarButton("Main")
         main_bouton.setIcon(main_icone)
         main_bouton.setIconSize(QSize(45, 45))
         main_bouton.clicked.connect(new_circuit.main_click)
@@ -133,20 +147,19 @@ class AmperePro(QMainWindow):
 
         # Ajoute le bouton fil à la toolbar
         fil_icone = QIcon("images/toolbar/fil.webp")
-        fil_bouton = QPushButton()
+        fil_bouton = ToolbarButton("Fil")
         fil_bouton.setIcon(fil_icone)
         fil_bouton.setIconSize(QSize(45, 45))
         fil_bouton.clicked.connect(new_circuit.fil_click)
         toolbar.addWidget(fil_bouton)
 
         # Ajouter un bouton dans la toolbar pour chaque composante
-        for dispositif in toolbar_composantes.values():
-            bouton = QPushButton()
-            bouton.setIcon(QIcon(dispositif.image_toolbar))
+        for composante in toolbar_composantes.values():
+            bouton = ToolbarButton(composante.nom)
+            bouton.setIcon(QIcon(composante.image_toolbar))
             bouton.setIconSize(QSize(45, 45))
 
-            bouton.clicked.connect(lambda _, x=dispositif: new_circuit.toolbar_clicked(x))
-
+            bouton.clicked.connect(lambda _, c=composante: new_circuit.toolbar_clicked(c))
             toolbar.addWidget(bouton)
 
         self.addToolBar(toolbar)
