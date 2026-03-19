@@ -8,6 +8,8 @@ from enum import Enum
 
 from Circuit import Circuit
 from Composantes import toolbar_composantes
+from a_propos import AProposWindow
+from docs import DocumentationWindow
 
 
 class Mode(Enum):
@@ -60,10 +62,15 @@ class AmperePro(QMainWindow):
         documentation_button = QPushButton()
         documentation_button.setText("Documentation")
         main_layout.addWidget(documentation_button)
+        documentation_button.clicked.connect(self.ouvrir_documentation)
 
         a_propos_button = QPushButton()
         a_propos_button.setText("À Propos")
         main_layout.addWidget(a_propos_button)
+
+    def ouvrir_documentation(self):
+        self.fenetre_doc = DocumentationWindow()
+        self.fenetre_doc.show()
 
         # Menus
         menu_bar = self.menuBar()
@@ -167,6 +174,10 @@ class AmperePro(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication()
+    app.setStyle("Fusion")
+
+    with open("StyleSheet.qss") as f:
+        app.setStyleSheet(f.read())
     window = AmperePro()
     window.show()
     app.exec()
