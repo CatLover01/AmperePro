@@ -1,5 +1,5 @@
 from PySide6.QtCore import QSize, QPointF, QRect
-from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush
+from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon
 from PySide6.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView, QPushButton
 import math
 import numpy as np
@@ -46,7 +46,30 @@ class Window(QMainWindow):
         self.dessine = False
         self.dernier_point = None
 
-        save = Sauvegarder(self)
+        sauvegarder = Sauvegarder(self)
+
+        #Menubar
+        barre_menu = self.menuBar()
+
+        #sauvegarder
+        sauvegarder = QAction("Sauvegarder")
+        sauvegarder.setShortcut("Ctrl+S")
+        sauvegarder.setIcon(QIcon("images/menubar/disquette.png"))
+        barre_menu.addAction(sauvegarder)
+        #sauvegarder.triggered.connect(sauvegarder)
+
+        #rollback
+        annuler_action = QAction("RollBack")
+        annuler_action.setShortcut("Ctrl+R")
+        #annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
+        barre_menu.addAction(annuler_action)
+
+        #Quitter
+        quitter = QAction("Quitter")
+        quitter.setShortcut("Ctrl+Q")
+        quitter.triggered.connect(self.close)
+        barre_menu.addAction(quitter)
+
 
 
     def dessiner_fond_grid(self):
@@ -205,20 +228,6 @@ class Sauvegarder():
         mat_j = window.mat_j0
         self.liste_composantes = []
         self.infos_circuit = []
-
-        self.bouton_sauvegarder = QPushButton("Sauvegarder")
-        self.bouton_sauvegarder.setGeometry(window.scene_size.width()-85, 0, 85, 50)
-        window.scene.addWidget(self.bouton_sauvegarder)
-        print(window.scene_size.width())
-        print(window.scene_size.height())
-        print(self.bouton_sauvegarder.x())
-
-
-
-
-
-
-
 
 
 app = QApplication()
