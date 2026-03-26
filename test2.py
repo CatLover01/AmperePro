@@ -1,6 +1,6 @@
-from PySide6.QtCore import QSize, QPointF
-from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush
-from PySide6.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView
+from PySide6.QtCore import QSize, QPointF, QRect
+from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon
+from PySide6.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView, QPushButton
 import math
 import numpy as np
 
@@ -45,6 +45,32 @@ class Window(QMainWindow):
 
         self.dessine = False
         self.dernier_point = None
+
+        sauvegarder = Sauvegarder(self)
+
+        #Menubar
+        barre_menu = self.menuBar()
+
+        #sauvegarder
+        sauvegarder = QAction("Sauvegarder")
+        sauvegarder.setShortcut("Ctrl+S")
+        sauvegarder.setIcon(QIcon("images/menubar/disquette.png"))
+        barre_menu.addAction(sauvegarder)
+        #sauvegarder.triggered.connect(sauvegarder)
+
+        #rollback
+        annuler_action = QAction("RollBack")
+        annuler_action.setShortcut("Ctrl+R")
+        #annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
+        barre_menu.addAction(annuler_action)
+
+        #Quitter
+        quitter = QAction("Quitter")
+        quitter.setShortcut("Ctrl+Q")
+        quitter.triggered.connect(self.close)
+        barre_menu.addAction(quitter)
+
+
 
     def dessiner_fond_grid(self):
         self.scene.setBackgroundBrush(QColorConstants.White)
@@ -194,6 +220,15 @@ class GraphicsView(QGraphicsView):
             self.main_window.points = []
             self.main_window.lignes = []
     """
+
+class Sauvegarder():
+    def __init__(self, MainWindow):
+        window = MainWindow
+        mat_i = window.mat_i0
+        mat_j = window.mat_j0
+        self.liste_composantes = []
+        self.infos_circuit = []
+
 
 app = QApplication()
 window = Window()
