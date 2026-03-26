@@ -1,13 +1,13 @@
-from PySide6 import QtCore
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
+    QMainWindow, QWidget, QHBoxLayout,
     QListWidget, QLabel, QPushButton
 )
 from PySide6.QtCore import Qt
 from Composantes import toolbar_composantes
+
 # Voir les descriptions des composites pour le reste de la documentation
 Texte = {
-    "Série / Parallèle" :(
+    "Série / Parallèle": (
         "Série / Parallèle \n\n"
         "Série : \n"
         "- Le courant est le même partout. \n"
@@ -16,7 +16,7 @@ Texte = {
         "- La tension est la même sur chaqu branche. \n"
         "- 1/R_eq = 1/R1 + 1/R2 + 1/R3 \n"
     ),
- "Loi d'Ohm": (
+    "Loi d'Ohm": (
 
         "- Relation entre tension, courant et résistance. <br>"
         "- Formule : V = R · I <br>"
@@ -44,7 +44,6 @@ class DocumentationWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-
         self.setWindowTitle("Documentation")
         self.setFixedSize(700, 500)
 
@@ -54,7 +53,6 @@ class DocumentationWindow(QMainWindow):
 
         # liste à gauche
         self.liste = QListWidget()
-
 
         self.liste.addItem("Série / Parallèle")
         self.liste.addItem("Loi d'Ohm")
@@ -67,8 +65,8 @@ class DocumentationWindow(QMainWindow):
         self.label = QLabel("Clique sur un sujet")
 
         self.label.setFixedSize(450, 400)
-        self.label.setAlignment(QtCore.Qt.AlignTop)
-        self.label.setAlignment(Qt.AlignTop)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.label.setStyleSheet("border: 1px solid black; padding: 8px;")
         self.label.setWordWrap(True)
 
@@ -103,7 +101,6 @@ class DocumentationWindow(QMainWindow):
         if texte_selectionne == "Puissance électrique":
             self.label.setText("<b>Puissance électrique</b><br><br>" + Texte["Puissance électrique"])
             return
-
 
         for composante in toolbar_composantes.values():
             if texte_selectionne == composante.nom:
