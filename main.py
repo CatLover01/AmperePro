@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSize, QFile, QTextStream
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMouseEvent
-from PySide6.QtWidgets import QMainWindow,QToolTip ,QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea, QGridLayout
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
+from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
+    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea
 from enum import Enum
 
 from Circuit import Circuit
@@ -160,49 +160,30 @@ class AmperePro(QMainWindow):
                 # mode_libre_layout.addLayout(preview_circuit)
 
             case Mode.Niveau:
-                self.afficher_sujets_niveau()
-                return
+                subtitle = QLabel("Bienvenue ! Choisis un sujet")
+                subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                main_layout.addWidget(subtitle)
 
-    def afficher_sujets_niveau(self):
-        main_layout = QVBoxLayout()
-        main_widget = QWidget()
-        main_widget.setLayout(main_layout)
-        self.setCentralWidget(main_widget)
+                sujets = [
 
-        titre = QLabel("AmpèrePro")
-        titre.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        titre.setStyleSheet("color:yellow")
+                    "Loi de Kirchoff",
+                    "Loi d'ohms",
+                    "Série/Parallèle"
+                ]
 
-        police = QFont()
-        police.setPointSize(30)
-        titre.setFont(police)
+                for sujet in sujets:
+                    bouton = QPushButton(sujet)
 
-        main_layout.addWidget(titre)
+                    if sujet == "Loi de Kirchoff":
+                        bouton.clicked.connect(self.ouvrir_kirchoff)
 
-        subtitle = QLabel("Bienvenue ! Choisis un sujet")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(subtitle)
+                    elif sujet == "Loi d'ohms":
+                        bouton.clicked.connect(self.ouvrir_ohms)
 
-        sujets = [
+                    elif sujet == "Série/Parallèle":
+                        bouton.clicked.connect(self.ouvrir_serie_parallele)
 
-            "Loi de Kirchoff",
-            "Loi d'ohms",
-            "Série/Parallèle"
-        ]
-
-        for sujet in sujets:
-            bouton = QPushButton(sujet)
-
-            if sujet == "Loi de Kirchoff":
-                bouton.clicked.connect(self.ouvrir_kirchoff)
-
-            elif sujet == "Loi d'ohms":
-                bouton.clicked.connect(self.ouvrir_ohms)
-
-            elif sujet == "Série/Parallèle":
-                bouton.clicked.connect(self.ouvrir_serie_parallele)
-
-            main_layout.addWidget(bouton)
+                    main_layout.addWidget(bouton)
 
         # Bouton pour retourner au menu initial
         retour_arriere = QPushButton("Retour en Arrière")
@@ -238,10 +219,14 @@ class AmperePro(QMainWindow):
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(subtitle)
 
-        for n in range(3):
-            niveau = QPushButton(f"Niveau {n+1}")
-            main_layout.addWidget(niveau)
+        niveau1 = QPushButton("Niveau 1")
+        main_layout.addWidget(niveau1)
 
+        niveau2 = QPushButton("Niveau 2")
+        main_layout.addWidget(niveau2)
+
+        niveau3 = QPushButton("Niveau 3")
+        main_layout.addWidget(niveau3)
 
         retour_arriere = QPushButton("Retour aux sujets")
         retour_arriere.clicked.connect(self.afficher_sujets_niveau)
