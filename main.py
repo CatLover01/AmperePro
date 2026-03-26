@@ -157,38 +157,83 @@ class AmperePro(QMainWindow):
                 # mode_libre_layout.addLayout(preview_circuit)
 
             case Mode.Niveau:
-                # Liste de config json pour tout les niveaux
-                # devrait probablement être dans niveau/1.json et niveau/2.json ...
-                niveau = [".", ".", ".", ".", ".", ".", "."]
+                self.afficher_sujets_niveau()
+                return
 
-                scroll_area = QScrollArea()
-                main_layout.addWidget(scroll_area)
+    def afficher_sujets_niveau(self):
+        main_layout = QVBoxLayout()
+        main_widget = QWidget()
+        main_widget.setLayout(main_layout)
+        self.setCentralWidget(main_widget)
 
-                widget = QWidget()
-                niveau_layout = QVBoxLayout(widget)
 
-                for index, file_path in enumerate(niveau):
-                    group_box = QGroupBox(f"Niveau {index + 1}")
-                    group_box_layout = QHBoxLayout()
-                    group_box.setLayout(group_box_layout)
+        titre = QLabel("AmpèrePro")
+        titre.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        titre.setStyleSheet("color:yellow")
 
-                    # bouton débuter et la group box devrait être disabled si le niveau de l'utilisateur est initial
-                    # Doit sauvegarder en json pour savoir ou l'utilisateur est rendu et guarder le progret
-                    button = QPushButton("Débuter")
-                    group_box_layout.addWidget(button)
+        police = QFont()
+        police.setPointSize(30)
+        titre.setFont(police)
 
-                    # Ici on pourrait généré un preview selon le json
-                    # preview_image = QPixmap()
-                    # label = QLabel(pixmap=preview_image)
-                    # group_box_layout.addWidget(label)
+        main_layout.addWidget(titre)
 
-                    niveau_layout.addWidget(group_box)
+        subtitle = QLabel("Bienvenue ! Choisis un sujet")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(subtitle)
 
-                scroll_area.setWidget(widget)
+        sujets = [
+
+            "Loi de Kirchoff",
+            "Loi d'ohms",
+            "Série/Parallèle"
+        ]
+
+        for sujet in sujets:
+            bouton = QPushButton(sujet)
+            bouton.clicked.connect(self.bouton_sujet_clique)
+            main_layout.addWidget(bouton)
 
         # Bouton pour retourner au menu initial
         retour_arriere = QPushButton("Retour en Arrière")
         retour_arriere.clicked.connect(self.init_main_window)
+        main_layout.addWidget(retour_arriere)
+
+    def bouton_sujet_clique(self):
+        bouton = self.sender()
+        sujet = bouton.text()
+        self.afficher_sujets_niveau(sujet)
+
+    def afficher_niveaux_sujet(self, sujet):
+        main_layout = QVBoxLayout()
+        main_widget = QWidget()
+        main_widget.setLayout(main_layout)
+        self.setCentralWidget(main_widget)
+
+        titre = QLabel("AmpèrePro")
+        titre.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        titre.setStyleSheet("color:yellow")
+
+        police = QFont()
+        police.setPointSize(30)
+        titre.setFont(police)
+
+        main_layout.addWidget(titre)
+
+        subtitle = QLabel("Sujet choisi : " + sujet)
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(subtitle)
+
+        niveau1 = QPushButton("Niveau 1")
+        main_layout.addWidget(niveau1)
+
+        niveau2 = QPushButton("Niveau 2")
+        main_layout.addWidget(niveau2)
+
+        niveau3 = QPushButton("Niveau 3")
+        main_layout.addWidget(niveau3)
+
+        retour_arriere = QPushButton("Retour aux sujets")
+        retour_arriere.clicked.connect(self.afficher_sujets_niveau)
         main_layout.addWidget(retour_arriere)
 
     def add_circuit(self):
