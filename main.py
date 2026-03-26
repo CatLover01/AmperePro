@@ -19,9 +19,8 @@ class AmperePro(QMainWindow):
     def __init__(self):
         super().__init__()
 
-
         style_main = QFile("StyleSheet/StyleMainWindow.qss")
-        if style_main.open(QFile.ReadOnly | QFile.Text):
+        if style_main.open(QFile.OpenModeFlag.ReadOnly):
             stream = QTextStream(style_main)
             self.setStyleSheet(stream.readAll())
             style_main.close()
@@ -104,13 +103,12 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(a_propos_button)
         a_propos_button.clicked.connect(self.ouvrir_a_propos)
 
-
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
 
         # ouverture du Stylesheet
         style_docu = QFile("StyleSheet/StyleDocumentation.qss")
-        if style_docu.open(QFile.ReadOnly | QFile.Text):
+        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
             stream_docu = QTextStream(style_docu)
             self.fenetre_doc.setStyleSheet(stream_docu.readAll())
             style_docu.close()
@@ -120,15 +118,14 @@ class AmperePro(QMainWindow):
     def ouvrir_a_propos(self):
         self.fenetre_a_propos = AProposWindow()
 
-        #ouverture du stylesheet
+        # ouverture du stylesheet
         style_propos = QFile("StyleSheet/StylePropos.qss")
-        if style_propos.open(QFile.ReadOnly | QFile.Text):
+        if style_propos.open(QFile.OpenModeFlag.ReadOnly):
             stream = QTextStream(style_propos)
             self.fenetre_a_propos.setStyleSheet(stream.readAll())
             style_propos.close()
 
         self.fenetre_a_propos.show()
-
 
     def change_mode(self, new_mode: Mode):
         main_layout = QVBoxLayout()
@@ -181,9 +178,9 @@ class AmperePro(QMainWindow):
                     group_box_layout.addWidget(button)
 
                     # Ici on pourrait généré un preview selon le json
-                    #preview_image = QPixmap()
-                    #label = QLabel(pixmap=preview_image)
-                    #group_box_layout.addWidget(label)
+                    # preview_image = QPixmap()
+                    # label = QLabel(pixmap=preview_image)
+                    # group_box_layout.addWidget(label)
 
                     niveau_layout.addWidget(group_box)
 
@@ -193,7 +190,6 @@ class AmperePro(QMainWindow):
         retour_arriere = QPushButton("Retour en Arrière")
         retour_arriere.clicked.connect(self.init_main_window)
         main_layout.addWidget(retour_arriere)
-
 
     def add_circuit(self):
         new_circuit = Circuit()
