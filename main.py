@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSize, QFile, QTextStream
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
-from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMouseEvent
+from PySide6.QtWidgets import QMainWindow,QToolTip ,QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
+    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea, QGridLayout
 from enum import Enum
 
 from Circuit import Circuit
@@ -169,7 +169,6 @@ class AmperePro(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-
         titre = QLabel("AmpèrePro")
         titre.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         titre.setStyleSheet("color:yellow")
@@ -219,8 +218,6 @@ class AmperePro(QMainWindow):
     def ouvrir_serie_parallele(self):
         self.afficher_niveaux_sujet("Série/Parallèle")
 
-
-
     def afficher_niveaux_sujet(self, sujet):
         main_layout = QVBoxLayout()
         main_widget = QWidget()
@@ -241,14 +238,10 @@ class AmperePro(QMainWindow):
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(subtitle)
 
-        niveau1 = QPushButton("Niveau 1")
-        main_layout.addWidget(niveau1)
+        for n in range(3):
+            niveau = QPushButton(f"Niveau {n+1}")
+            main_layout.addWidget(niveau)
 
-        niveau2 = QPushButton("Niveau 2")
-        main_layout.addWidget(niveau2)
-
-        niveau3 = QPushButton("Niveau 3")
-        main_layout.addWidget(niveau3)
 
         retour_arriere = QPushButton("Retour aux sujets")
         retour_arriere.clicked.connect(self.afficher_sujets_niveau)
