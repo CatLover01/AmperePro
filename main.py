@@ -160,50 +160,30 @@ class AmperePro(QMainWindow):
                 # mode_libre_layout.addLayout(preview_circuit)
 
             case Mode.Niveau:
-                self.afficher_sujets_niveau()
-                return
+                subtitle = QLabel("Bienvenue ! Choisis un sujet")
+                subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                main_layout.addWidget(subtitle)
 
-    def afficher_sujets_niveau(self):
-        main_layout = QVBoxLayout()
-        main_widget = QWidget()
-        main_widget.setLayout(main_layout)
-        self.setCentralWidget(main_widget)
+                sujets = [
 
+                    "Loi de Kirchoff",
+                    "Loi d'ohms",
+                    "Série/Parallèle"
+                ]
 
-        titre = QLabel("AmpèrePro")
-        titre.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        titre.setStyleSheet("color:yellow")
+                for sujet in sujets:
+                    bouton = QPushButton(sujet)
 
-        police = QFont()
-        police.setPointSize(30)
-        titre.setFont(police)
+                    if sujet == "Loi de Kirchoff":
+                        bouton.clicked.connect(self.ouvrir_kirchoff)
 
-        main_layout.addWidget(titre)
+                    elif sujet == "Loi d'ohms":
+                        bouton.clicked.connect(self.ouvrir_ohms)
 
-        subtitle = QLabel("Bienvenue ! Choisis un sujet")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(subtitle)
+                    elif sujet == "Série/Parallèle":
+                        bouton.clicked.connect(self.ouvrir_serie_parallele)
 
-        sujets = [
-
-            "Loi de Kirchoff",
-            "Loi d'ohms",
-            "Série/Parallèle"
-        ]
-
-        for sujet in sujets:
-            bouton = QPushButton(sujet)
-
-            if sujet == "Loi de Kirchoff":
-                bouton.clicked.connect(self.ouvrir_kirchoff)
-
-            elif sujet == "Loi d'ohms":
-                bouton.clicked.connect(self.ouvrir_ohms)
-
-            elif sujet == "Série/Parallèle":
-                bouton.clicked.connect(self.ouvrir_serie_parallele)
-
-            main_layout.addWidget(bouton)
+                    main_layout.addWidget(bouton)
 
         # Bouton pour retourner au menu initial
         retour_arriere = QPushButton("Retour en Arrière")
@@ -218,8 +198,6 @@ class AmperePro(QMainWindow):
 
     def ouvrir_serie_parallele(self):
         self.afficher_niveaux_sujet("Série/Parallèle")
-
-
 
     def afficher_niveaux_sujet(self, sujet):
         main_layout = QVBoxLayout()
