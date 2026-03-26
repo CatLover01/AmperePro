@@ -1,7 +1,7 @@
-QMainWindow {
-    background-color: #1c1c33;
+QWidget{
+    color: #ffffff;
+    background-color:#1c1c33;
 }
-
 QPushButton{
     color: #ffffff;
     background-color: #2389cf;
@@ -19,4 +19,3 @@ QPushButton:pressed {
     background-color: #FFD100;
     border-color: #FFD100;
 }
-

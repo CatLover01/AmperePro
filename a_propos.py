@@ -17,7 +17,7 @@ class AProposWindow(QMainWindow):
         layout.addWidget(titre)
 
         texte = QLabel(
-            "Projet : AmeperePro \n\n"
+            "Projet : AmpèrePro \n\n"
             "Membres de l'équipe :\n\n"
             "- Olivier Allard \n"
             "- Rafael Costa \n"
