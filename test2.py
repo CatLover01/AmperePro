@@ -52,6 +52,10 @@ class Window(QMainWindow):
         self.dessine = False
         self.dernier_point = None
 
+        self.pivot_index = None
+        self.lignes = []
+        self.fils = []
+
         #Menubar
         barre_menu = self.menuBar()
         menu_options = barre_menu.addMenu("Options")
@@ -252,14 +256,14 @@ class Window(QMainWindow):
             y = yi + self.taille_grid
             lignes_droite.append(self.ajouter_ligne(droite, yi, droite, y))
 
-            mat_i, mat_j = self.pos_i_j(droite, y)
+            mat_i, mat_j = self.pos_to_mat(droite, y)
             matrice_points[mat_i, mat_j] = 1
 
             yi = bas - i * self.taille_grid
             y = yi - self.taille_grid
             lignes_gauche.append(self.ajouter_ligne(gauche, yi, gauche, y))
 
-            mat_i, mat_j = self.pos_i_j(gauche, y)
+            mat_i, mat_j = self.pos_to_mat(gauche, y)
             matrice_points[mat_i, mat_j] = 1
 
         # lignes horizontales
@@ -268,23 +272,24 @@ class Window(QMainWindow):
             x = xi + self.taille_grid
             lignes_haut.append(self.ajouter_ligne(xi, haut, x, haut))
 
-            mat_i, mat_j = self.pos_i_j(x, haut)
+            mat_i, mat_j = self.pos_to_mat(x, haut)
             matrice_points[mat_i, mat_j] = 1
 
             xi = droite - i * self.taille_grid
             x = xi - self.taille_grid
             lignes_bas.append(self.ajouter_ligne(xi, bas, x, bas))
 
-            mat_i, mat_j = self.pos_i_j(x, bas)
+            mat_i, mat_j = self.pos_to_mat(x, bas)
             matrice_points[mat_i, mat_j] = 1
 
         lignes_fil = lignes_haut + lignes_droite + lignes_bas + lignes_gauche
         fil_base = Fil(self, lignes_fil)
+        self.fils.append(fil_base)
         return fil_base, matrice_points
 
     def verifier_collision_fil(self, pos):
         x, y = self.pos_selon_grid(pos)
-        mat_i, mat_j = self.pos_i_j(x, y)
+        mat_i, mat_j = self.pos_to_mat(x, y)
 
         max_i = self.mat_points.shape[0] - 1
         max_j = self.mat_points.shape[1] - 1
@@ -296,14 +301,72 @@ class Window(QMainWindow):
 
     def demarrer_ligne(self, pos):
         fil = self.verifier_collision_fil(pos)
-        if fil != 0:
-            self.dessine = True
-            x, y = self.pos_selon_grid(pos)
-            mat_i, mat_j = self.pos_i_j(x, y)
+        if not self.dessine:
+            if fil != 0:
+                self.dessine = True
+                x, y = self.pos_selon_grid(pos)
+                mat_i, mat_j = self.pos_to_mat(x, y)
 
-            # TODO débuter le dessin
+                self.dernier_point = [mat_i, mat_j]
+        else:
+            self.pivot_index = len(self.lignes) - 1
 
-    def pos_i_j(self, x, y):
+    def agrandir_matrice(self, sens):
+        mat_size_i, mat_size_j = self.mat_points.shape
+        if sens == "gauche":
+            axe = 1
+            i = mat_size_i
+            j = 1
+            position = 0
+
+            self.debut_matrice_i -= self.taille_grid
+
+        elif sens == "droite":
+            axe = 1
+            i = mat_size_i
+            j = 1
+            position = mat_size_j
+
+        elif sens == "haut":
+            axe = 0
+            i = 1
+            j = mat_size_j
+            position = 0
+
+        else:
+            axe = 0
+            i = 1
+            j = mat_size_j
+            position = mat_size_i
+
+            self.debut_matrice_j -= self.taille_grid
+
+        matrice_ajout = np.zeros((i, j))
+        self.mat_points = np.insert(self.mat_points, position, matrice_ajout.flatten(), axis=axe)
+
+    def continuer_dessin(self, pos):
+
+        collision = self.verifier_collision_fil(pos)
+        if collision == 0:
+            # TODO: Vérifier dans quel sens l'utilisateur souhaite aller et ajouter les fils là
+            # Agrandir la matrice au besoin
+            pass
+        elif collision == len(self.fils) - 1:
+            # TODO: Gérer les fils quand l'utilisateur revient sur le même fil
+            # Rétrécir la matrice au besoin
+            pass
+
+        else:
+            # TODO: Ajouter un noeud puisque le fil touche à un autre fil
+            pass
+
+    def mat_to_pos(self, i, j):
+        x = (j * self.taille_grid) + self.mat_j0
+        y = (i * self.taille_grid) + self.mat_i0
+
+        return x, y
+
+    def pos_to_mat(self, x, y):
         mat_i = round((y - self.mat_i0) / self.taille_grid)
         mat_j = round((x - self.mat_j0) / self.taille_grid)
 
@@ -328,11 +391,10 @@ class GraphicsView(QGraphicsView):
         if event.button() == Qt.LeftButton:
             self.main_window.demarrer_ligne(event.position())
 
-    """
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton and self.main_window.dessine:
-            self.main_window.dessiner_fil(event.position())
-
+        if self.main_window.dessine:
+            self.main_window.continuer_dessin(event.position())
+    """
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton and self.main_window.dessine:
             self.main_window.confirmer_fil()
