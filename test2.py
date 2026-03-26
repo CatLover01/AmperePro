@@ -29,7 +29,7 @@ class Window(QMainWindow):
 
         self.largeur = self.scene_size.width()
         self.hauteur = self.scene_size.height()
-        #La distance entre chaque ligne dans le grid
+        # La distance entre chaque ligne dans le grid
         self.taille_grid = 14
 
         self.mat_i0 = 0
@@ -48,29 +48,27 @@ class Window(QMainWindow):
 
         sauvegarder = Sauvegarder(self)
 
-        #Menubar
+        # Menubar
         barre_menu = self.menuBar()
 
-        #sauvegarder
+        # sauvegarder
         sauvegarder = QAction("Sauvegarder")
         sauvegarder.setShortcut("Ctrl+S")
         sauvegarder.setIcon(QIcon("images/menubar/disquette.png"))
         barre_menu.addAction(sauvegarder)
-        #sauvegarder.triggered.connect(sauvegarder)
+        # sauvegarder.triggered.connect(sauvegarder)
 
-        #rollback
+        # rollback
         annuler_action = QAction("RollBack")
         annuler_action.setShortcut("Ctrl+R")
-        #annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
+        # annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
         barre_menu.addAction(annuler_action)
 
-        #Quitter
+        # Quitter
         quitter = QAction("Quitter")
         quitter.setShortcut("Ctrl+Q")
         quitter.triggered.connect(self.close)
         barre_menu.addAction(quitter)
-
-
 
     def dessiner_fond_grid(self):
         self.scene.setBackgroundBrush(QColorConstants.White)
@@ -82,19 +80,19 @@ class Window(QMainWindow):
         pen.setWidthF(largeur_crayon)
         pen.setColor(QColorConstants.Gray)
 
-        #Lignes horizontales
-        for i in range(math.ceil(self.hauteur/self.taille_grid) + 1):
+        # Lignes horizontales
+        for i in range(math.ceil(self.hauteur / self.taille_grid) + 1):
             x1 = 0
             x2 = self.largeur
-            y = i*self.taille_grid
+            y = i * self.taille_grid
 
             self.scene.addLine(x1, y, x2, y, pen)
 
-        #Lignes verticales
-        for i in range(math.ceil(self.largeur/self.taille_grid) + 1):
+        # Lignes verticales
+        for i in range(math.ceil(self.largeur / self.taille_grid) + 1):
             y1 = 0
             y2 = self.hauteur
-            x = i*self.taille_grid
+            x = i * self.taille_grid
 
             self.scene.addLine(x, y1, x, y2, pen)
 
@@ -107,10 +105,10 @@ class Window(QMainWindow):
         return ligne
 
     def dessiner_circuit_base(self, largeur_circuit, hauteur_circuit):
-        gauche = self.largeur/2 - largeur_circuit/2
-        droite = self.largeur/2 + largeur_circuit/2
-        haut = self.hauteur/2 - hauteur_circuit/2
-        bas = self.hauteur/2 + hauteur_circuit/2
+        gauche = self.largeur / 2 - largeur_circuit / 2
+        droite = self.largeur / 2 + largeur_circuit / 2
+        haut = self.hauteur / 2 - hauteur_circuit / 2
+        bas = self.hauteur / 2 + hauteur_circuit / 2
 
         gauche, haut = self.pos_selon_grid(QPointF(gauche, haut))
         droite, bas = self.pos_selon_grid(QPointF(droite, bas))
@@ -182,7 +180,7 @@ class Window(QMainWindow):
             x, y = self.pos_selon_grid(pos)
             mat_i, mat_j = self.pos_i_j(x, y)
 
-            #TODO débuter le dessin
+            # TODO débuter le dessin
 
     def pos_i_j(self, x, y):
         mat_i = round((y - self.mat_i0) / self.taille_grid)
@@ -192,9 +190,9 @@ class Window(QMainWindow):
 
     def pos_selon_grid(self, pos):
         x = round(pos.x() / self.taille_grid) * self.taille_grid
-        x = max(min(x, math.floor(self.scene_size.width()/self.taille_grid)*self.taille_grid), 0)
+        x = max(min(x, math.floor(self.scene_size.width() / self.taille_grid) * self.taille_grid), 0)
         y = round(pos.y() / self.taille_grid) * self.taille_grid
-        y = max(min(y, math.floor(self.scene_size.height()/self.taille_grid)*self.taille_grid), 0)
+        y = max(min(y, math.floor(self.scene_size.height() / self.taille_grid) * self.taille_grid), 0)
 
         return x, y
 
@@ -220,14 +218,6 @@ class GraphicsView(QGraphicsView):
             self.main_window.points = []
             self.main_window.lignes = []
     """
-
-class Sauvegarder():
-    def __init__(self, MainWindow):
-        window = MainWindow
-        mat_i = window.mat_i0
-        mat_j = window.mat_j0
-        self.liste_composantes = []
-        self.infos_circuit = []
 
 
 app = QApplication()

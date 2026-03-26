@@ -8,6 +8,7 @@ from Circuit import Circuit
 from Composantes import toolbar_composantes
 from a_propos import AProposWindow
 from docs import DocumentationWindow
+from sauvegarder import Sauvegarder
 
 
 class Mode(Enum):
@@ -32,6 +33,8 @@ class AmperePro(QMainWindow):
         self.title = None
         self.fenetre_doc = None
         self.init_main_window()
+
+        self.data = Sauvegarder()
 
         # Menus
         menu_bar = self.menuBar()
