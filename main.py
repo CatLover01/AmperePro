@@ -190,7 +190,16 @@ class AmperePro(QMainWindow):
 
         for sujet in sujets:
             bouton = QPushButton(sujet)
-            bouton.clicked.connect(self.bouton_sujet_clique)
+
+            if sujet == "Loi de Kirchoff":
+                bouton.clicked.connect(self.ouvrir_kirchoff)
+
+            elif sujet == "Loi d'ohms":
+                bouton.clicked.connect(self.ouvrir_ohms)
+
+            elif sujet == "Série/Parallèle":
+                bouton.clicked.connect(self.ouvrir_serie_parallele)
+
             main_layout.addWidget(bouton)
 
         # Bouton pour retourner au menu initial
@@ -198,10 +207,16 @@ class AmperePro(QMainWindow):
         retour_arriere.clicked.connect(self.init_main_window)
         main_layout.addWidget(retour_arriere)
 
-    def bouton_sujet_clique(self):
-        bouton = self.sender()
-        sujet = bouton.text()
-        self.afficher_sujets_niveau(sujet)
+    def ouvrir_kirchoff(self):
+        self.afficher_niveaux_sujet("Loi de Kirchoff")
+
+    def ouvrir_ohms(self):
+        self.afficher_niveaux_sujet("Loi d'ohms")
+
+    def ouvrir_serie_parallele(self):
+        self.afficher_niveaux_sujet("Série/Parallèle")
+
+
 
     def afficher_niveaux_sujet(self, sujet):
         main_layout = QVBoxLayout()
