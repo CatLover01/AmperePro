@@ -1,4 +1,4 @@
-from PySide6.QtCore import QSize, QPointF, QRect, QFile
+from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream
 from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon
 from PySide6.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView, QPushButton, QDialog, QHBoxLayout
 import math
