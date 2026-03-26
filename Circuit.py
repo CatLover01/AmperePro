@@ -4,7 +4,7 @@ from PySide6.QtGui import QIcon, QPixmap, QColorConstants, QPen, Qt, QPainterPat
 from PySide6.QtWidgets import QMainWindow, QToolBar, QWidget, QApplication, QPushButton, QVBoxLayout, QLabel, \
     QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsPathItem, QGraphicsEllipseItem, QGraphicsLineItem
 import numpy as np
-from scipy.linalg import solve
+
 
 from Composantes import Type, Composante, ComposanteBase, Cote
 
@@ -291,7 +291,7 @@ class Circuit:
                 if self.noeuds[j_voisin] != noeud_zero:
                     mat_A[i, j_voisin] -= 1 / serie.resistance
 
-        mat_X = solve(mat_A, mat_B)
+        mat_X = np.solve(mat_A, mat_B)
         for i in range(len(mat_X)):
             self.noeuds[i].voltage = mat_X[i][0]
 

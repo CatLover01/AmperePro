@@ -83,9 +83,9 @@ class AmperePro(QMainWindow):
         mode_layout = QHBoxLayout()
         main_layout.addLayout(mode_layout)
 
-        # Mode Niveau
+        # Mode Niveaux
         mode_niveau_button = QPushButton()
-        mode_niveau_button.setText("Mode Niveau")
+        mode_niveau_button.setText("Mode Niveaux")
         mode_niveau_button.clicked.connect(lambda: self.change_mode(Mode.Niveau))
         mode_layout.addWidget(mode_niveau_button)
 

@@ -11,13 +11,12 @@ class AProposWindow(QMainWindow):
         widget = QWidget()
         layout = QVBoxLayout()
 
-        titre = QLabel("À propos du projet :")
+        titre = QLabel("AmpèrePro")
         titre.setAlignment(Qt.AlignCenter)
         titre.setStyleSheet("font-size: 40px; font-weight: bold;")
         layout.addWidget(titre)
 
         texte = QLabel(
-            "Projet : AmpèrePro \n\n"
             "Membres de l'équipe :\n\n"
             "- Olivier Allard \n"
             "- Rafael Costa \n"
