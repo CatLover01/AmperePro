@@ -1,6 +1,6 @@
-from PySide6.QtCore import QSize, QPointF
+from PySide6.QtCore import QSize, QPointF, QRect
 from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush
-from PySide6.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView
+from PySide6.QtWidgets import QMainWindow, QApplication, QGraphicsScene, QGraphicsView, QPushButton
 import math
 import numpy as np
 
@@ -45,6 +45,9 @@ class Window(QMainWindow):
 
         self.dessine = False
         self.dernier_point = None
+
+        save = Sauvegarder(self)
+
 
     def dessiner_fond_grid(self):
         self.scene.setBackgroundBrush(QColorConstants.White)
@@ -194,6 +197,29 @@ class GraphicsView(QGraphicsView):
             self.main_window.points = []
             self.main_window.lignes = []
     """
+
+class Sauvegarder():
+    def __init__(self, MainWindow):
+        window = MainWindow
+        mat_i = window.mat_i0
+        mat_j = window.mat_j0
+        self.liste_composantes = []
+        self.infos_circuit = []
+
+        self.bouton_sauvegarder = QPushButton("Sauvegarder")
+        self.bouton_sauvegarder.setGeometry(window.scene_size.width()-85, 0, 85, 50)
+        window.scene.addWidget(self.bouton_sauvegarder)
+        print(window.scene_size.width())
+        print(window.scene_size.height())
+        print(self.bouton_sauvegarder.x())
+
+
+
+
+
+
+
+
 
 app = QApplication()
 window = Window()
