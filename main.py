@@ -3,6 +3,7 @@ from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea
 from enum import Enum
+from popup import OuvertureFenetre, Popup
 
 from Circuit import Circuit
 from Composantes import toolbar_composantes
@@ -219,14 +220,15 @@ class AmperePro(QMainWindow):
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(subtitle)
 
-        niveau1 = QPushButton("Niveau 1")
-        main_layout.addWidget(niveau1)
+        self.popups = []
+        for i in range(3):
+            popup = Popup()
 
-        niveau2 = QPushButton("Niveau 2")
-        main_layout.addWidget(niveau2)
+            bouton_niveau = OuvertureFenetre(f"Niveau {i+1}", popup)
+            self.popups.append(popup)
 
-        niveau3 = QPushButton("Niveau 3")
-        main_layout.addWidget(niveau3)
+            main_layout.addWidget(bouton_niveau)
+
 
         retour_arriere = QPushButton("Retour aux sujets")
         retour_arriere.clicked.connect(self.afficher_sujets_niveau)
