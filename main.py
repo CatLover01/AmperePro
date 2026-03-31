@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSize, QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea
+    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea, QProgressBar
 from enum import Enum
 from popup import OuvertureFenetre, Popup
 
@@ -79,6 +79,8 @@ class AmperePro(QMainWindow):
         logo = QLabel(pixmap=QPixmap("images/Interface/AmperePro_logo.png"))
         logo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(logo)
+        main_layout.addWidget(self.title)
+
 
         # Modes
         mode_layout = QHBoxLayout()
@@ -161,32 +163,49 @@ class AmperePro(QMainWindow):
                 # mode_libre_layout.addLayout(preview_circuit)
 
             case Mode.Niveau:
-                subtitle = QLabel("Bienvenue ! Choisis un sujet")
-                subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                main_layout.addWidget(subtitle)
+                self.afficher_sujets_niveau()
+                return
 
-                sujets = [
+    def afficher_sujets_niveau(self):
+        main_layout = QVBoxLayout()
+        main_widget = QWidget()
+        main_widget.setLayout(main_layout)
+        self.setCentralWidget(main_widget)
 
-                    "Loi de Kirchoff",
-                    "Loi d'ohms",
-                    "Série/Parallèle"
-                ]
+        titre = QLabel("AmpèrePro")
+        titre.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        titre.setStyleSheet("color:yellow")
 
-                for sujet in sujets:
-                    bouton = QPushButton(sujet)
+        police = QFont()
+        police.setPointSize(32)
+        titre.setFont(police)
 
-                    if sujet == "Loi de Kirchoff":
-                        bouton.clicked.connect(self.ouvrir_kirchoff)
+        main_layout.addWidget(titre)
 
-                    elif sujet == "Loi d'ohms":
-                        bouton.clicked.connect(self.ouvrir_ohms)
+        subtitle = QLabel("Bienvenue ! Choisis un sujet")
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(subtitle)
 
-                    elif sujet == "Série/Parallèle":
-                        bouton.clicked.connect(self.ouvrir_serie_parallele)
+        sujets = [
+            "Loi de Kirchoff",
+            "Loi d'ohms",
+            "Série/Parallèle"
+        ]
 
-                    main_layout.addWidget(bouton)
+        for sujet in sujets:
+            bouton = QPushButton(sujet)
 
-        # Bouton pour retourner au menu initial
+            if sujet == "Loi de Kirchoff":
+                bouton.clicked.connect(self.ouvrir_kirchoff)
+
+            elif sujet == "Loi d'ohms":
+                bouton.clicked.connect(self.ouvrir_ohms)
+
+            elif sujet == "Série/Parallèle":
+                bouton.clicked.connect(self.ouvrir_serie_parallele)
+
+            main_layout.addWidget(bouton)
+
         retour_arriere = QPushButton("Retour en Arrière")
         retour_arriere.clicked.connect(self.init_main_window)
         main_layout.addWidget(retour_arriere)
@@ -221,18 +240,44 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(subtitle)
 
         self.popups = []
-        for i in range(3):
-            popup = Popup()
 
-            bouton_niveau = OuvertureFenetre(f"Niveau {i+1}", popup)
+        difficultes = ["★☆☆☆☆", "★★☆☆☆", "★★★☆☆", "★★★★☆", "★★★★★"]
+        progressions = [0, 0, 0, 0, 0]
+
+        for i in range(5):
+            popup = Popup()
             self.popups.append(popup)
 
-            main_layout.addWidget(bouton_niveau)
+            ligne_widget = QWidget()
+            ligne_layout = QHBoxLayout()
+            ligne_widget.setLayout(ligne_layout)
+
+            barre_progression = QProgressBar()
+            barre_progression.setMinimum(0)
+            barre_progression.setMaximum(100)
+            barre_progression.setValue(progressions[i])
+            barre_progression.setFormat(str(progressions[i]) + "%")
+            barre_progression.setFixedWidth(140)
+
+            bouton_niveau = OuvertureFenetre("Niveau " + str(i + 1), popup)
+
+            label_difficulte = QLabel(difficultes[i])
+            label_difficulte.setFixedWidth(80)
+            label_difficulte.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            ligne_layout.addWidget(barre_progression)
+            ligne_layout.addWidget(bouton_niveau)
+            ligne_layout.addWidget(label_difficulte)
+
+            main_layout.addWidget(ligne_widget)
 
 
         retour_arriere = QPushButton("Retour aux sujets")
-        retour_arriere.clicked.connect(self.afficher_sujets_niveau)
+        retour_arriere.clicked.connect(self.retour_sujets)
         main_layout.addWidget(retour_arriere)
+
+    def retour_sujets(self):
+        self.afficher_sujets_niveau()
 
     def add_circuit(self):
         new_circuit = Circuit()
