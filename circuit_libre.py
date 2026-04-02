@@ -4,8 +4,11 @@ from PySide6.QtWidgets import (QMainWindow, QApplication, QGraphicsScene, QGraph
                                QHBoxLayout)
 import math
 import numpy as np
+import datetime
+
 from a_propos import AProposWindow
 from docs import DocumentationWindow
+from sauvegarder import Sauvegarder, CircuitLibre
 
 
 class Fil:
@@ -57,6 +60,8 @@ class Window(QMainWindow):
         self.fil_touche = None
         self.fil_complet = False
 
+        self.save = Sauvegarder()
+
         fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
         self.fils = [fil_base]
 
@@ -100,8 +105,11 @@ class Window(QMainWindow):
         menu_infos.addAction(documentation_action)
 
     def sauvegarder_triggered(self):
-        #TODO: implémenter code pour enregistrer circuit dans bd
-        pass
+        # Id: Devrait être générer automatiquement lors de louverture du graphique
+        # Nom: Devrait être rentrer par l'utilisateur
+        date = int(datetime.datetime.now(datetime.UTC).timestamp())
+        circuit = CircuitLibre("Id", "Nom...", self.mat_points.tolist(), date)
+        self.save.ajout_circuit_libre(circuit)
 
     def quitter_triggered(self):
         avertissement = QDialog()

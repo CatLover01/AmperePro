@@ -1,5 +1,14 @@
 import json
+from json import JSONDecodeError
+from dataclasses import dataclass, asdict
 
+
+@dataclass
+class CircuitLibre:
+    id: str
+    nom: str
+    matrix: list
+    derniere_sauvegarde: int
 
 class Sauvegarder:
     def __init__(self):
@@ -7,8 +16,8 @@ class Sauvegarder:
             # Données utilisateur: niveau atteint, circuits personnalisés
             # Format attendu: {"niveau": int, "circuits_libre": list}
             self.data = read("data.json")
-        except FileNotFoundError:
-            # Création d'un état par défaut si la sauvegarde n'existe pas
+        except FileNotFoundError | JSONDecodeError:
+            # Création d'un état par défaut si la sauvegarde n'existe pas ou malformé
             default = {"niveau": 1, "circuits-libre": []}
             write("data.json", default)
             self.data = default
@@ -29,6 +38,22 @@ class Sauvegarder:
     def circuits_libre(self):
         # Retourne la liste des circuits libres sauvegardés par l'utilisateur.
         return self.data["circuits_libre"]
+
+    def ajout_circuit_libre(self, nouveau_circuit: CircuitLibre):
+        circuit_dict = {nouveau_circuit.id: asdict(nouveau_circuit)}
+        self.data["circuits-libre"].append(circuit_dict)
+        write("data.json" , self.data)
+
+    # Retourne faux si le circuit modifier n'existe pas
+    def modifie_circuit(self, circuit_modifier: CircuitLibre) -> bool:
+        for idx, circuit in enumerate(self.data["circuits-libre"]):
+            if circuit.id != circuit_modifier.id: continue
+
+            self.data["circuits-libre"][idx] = asdict(circuit_modifier)
+            write("data.json" , self.data)
+            return True
+
+        return False
 
 
 def write(path: str, data: dict):
