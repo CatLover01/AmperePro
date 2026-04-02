@@ -1,16 +1,16 @@
 from PySide6.QtCore import QSize, QFile, QTextStream
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea, QProgressBar
+    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea, QProgressBar, QDialog
 from enum import Enum
 from popup import OuvertureFenetre, Popup
 
-from Circuit import Circuit
+
 from Composantes import toolbar_composantes
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder
-
+from circuit_libre import Window
 
 class Mode(Enum):
     Libre = 1
@@ -41,15 +41,17 @@ class AmperePro(QMainWindow):
         menu_bar = self.menuBar()
         menu_aide = QMenu("Aide")
 
-        # Documentation
-        documentation_action = QAction("Documentation", self)
-        documentation_action.triggered.connect(self.ouvrir_documentation)
-        menu_aide.addAction(documentation_action)
-
         # À propos
         a_propos_action = QAction("À Propos", self)
+        a_propos_action.setIcon(QIcon("images/menubar/a_propos.png"))
         a_propos_action.triggered.connect(self.ouvrir_a_propos)
         menu_aide.addAction(a_propos_action)
+
+        # Documentation
+        documentation_action = QAction("Documentation", self)
+        documentation_action.setIcon(QIcon("images/menubar/docu.png"))
+        documentation_action.triggered.connect(self.ouvrir_documentation)
+        menu_aide.addAction(documentation_action)
 
         menu_bar.addMenu(menu_aide)
 
@@ -142,15 +144,17 @@ class AmperePro(QMainWindow):
 
         match new_mode:
             case Mode.Libre:
-                subtitle = QLabel("Crée un nouveau circuit!")
-                subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                main_layout.addWidget(subtitle)
+                #gif_electricite = QMovie()
 
                 # Nouvelle Section Mode libre
                 add_circuit_button = QPushButton()
-                add_circuit_button.setText("Créer")
+                add_circuit_button.setText("Créer un nouveau circuit")
                 add_circuit_button.clicked.connect(self.add_circuit)
                 main_layout.addWidget(add_circuit_button)
+
+                add_circuit_charger = QPushButton("Charger un circuit sauvegardé")
+                add_circuit_charger.clicked.connect(self.charger_circuit)
+                main_layout.addWidget(add_circuit_charger)
 
                 mode_libre_layout = QHBoxLayout()
                 main_layout.addLayout(mode_libre_layout)
@@ -280,15 +284,23 @@ class AmperePro(QMainWindow):
         self.afficher_sujets_niveau()
 
     def add_circuit(self):
-        new_circuit = Circuit()
-        self.graphic_view.setScene(new_circuit.scene)
+        nouveau_circuit = Window()
+        self.graphic_view.setScene(nouveau_circuit.scene)
         self.setCentralWidget(self.graphic_view)
+        self.setMenuBar(nouveau_circuit.barre_menu)
+
+        # complétion de la barre menu avec la possibilité de revenir au menu principal
+        retour_action = QAction("Menu Principal", self)
+        retour_action.setShortcut("Ctrl+M")
+        retour_action.setIcon(QIcon("images/menubar/menu_principal.png"))
+        retour_action.triggered.connect(self.retour_menu_triggered)
+        nouveau_circuit.menu_naviguer.addAction(retour_action)
 
         toolbar = QToolBar()
         # ne permet pas à l'utilisateur de cacher la toolbar.
         toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
 
-        class ToolbarButton(QPushButton):
+        """class ToolbarButton(QPushButton):
             def __init__(self, nom: str):
                 super().__init__()
                 self.nom = nom
@@ -301,7 +313,7 @@ class AmperePro(QMainWindow):
         main_bouton = ToolbarButton("Main")
         main_bouton.setIcon(main_icone)
         main_bouton.setIconSize(QSize(45, 45))
-        main_bouton.clicked.connect(new_circuit.main_click)
+        main_bouton.clicked.connect(nouveau_circuit.main_click)
         toolbar.addWidget(main_bouton)
 
         # Ajoute le bouton fil à la toolbar
@@ -309,7 +321,7 @@ class AmperePro(QMainWindow):
         fil_bouton = ToolbarButton("Fil")
         fil_bouton.setIcon(fil_icone)
         fil_bouton.setIconSize(QSize(45, 45))
-        fil_bouton.clicked.connect(new_circuit.fil_click)
+        fil_bouton.clicked.connect(nouveau_circuit.fil_click)
         toolbar.addWidget(fil_bouton)
 
         # Ajouter un bouton dans la toolbar pour chaque composante
@@ -321,7 +333,48 @@ class AmperePro(QMainWindow):
             bouton.clicked.connect(lambda _, c=composante: new_circuit.toolbar_clicked(c))
             toolbar.addWidget(bouton)
 
-        self.addToolBar(toolbar)
+        self.addToolBar(toolbar)"""
+
+    # méthodes pour barre menu de circuit libre
+    def retour_menu_triggered(self):
+        avertissement = QDialog()
+        avertissement.setWindowTitle("Voulez-vous Sauvegarder?")
+        avertissement.setModal(True)
+
+        layout_dialogue = QHBoxLayout()
+        avertissement.setLayout(layout_dialogue)
+
+        bouton_annuler = QPushButton("Annuler")
+        bouton_annuler.clicked.connect(avertissement.close)
+
+        bouton_sauvegarder_et_quitter = QPushButton("Sauvegarder et Quitter")
+        bouton_sauvegarder_et_quitter.clicked.connect(lambda: self.sauvegarder_et_menu(avertissement))
+
+        bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
+        bouton_quitter_sans_sauvegarder.clicked.connect(lambda: self.menu_sans_sauvegarder(avertissement))
+
+        layout_dialogue.addWidget(bouton_sauvegarder_et_quitter)
+        layout_dialogue.addWidget(bouton_quitter_sans_sauvegarder)
+        layout_dialogue.addWidget(bouton_annuler)
+
+        avertissement.exec()
+
+    def retour_menu(self):
+        self.init_main_window()
+
+    def sauvegarder_et_menu(self, dialog):
+        nouveau_circuit = Window()
+        #ferme QDialog, sauvegarde et retourne au menu principal
+        dialog.close()
+        nouveau_circuit.sauvegarder_triggered()
+        self.retour_menu()
+
+    def menu_sans_sauvegarder(self, dialog):
+        dialog.close()
+        self.retour_menu()
+
+    def charger_circuit(self):
+        pass
 
 
 if __name__ == "__main__":

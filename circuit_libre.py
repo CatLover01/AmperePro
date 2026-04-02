@@ -61,10 +61,10 @@ class Window(QMainWindow):
         self.fils = [fil_base]
 
         #Menubar
-        barre_menu = self.menuBar()
-        menu_options = barre_menu.addMenu("Options")
-        menu_naviguer = barre_menu.addMenu("Naviguer")
-        menu_infos = barre_menu.addMenu("Aide")
+        self.barre_menu = self.menuBar()
+        menu_options = self.barre_menu.addMenu("Options")
+        self.menu_naviguer = self.barre_menu.addMenu("Naviguer")
+        menu_infos = self.barre_menu.addMenu("Aide")
 
         #sauvegarder
         sauvegarder_action = QAction("Sauvegarder", self)
@@ -83,14 +83,7 @@ class Window(QMainWindow):
         quitter_action = QAction("Quitter", self)
         quitter_action.setShortcut("Ctrl+Q")
         quitter_action.triggered.connect(self.quitter_triggered)
-        menu_naviguer.addAction(quitter_action)
-
-        #retour au menu principal
-        retour_action = QAction("Menu Principal", self)
-        retour_action.setShortcut("Ctrl+M")
-        retour_action.setIcon(QIcon("images/menubar/menu_principal.png"))
-        retour_action.triggered.connect(self.retour_menu_triggered)
-        menu_naviguer.addAction(retour_action)
+        self.menu_naviguer.addAction(quitter_action)
 
         #à propos
         a_propos_action = QAction("À propos", self)
@@ -110,29 +103,6 @@ class Window(QMainWindow):
         #TODO: implémenter code pour enregistrer circuit dans bd
         pass
 
-    def retour_menu_triggered(self):
-        avertissement = QDialog()
-        avertissement.setWindowTitle("Voulez-vous Sauvegarder?")
-        avertissement.setModal(True)
-
-        layout_dialogue = QHBoxLayout()
-        avertissement.setLayout(layout_dialogue)
-
-        bouton_annuler = QPushButton("Annuler")
-        bouton_annuler.clicked.connect(avertissement.close)
-
-        bouton_sauvegarder_et_quitter = QPushButton("Sauvegarder et Quitter")
-        bouton_sauvegarder_et_quitter.clicked.connect(lambda: self.sauvegarder_et_menu(avertissement))
-
-        bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
-        bouton_quitter_sans_sauvegarder.clicked.connect(lambda: self.menu_sans_sauvegarder(avertissement))
-
-        layout_dialogue.addWidget(bouton_sauvegarder_et_quitter)
-        layout_dialogue.addWidget(bouton_quitter_sans_sauvegarder)
-        layout_dialogue.addWidget(bouton_annuler)
-
-        avertissement.exec()
-
     def quitter_triggered(self):
         avertissement = QDialog()
         avertissement.setWindowTitle("Voulez-vous Sauvegarder?")
@@ -145,38 +115,24 @@ class Window(QMainWindow):
         bouton_annuler = QPushButton("Annuler")
         bouton_annuler.clicked.connect(avertissement.close)
 
-        bouton_sauvegarder_et_quitter = QPushButton("Sauvegarder et Quitter")
-        bouton_sauvegarder_et_quitter.clicked.connect(lambda: self.sauvegarder_et_quitter(avertissement))
+        bouton_sauvegarder_et_quitter_total = QPushButton("Sauvegarder et Quitter")
+        bouton_sauvegarder_et_quitter_total.clicked.connect(lambda: self.sauvegarder_et_quitter(avertissement))
 
         #ferme les deux fenêtres (dialogue et principale)
         bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
         bouton_quitter_sans_sauvegarder.clicked.connect(avertissement.close)
         bouton_quitter_sans_sauvegarder.clicked.connect(self.close)
 
-        layout_dialogue.addWidget(bouton_sauvegarder_et_quitter)
+        layout_dialogue.addWidget(bouton_sauvegarder_et_quitter_total)
         layout_dialogue.addWidget(bouton_quitter_sans_sauvegarder)
         layout_dialogue.addWidget(bouton_annuler)
         avertissement.exec()
 
-    def retour_menu(self):
-        # TODO: faire en sorte que l'on revienne au menu principal
-        pass
-
-    def sauvegarder_et_menu(self, dialog):
-        #ferme QDialog, sauvegarde et retourne au menu principal
-        dialog.close()
-        self.sauvegarder_triggered()
-        self.retour_menu()
-
-    def menu_sans_sauvegarder(self, dialog):
-        dialog.close()
-        self.retour_menu()
-
     def sauvegarder_et_quitter(self, dialog):
         # sauvegarde le circuit et ferme tout
-        self.close()
         dialog.close()
         self.sauvegarder_triggered()
+        self.close()
 
     def ouvrir_a_propos(self):
         # ouverture du stylesheet
@@ -569,9 +525,3 @@ class GraphicsView(QGraphicsView):
             self.main_window.points = []
             self.main_window.lignes = []
     """
-
-
-app = QApplication()
-window = Window()
-window.show()
-app.exec()
