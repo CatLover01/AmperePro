@@ -7,6 +7,7 @@ from popup import OuvertureFenetre, Popup
 
 
 from Composantes import toolbar_composantes
+from circuit_libre import GraphicsView
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder
@@ -38,27 +39,27 @@ class AmperePro(QMainWindow):
         self.data = Sauvegarder()
 
         # Menus
-        menu_bar = self.menuBar()
-        menu_aide = QMenu("Aide")
+        self.menu_bar = self.menuBar()
+        self.menu_aide = QMenu("Aide")
 
         # À propos
         a_propos_action = QAction("À Propos", self)
         a_propos_action.setIcon(QIcon("images/menubar/a_propos.png"))
         a_propos_action.triggered.connect(self.ouvrir_a_propos)
-        menu_aide.addAction(a_propos_action)
+        self.menu_aide.addAction(a_propos_action)
 
         # Documentation
         documentation_action = QAction("Documentation", self)
         documentation_action.setIcon(QIcon("images/menubar/docu.png"))
         documentation_action.triggered.connect(self.ouvrir_documentation)
-        menu_aide.addAction(documentation_action)
+        self.menu_aide.addAction(documentation_action)
 
-        menu_bar.addMenu(menu_aide)
+        self.menu_bar.addMenu(self.menu_aide)
 
         # Quitter
-        quitter_action = QAction("Quitter", self)
-        quitter_action.triggered.connect(self.close)
-        menu_bar.addAction(quitter_action)
+        self.quitter_action = QAction("Quitter", self)
+        self.quitter_action.triggered.connect(self.close)
+        self.menu_bar.addAction(self.quitter_action)
 
         self.graphic_view = QGraphicsView()
 
@@ -144,7 +145,15 @@ class AmperePro(QMainWindow):
 
         match new_mode:
             case Mode.Libre:
-                #gif_electricite = QMovie()
+                gif_electricite = QMovie("images/interface/mode_libre.gif")
+
+                label = QLabel()
+                label.setMovie(gif_electricite)
+                label.setScaledContents(True)
+                label.resize(200, 500)
+                gif_electricite.start()
+
+                main_layout.addWidget(label)
 
                 # Nouvelle Section Mode libre
                 add_circuit_button = QPushButton()
@@ -284,10 +293,10 @@ class AmperePro(QMainWindow):
         self.afficher_sujets_niveau()
 
     def add_circuit(self):
-        nouveau_circuit = Window()
-        self.graphic_view.setScene(nouveau_circuit.scene)
-        self.setCentralWidget(self.graphic_view)
+        nouveau_circuit = Window(self)
+        self.setCentralWidget(nouveau_circuit.graphics_view)
         self.setMenuBar(nouveau_circuit.barre_menu)
+        self.menu_bar.removeAction(self.quitter_action)
 
         # complétion de la barre menu avec la possibilité de revenir au menu principal
         retour_action = QAction("Menu Principal", self)
@@ -363,7 +372,7 @@ class AmperePro(QMainWindow):
         self.init_main_window()
 
     def sauvegarder_et_menu(self, dialog):
-        nouveau_circuit = Window()
+        nouveau_circuit = Window(self)
         #ferme QDialog, sauvegarde et retourne au menu principal
         dialog.close()
         nouveau_circuit.sauvegarder_triggered()

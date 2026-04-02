@@ -1,3 +1,5 @@
+import sys
+
 from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon
 from PySide6.QtWidgets import (QMainWindow, QApplication, QGraphicsScene, QGraphicsView, QPushButton, QDialog,
@@ -19,16 +21,15 @@ class Fil:
         self.lignes = self.lignes[:index_max]
 
 
-class Window(QMainWindow):
-    def __init__(self):
+class Window(QGraphicsScene):
+    def __init__(self, mainwindow):
         super().__init__()
-        self.setWindowTitle("Test")
+        self.main_window = mainwindow
         self.scene_size = QSize(500, 500)
-        self.scene = QGraphicsScene()
-        self.graphics_view = GraphicsView(self.scene, self)
-        self.setCentralWidget(self.graphics_view)
+        self.graphics_view = GraphicsView(self, self.main_window)
+        self.main_window.setCentralWidget(self.graphics_view)
         self.graphics_view.setMinimumSize(self.scene_size)
-        self.graphics_view.setScene(self.scene)
+        self.graphics_view.setScene(self)
 
         self.fenetre_doc = DocumentationWindow()
         self.fenetre_a_propos = AProposWindow()
@@ -61,10 +62,9 @@ class Window(QMainWindow):
         self.fils = [fil_base]
 
         #Menubar
-        self.barre_menu = self.menuBar()
+        self.barre_menu = self.main_window.menuBar()
         menu_options = self.barre_menu.addMenu("Options")
         self.menu_naviguer = self.barre_menu.addMenu("Naviguer")
-        menu_infos = self.barre_menu.addMenu("Aide")
 
         #sauvegarder
         sauvegarder_action = QAction("Sauvegarder", self)
@@ -85,19 +85,6 @@ class Window(QMainWindow):
         quitter_action.triggered.connect(self.quitter_triggered)
         self.menu_naviguer.addAction(quitter_action)
 
-        #à propos
-        a_propos_action = QAction("À propos", self)
-        a_propos_action.setShortcut("Ctrl+A")
-        a_propos_action.setIcon(QIcon("images/menubar/a_propos.png"))
-        a_propos_action.triggered.connect(self.ouvrir_a_propos)
-        menu_infos.addAction(a_propos_action)
-
-        #documentation
-        documentation_action = QAction("En savoir plus", self)
-        documentation_action.setShortcut("Ctrl+D")
-        documentation_action.setIcon(QIcon("images/menubar/docu.png"))
-        documentation_action.triggered.connect(self.ouvrir_docu)
-        menu_infos.addAction(documentation_action)
 
     def sauvegarder_triggered(self):
         #TODO: implémenter code pour enregistrer circuit dans bd
@@ -121,7 +108,7 @@ class Window(QMainWindow):
         #ferme les deux fenêtres (dialogue et principale)
         bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
         bouton_quitter_sans_sauvegarder.clicked.connect(avertissement.close)
-        bouton_quitter_sans_sauvegarder.clicked.connect(self.close)
+        bouton_quitter_sans_sauvegarder.clicked.connect(self.main_window)
 
         layout_dialogue.addWidget(bouton_sauvegarder_et_quitter_total)
         layout_dialogue.addWidget(bouton_quitter_sans_sauvegarder)
@@ -132,32 +119,12 @@ class Window(QMainWindow):
         # sauvegarde le circuit et ferme tout
         dialog.close()
         self.sauvegarder_triggered()
-        self.close()
-
-    def ouvrir_a_propos(self):
-        # ouverture du stylesheet
-        style_propos = QFile("StyleSheet/StylePropos.qss")
-        if style_propos.open(QFile.OpenModeFlag.ReadOnly):
-            stream = QTextStream(style_propos)
-            self.fenetre_a_propos.setStyleSheet(stream.readAll())
-            style_propos.close()
-
-        self.fenetre_a_propos.show()
-
-    def ouvrir_docu(self):
-        # ouverture du Stylesheet
-        style_docu = QFile("StyleSheet/StyleDocumentation.qss")
-        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
-            stream_docu = QTextStream(style_docu)
-            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
-            style_docu.close()
-
-            self.fenetre_doc.show()
+        self.main_window()
 
     # première méthode non liée au menu à propos
     def dessiner_fond_grid(self):
-        self.scene.setBackgroundBrush(QColorConstants.White)
-        self.scene.setSceneRect(0, 0, self.largeur, self.hauteur)
+        self.setBackgroundBrush(QColorConstants.White)
+        self.setSceneRect(0, 0, self.largeur, self.hauteur)
 
         largeur_crayon = 1
 
@@ -171,7 +138,7 @@ class Window(QMainWindow):
             x2 = self.largeur
             y = i * self.taille_grid
 
-            self.scene.addLine(x1, y, x2, y, pen)
+            self.addLine(x1, y, x2, y, pen)
 
         # Lignes verticales
         for i in range(math.ceil(self.largeur / self.taille_grid) + 1):
@@ -179,13 +146,13 @@ class Window(QMainWindow):
             y2 = self.hauteur
             x = i * self.taille_grid
 
-            self.scene.addLine(x, y1, x, y2, pen)
+            self.addLine(x, y1, x, y2, pen)
 
     def ajouter_ligne(self, xi, yi, x, y):
         pen = QPen(QColorConstants.Black)
         largeur_crayon = 3
         pen.setWidthF(largeur_crayon)
-        ligne = self.scene.addLine(xi, yi, x, y, pen)
+        ligne = self.addLine(xi, yi, x, y, pen)
 
         return ligne
 
@@ -202,7 +169,7 @@ class Window(QMainWindow):
         ligne_droite = self.ajouter_ligne(droite, haut, droite, bas)
         ligne_bas = self.ajouter_ligne(droite, bas, gauche, bas)
         ligne_gauche = self.ajouter_ligne(gauche, bas, gauche, haut)
-        fil_base = Fil(self, [ligne_haut, ligne_droite, ligne_bas, ligne_gauche])
+        fil_base = Fil(self.main_window, [ligne_haut, ligne_droite, ligne_bas, ligne_gauche])
 
         nb_points_x = round((droite - gauche) / self.taille_grid) + 1
         nb_points_y = round((bas - haut) / self.taille_grid) + 1
@@ -296,7 +263,7 @@ class Window(QMainWindow):
 
             # Ajouter noeud a premier et dernier point
 
-            nouveau_fil = Fil(self, self.lignes)
+            nouveau_fil = Fil(self.main_window, self.lignes)
             self.fils.append(nouveau_fil)
             self.lignes = []
             self.points_avant_pivot = []
@@ -323,7 +290,7 @@ class Window(QMainWindow):
                 pos_ligne_x, pos_ligne_y = ligne.line().p2().x(), ligne.line().p2().y()
                 mat_i, mat_j = self.pos_to_mat(pos_ligne_x, pos_ligne_y)
                 self.mat_points[mat_i, mat_j] = 0
-                self.scene.removeItem(ligne)
+                self.removeItem(ligne)
 
             points = self.points_avant_pivot + self.points_apres_pivot
             for point in points:
@@ -504,19 +471,19 @@ class Window(QMainWindow):
 class GraphicsView(QGraphicsView):
     def __init__(self, scene, main_window):
         super().__init__(scene)
-        self.main_window = main_window
+        self.scene = scene
         self.viewport().setMouseTracking(True)
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.main_window.clic_gauche_fil(event.position())
+            self.scene.clic_gauche_fil(event.position())
 
         if event.button() == Qt.RightButton:
-            self.main_window.clic_droit_fil()
+            self.scene.clic_droit_fil()
 
     def mouseMoveEvent(self, event):
-        if self.main_window.dessine:
-            self.main_window.continuer_dessin(event.position())
+        if self.scene.dessine:
+            self.scene.continuer_dessin(event.position())
 
     """
     def mouseReleaseEvent(self, event):
