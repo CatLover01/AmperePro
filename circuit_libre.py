@@ -68,21 +68,21 @@ class Window(QGraphicsScene):
 
         #Menubar
         self.barre_menu = self.main_window.menuBar()
-        menu_options = self.barre_menu.addMenu("Options")
+        self.menu_options = self.barre_menu.addMenu("Options")
         self.menu_naviguer = self.barre_menu.addMenu("Naviguer")
 
         #sauvegarder
         sauvegarder_action = QAction("Sauvegarder", self)
         sauvegarder_action.setShortcut("Ctrl+S")
         sauvegarder_action.setIcon(QIcon("images/menubar/disquette.png"))
-        menu_options.addAction(sauvegarder_action)
+        self.menu_options.addAction(sauvegarder_action)
         sauvegarder_action.triggered.connect(self.sauvegarder_triggered)
 
         #rollback
         annuler_action = QAction("RollBack", self)
         annuler_action.setShortcut("Ctrl+R")
         annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
-        menu_options.addAction(annuler_action)
+        self.menu_options.addAction(annuler_action)
 
         #Quitter
         quitter_action = QAction("Quitter", self)
@@ -116,8 +116,7 @@ class Window(QGraphicsScene):
         #ferme les deux fenêtres (dialogue et principale)
         bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
         bouton_quitter_sans_sauvegarder.clicked.connect(avertissement.close)
-        bouton_quitter_sans_sauvegarder.clicked.connect(self.main_window)
-
+        bouton_quitter_sans_sauvegarder.clicked.connect(self.main_window.close)
         layout_dialogue.addWidget(bouton_sauvegarder_et_quitter_total)
         layout_dialogue.addWidget(bouton_quitter_sans_sauvegarder)
         layout_dialogue.addWidget(bouton_annuler)
@@ -127,7 +126,7 @@ class Window(QGraphicsScene):
         # sauvegarde le circuit et ferme tout
         dialog.close()
         self.sauvegarder_triggered()
-        self.main_window()
+        self.main_window.close()
 
     # première méthode non liée au menu à propos
     def dessiner_fond_grid(self):

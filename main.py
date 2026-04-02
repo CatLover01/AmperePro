@@ -3,11 +3,9 @@ from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea, QProgressBar, QDialog
 from enum import Enum
+
 from popup import OuvertureFenetre, Popup
-
-
 from Composantes import toolbar_composantes
-from circuit_libre import GraphicsView
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder
@@ -377,10 +375,17 @@ class AmperePro(QMainWindow):
         dialog.close()
         nouveau_circuit.sauvegarder_triggered()
         self.retour_menu()
+        self.menu_bar.clear()
+        self.menu_bar.addMenu(self.menu_aide)
+        self.menu_bar.addAction(self.quitter_action)
 
     def menu_sans_sauvegarder(self, dialog):
+        nouveau_circuit = Window(self)
         dialog.close()
         self.retour_menu()
+        self.menu_bar.clear()
+        self.menu_bar.addMenu(self.menu_aide)
+        self.menu_bar.addAction(self.quitter_action)
 
     def charger_circuit(self):
         pass
