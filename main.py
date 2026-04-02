@@ -5,13 +5,13 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
 from enum import Enum
 from popup import OuvertureFenetre, Popup
 
-
 from Composantes import toolbar_composantes
 from circuit_libre import GraphicsView
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder
 from circuit_libre import Window
+
 
 class Mode(Enum):
     Libre = 1
@@ -83,7 +83,6 @@ class AmperePro(QMainWindow):
         logo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(logo)
         main_layout.addWidget(self.title)
-
 
         # Modes
         mode_layout = QHBoxLayout()
@@ -165,6 +164,10 @@ class AmperePro(QMainWindow):
                 add_circuit_charger.clicked.connect(self.charger_circuit)
                 main_layout.addWidget(add_circuit_charger)
 
+                retour_menu = QPushButton("Retour au menu")
+                retour_menu.clicked.connect(self.init_main_window)
+                main_layout.addWidget(retour_menu)
+
                 mode_libre_layout = QHBoxLayout()
                 main_layout.addLayout(mode_libre_layout)
 
@@ -177,6 +180,8 @@ class AmperePro(QMainWindow):
 
             case Mode.Niveau:
                 self.afficher_sujets_niveau()
+            case Niveau:
+                self.afficher_niveau_O1()
                 return
 
     def afficher_sujets_niveau(self):
@@ -283,7 +288,6 @@ class AmperePro(QMainWindow):
             ligne_layout.addWidget(label_difficulte)
 
             main_layout.addWidget(ligne_widget)
-
 
         retour_arriere = QPushButton("Retour aux sujets")
         retour_arriere.clicked.connect(self.retour_sujets)
