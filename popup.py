@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QToolTip, QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QFrame, \
     QGridLayout, QSizePolicy
-from PySide6.QtCore import Qt, QTimer, QFile, QTextStream
+from PySide6.QtCore import Qt, QTimer, QFile, QTextStream, QPoint
 from PySide6.QtGui import QPixmap
 
 
@@ -15,29 +15,21 @@ class Popup(QWidget):
             style_poppup.close()
 
         self.setWindowFlag(Qt.ToolTip)
-        self.setFixedSize(500, 400)
+        self.setFixedSize(400, 300)
 
         mainlayout = QGridLayout()
         self.setLayout(mainlayout)
 
         # apercu niveau
         image_niveau = QLabel(pixmap=QPixmap("images/Interface/AmperePro_logo.png"))  #changer la photo
-        image_niveau.setFixedSize(500, 150)
+        image_niveau.setFixedSize(300, 150)
         mainlayout.addWidget(image_niveau, 0, 0)
 
         # desscription niveau
         description = QLabel("description simple du niveau")
         mainlayout.addWidget(description, 0, 1)
 
-        # bouton
-        layout_bouton = QHBoxLayout()
 
-        bouton_revenir = QPushButton("revenir")
-        bouton_commencer = QPushButton("commencer")
-
-        layout_bouton.addWidget(bouton_revenir)
-        layout_bouton.addWidget(bouton_commencer)
-        mainlayout.addLayout(layout_bouton, 1, 0)
 
         self.timer = QTimer()
         self.timer.setSingleShot(True)
@@ -56,8 +48,9 @@ class OuvertureFenetre(QPushButton):
         self.popup = popup
 
     def enterEvent(self, event):
-       # pos = self.mapToGlobal(self.rect().topLeft())
-        self.popup.move(0,0)
+        pos = self.mapToGlobal(QPoint(250,20))
+        #self.rect().bottomRight()
+        self.popup.move(pos)
         self.popup.show()
         self.popup.timer.stop()
 
