@@ -39,15 +39,19 @@ class Sauvegarder:
         # Retourne la liste des circuits libres sauvegardés par l'utilisateur.
         return self.data["circuits_libre"]
 
-    def ajout_circuit_libre(self, nouveau_circuit: CircuitLibre):
-        circuit_dict = {nouveau_circuit.id: asdict(nouveau_circuit)}
-        self.data["circuits-libre"].append(circuit_dict)
-        write("data.json" , self.data)
+    # Retourne False si un identifiant existe déjà pour ce circuit libre, sinon on l'ajoute
+    def ajout_circuit_libre(self, nouveau_circuit: CircuitLibre) -> bool:
+        for idx, circuit in enumerate(self.data["circuits-libre"]):
+            if nouveau_circuit.id == circuit["id"]: return False
 
-    # Retourne faux si le circuit modifier n'existe pas
+        self.data["circuits-libre"].append(asdict(nouveau_circuit))
+        write("data.json" , self.data)
+        return True
+
+    # Retourne False si le circuit modifié n'existe pas
     def modifie_circuit(self, circuit_modifier: CircuitLibre) -> bool:
         for idx, circuit in enumerate(self.data["circuits-libre"]):
-            if circuit.id != circuit_modifier.id: continue
+            if circuit["id"] != circuit_modifier.id: continue
 
             self.data["circuits-libre"][idx] = asdict(circuit_modifier)
             write("data.json" , self.data)

@@ -59,6 +59,11 @@ class Circuit(QGraphicsScene):
         self.fil_complet = False
 
         self.save = Sauvegarder()
+        # Id: Devrait être générer automatiquement lors de louverture du graphique
+        # Nom: Devrait être rentrer par l'utilisateur
+        # Devrait soit être loader par la config ou créé ou on demande le nom du circuit
+        self.nom  = "Nom"
+        self.id = "Id"
 
         fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
         self.fils = [fil_base]
@@ -69,20 +74,19 @@ class Circuit(QGraphicsScene):
         # les ajouts seront 1, les jetés seront 2, composantes modifiées seront 3
         self.operations = []
 
-
-        #Menubar
+        # Menubar
         self.barre_menu = self.main_window.menuBar()
         self.menu_options = self.barre_menu.addMenu("Options")
         self.menu_naviguer = self.barre_menu.addMenu("Naviguer")
 
-        #sauvegarder
+        # sauvegarder
         sauvegarder_action = QAction("Sauvegarder", self)
         sauvegarder_action.setShortcut("Ctrl+S")
         sauvegarder_action.setIcon(QIcon("images/menubar/disquette.png"))
         self.menu_options.addAction(sauvegarder_action)
         sauvegarder_action.triggered.connect(self.sauvegarder_triggered)
 
-        #rollback
+        # rollback
         self._annuler_action = QAction("RollBack", self)
         self._annuler_action.setShortcut("Ctrl+Z")
         self._annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
@@ -90,17 +94,16 @@ class Circuit(QGraphicsScene):
         self._annuler_action.setEnabled(False)
         self.menu_options.addAction(self._annuler_action)
 
-        #Quitter
+        # Quitter
         quitter_action = QAction("Quitter", self)
         quitter_action.setShortcut("Ctrl+Q")
         quitter_action.triggered.connect(self.quitter_triggered)
         self.menu_naviguer.addAction(quitter_action)
 
     def sauvegarder_triggered(self):
-        # Id: Devrait être générer automatiquement lors de louverture du graphique
-        # Nom: Devrait être rentrer par l'utilisateur
         date = int(datetime.datetime.now(datetime.UTC).timestamp())
-        circuit = CircuitLibre("Id", "Nom...", self.mat_points.tolist(), date)
+        circuit = CircuitLibre(self.id, self.nom, self.mat_points.tolist(), date)
+        # Note: probablement devrait appeler modifie_circuit() puisque cette function est pour la premiere fois seulement
         self.save.ajout_circuit_libre(circuit)
 
     def rollback_possible(self):
@@ -122,7 +125,7 @@ class Circuit(QGraphicsScene):
                 # on veut donc que toutes les instances de cette valeur redeviennent 0
                 valeur_fil_retire = np.max(self.mat_points)
                 self.mat_points[self.mat_points == valeur_fil_retire] = 0
-                #TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
+                # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
             else:
                 # enlever une composante du dessin
                 pass
@@ -134,7 +137,7 @@ class Circuit(QGraphicsScene):
                 # replacer le fil enlevé
                 pass
             else:
-                #replacer la dernière composante
+                # replacer la dernière composante
                 pass
             self.jetes.remove(dernier_jete)
 
@@ -153,14 +156,14 @@ class Circuit(QGraphicsScene):
         layout_dialogue = QHBoxLayout()
         avertissement.setLayout(layout_dialogue)
 
-        #comme si on avait jamais souhaité quitter
+        # comme si on avait jamais souhaité quitter
         bouton_annuler = QPushButton("Annuler")
         bouton_annuler.clicked.connect(avertissement.close)
 
         bouton_sauvegarder_et_quitter_total = QPushButton("Sauvegarder et Quitter")
         bouton_sauvegarder_et_quitter_total.clicked.connect(lambda: self.sauvegarder_et_quitter(avertissement))
 
-        #ferme les deux fenêtres (dialogue et principale)
+        # ferme les deux fenêtres (dialogue et principale)
         bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
         bouton_quitter_sans_sauvegarder.clicked.connect(avertissement.close)
         bouton_quitter_sans_sauvegarder.clicked.connect(self.main_window.close)
@@ -344,7 +347,6 @@ class Circuit(QGraphicsScene):
     def clic_droit_fil(self):
         if self.dessine:
             for ligne in self.lignes:
-
                 pos_ligne_x, pos_ligne_y = ligne.line().p2().x(), ligne.line().p2().y()
                 mat_i, mat_j = self.pos_to_mat(pos_ligne_x, pos_ligne_y)
                 self.mat_points[mat_i, mat_j] = 0
@@ -551,10 +553,11 @@ class GraphicsView(QGraphicsView):
             self.main_window.lignes = []
     """
 
+
 class LoisPhysiques:
     @staticmethod
     def loi_ohm(resistance, tension):
-        intensite = tension/resistance
+        intensite = tension / resistance
         return intensite
 
     @staticmethod
@@ -568,7 +571,5 @@ class LoisPhysiques:
     def resistance_parallele(*args):
         res_eq = 0
         for arg in args:
-            res_eq += 1/arg
-        return 1/res_eq
-
-
+            res_eq += 1 / arg
+        return 1 / res_eq
