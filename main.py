@@ -9,8 +9,7 @@ from Composantes import toolbar_composantes
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder
-from circuit_libre import Window
-
+from circuit_libre import Circuit, GraphicsView
 
 class Mode(Enum):
     Libre = 1
@@ -36,6 +35,7 @@ class AmperePro(QMainWindow):
         self.init_main_window()
 
         self.data = Sauvegarder()
+        self.fenetre_a_propos = AProposWindow()
 
         # Menus
         self.menu_bar = self.menuBar()
@@ -81,7 +81,6 @@ class AmperePro(QMainWindow):
         logo = QLabel(pixmap=QPixmap("images/Interface/AmperePro_logo.png"))
         logo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(logo)
-        main_layout.addWidget(self.title)
 
         # Modes
         mode_layout = QHBoxLayout()
@@ -123,8 +122,6 @@ class AmperePro(QMainWindow):
             self.fenetre_doc.show()
 
     def ouvrir_a_propos(self):
-        self.fenetre_a_propos = AProposWindow()
-
         # ouverture du stylesheet
         style_propos = QFile("StyleSheet/StylePropos.qss")
         if style_propos.open(QFile.OpenModeFlag.ReadOnly):
@@ -297,7 +294,7 @@ class AmperePro(QMainWindow):
         self.afficher_sujets_niveau()
 
     def add_circuit(self):
-        nouveau_circuit = Window(self)
+        nouveau_circuit = Circuit(self)
         self.setCentralWidget(nouveau_circuit.graphics_view)
         self.setMenuBar(nouveau_circuit.barre_menu)
         self.menu_bar.removeAction(self.quitter_action)
@@ -376,7 +373,7 @@ class AmperePro(QMainWindow):
         self.init_main_window()
 
     def sauvegarder_et_menu(self, dialog):
-        nouveau_circuit = Window(self)
+        nouveau_circuit = Circuit(self)
         #ferme QDialog, sauvegarde et retourne au menu principal
         dialog.close()
         nouveau_circuit.sauvegarder_triggered()
@@ -386,7 +383,6 @@ class AmperePro(QMainWindow):
         self.menu_bar.addAction(self.quitter_action)
 
     def menu_sans_sauvegarder(self, dialog):
-        nouveau_circuit = Window(self)
         dialog.close()
         self.retour_menu()
         self.menu_bar.clear()
@@ -396,6 +392,14 @@ class AmperePro(QMainWindow):
     def charger_circuit(self):
         pass
 
+    def closeEvent(self, event):
+
+        if isinstance(self.centralWidget(), GraphicsView):
+            nouveau_circuit = Circuit(self)
+            nouveau_circuit.quitter_triggered()
+
+        else:
+            event.accept()
 
 if __name__ == "__main__":
     app = QApplication()

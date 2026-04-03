@@ -1,8 +1,6 @@
-import sys
-
 from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon
-from PySide6.QtWidgets import (QMainWindow, QApplication, QGraphicsScene, QGraphicsView, QPushButton, QDialog,
+from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
                                QHBoxLayout)
 import math
 import numpy as np
@@ -14,17 +12,16 @@ from sauvegarder import Sauvegarder, CircuitLibre
 
 
 class Fil:
-    def __init__(self, main_window, lignes):
-        self.main_window = main_window
+    def __init__(self, scene, lignes):
+        self.scene = scene
         self.lignes = lignes
 
-    def enlever_lignes(self, index_max):
-        for i in range(index_max):
-            self.main_window.scene.removeItem(self.lignes[i])
-        self.lignes = self.lignes[:index_max]
+    def enlever_lignes(self):
+        for ligne in self.lignes:
+            self.scene.removeItem(ligne)
 
 
-class Window(QGraphicsScene):
+class Circuit(QGraphicsScene):
     def __init__(self, mainwindow):
         super().__init__()
         self.main_window = mainwindow
@@ -66,6 +63,13 @@ class Window(QGraphicsScene):
         fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
         self.fils = [fil_base]
 
+        # listes pour le rollback
+        self.ajouts = []
+        self.jetes = []
+        # les ajouts seront 1, les jetés seront 2, composantes modifiées seront 3
+        self.operations = []
+
+
         #Menubar
         self.barre_menu = self.main_window.menuBar()
         self.menu_options = self.barre_menu.addMenu("Options")
@@ -79,10 +83,12 @@ class Window(QGraphicsScene):
         sauvegarder_action.triggered.connect(self.sauvegarder_triggered)
 
         #rollback
-        annuler_action = QAction("RollBack", self)
-        annuler_action.setShortcut("Ctrl+R")
-        annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
-        self.menu_options.addAction(annuler_action)
+        self._annuler_action = QAction("RollBack", self)
+        self._annuler_action.setShortcut("Ctrl+Z")
+        self._annuler_action.setIcon(QIcon("images/menubar/rollback.png"))
+        self._annuler_action.triggered.connect(self.rollback_triggered)
+        self._annuler_action.setEnabled(False)
+        self.menu_options.addAction(self._annuler_action)
 
         #Quitter
         quitter_action = QAction("Quitter", self)
@@ -90,13 +96,54 @@ class Window(QGraphicsScene):
         quitter_action.triggered.connect(self.quitter_triggered)
         self.menu_naviguer.addAction(quitter_action)
 
-
     def sauvegarder_triggered(self):
         # Id: Devrait être générer automatiquement lors de louverture du graphique
         # Nom: Devrait être rentrer par l'utilisateur
         date = int(datetime.datetime.now(datetime.UTC).timestamp())
         circuit = CircuitLibre("Id", "Nom...", self.mat_points.tolist(), date)
         self.save.ajout_circuit_libre(circuit)
+
+    def rollback_possible(self):
+        # à partir du moment où un élément est dans opérations, on peut rollback
+        if self.operations:
+            self._annuler_action.setEnabled(True)
+        else:
+            # si on a rollback toutes les opérations, on ne peut plus le faire
+            self._annuler_action.setEnabled(False)
+
+    def rollback_triggered(self):
+        dernier = self.operations[-1]
+        if dernier == 1:
+            dernier_ajout = self.ajouts[-1]
+            if dernier_ajout == "fil":
+                dernier_fil = self.fils.pop()
+                dernier_fil.enlever_lignes()
+                # le dernier fil est nécéssairement celui avec la plus haute valeur dans la matrice.
+                # on veut donc que toutes les instances de cette valeur redeviennent 0
+                valeur_fil_retire = np.max(self.mat_points)
+                self.mat_points[self.mat_points == valeur_fil_retire] = 0
+                #TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
+            else:
+                # enlever une composante du dessin
+                pass
+            self.ajouts.remove(dernier_ajout)
+
+        elif dernier == 2:
+            dernier_jete = self.jetes[-1]
+            if dernier_jete == "fil":
+                # replacer le fil enlevé
+                pass
+            else:
+                #replacer la dernière composante
+                pass
+            self.jetes.remove(dernier_jete)
+
+        else:
+            # annuler la plus récente modification à une composante.
+            pass
+
+        self.operations.remove(dernier)
+        self.rollback_possible()
 
     def quitter_triggered(self):
         avertissement = QDialog()
@@ -176,7 +223,7 @@ class Window(QGraphicsScene):
         ligne_droite = self.ajouter_ligne(droite, haut, droite, bas)
         ligne_bas = self.ajouter_ligne(droite, bas, gauche, bas)
         ligne_gauche = self.ajouter_ligne(gauche, bas, gauche, haut)
-        fil_base = Fil(self.main_window, [ligne_haut, ligne_droite, ligne_bas, ligne_gauche])
+        fil_base = Fil(self, [ligne_haut, ligne_droite, ligne_bas, ligne_gauche])
 
         nb_points_x = round((droite - gauche) / self.taille_grid) + 1
         nb_points_y = round((bas - haut) / self.taille_grid) + 1
@@ -270,8 +317,12 @@ class Window(QGraphicsScene):
 
             # Ajouter noeud a premier et dernier point
 
-            nouveau_fil = Fil(self.main_window, self.lignes)
+            nouveau_fil = Fil(self, self.lignes)
             self.fils.append(nouveau_fil)
+            self.operations.append(1)
+            self.ajouts.append("fil")
+            self.rollback_possible()
+
             self.lignes = []
             self.points_avant_pivot = []
             self.points_avant_pivot = []
@@ -499,3 +550,25 @@ class GraphicsView(QGraphicsView):
             self.main_window.points = []
             self.main_window.lignes = []
     """
+
+class LoisPhysiques:
+    @staticmethod
+    def loi_ohm(resistance, tension):
+        intensite = tension/resistance
+        return intensite
+
+    @staticmethod
+    def resistance_serie(*args):
+        res_eq = 0
+        for arg in args:
+            res_eq += arg
+        return res_eq
+
+    @staticmethod
+    def resistance_parallele(*args):
+        res_eq = 0
+        for arg in args:
+            res_eq += 1/arg
+        return 1/res_eq
+
+
