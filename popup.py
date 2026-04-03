@@ -14,7 +14,7 @@ class Popup(QWidget):
             self.setStyleSheet(stream.readAll())
             style_poppup.close()
 
-        self.setWindowFlag(Qt.ToolTip)
+        self.setWindowFlag(Qt.WindowType.ToolTip)
         self.setFixedSize(400, 300)
 
         mainlayout = QGridLayout()

@@ -1,11 +1,10 @@
-from PySide6.QtCore import QSize, QFile, QTextStream
+from PySide6.QtCore import QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QMenu, QGroupBox, QScrollArea, QProgressBar, QDialog
+    QGraphicsView, QToolBar, QMenu, QProgressBar, QDialog
 from enum import Enum
 
 from popup import OuvertureFenetre, Popup
-from Composantes import toolbar_composantes
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder
@@ -32,6 +31,7 @@ class AmperePro(QMainWindow):
 
         self.title = None
         self.fenetre_doc = None
+        self.popups = None
         self.init_main_window()
 
         self.data = Sauvegarder()
@@ -68,15 +68,6 @@ class AmperePro(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-        # Titre de notre projet, utilisé dans les sous-interfaces
-        self.title = QLabel("AmpèrePro")
-        self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        self.title.setStyleSheet("color:yellow")
-
-        police = QFont()
-        police.setPointSize(32)
-        self.title.setFont(police)
-
         # Logo
         logo = QLabel(pixmap=QPixmap("images/Interface/AmperePro_logo.png"))
         logo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
@@ -109,6 +100,16 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(a_propos_button)
         a_propos_button.clicked.connect(self.ouvrir_a_propos)
 
+    def add_title(self) -> QLabel:
+        title = QLabel("AmpèrePro")
+        title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        title.setStyleSheet("color:yellow")
+
+        police = QFont()
+        police.setPointSize(32)
+        title.setFont(police)
+        return title
+
     def ouvrir_documentation(self):
         self.fenetre_doc = DocumentationWindow()
 
@@ -136,66 +137,46 @@ class AmperePro(QMainWindow):
         main_widget = QWidget()
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
-        main_layout.addWidget(self.title)
+        main_layout.addWidget(self.add_title())
 
         match new_mode:
             case Mode.Libre:
-                gif_electricite = QMovie("images/interface/mode_libre.gif")
-
-                label = QLabel()
-                label.setMovie(gif_electricite)
-                label.setScaledContents(True)
-                label.resize(200, 500)
-                gif_electricite.start()
-
-                main_layout.addWidget(label)
-
-                # Nouvelle Section Mode libre
-                add_circuit_button = QPushButton()
-                add_circuit_button.setText("Créer un nouveau circuit")
-                add_circuit_button.clicked.connect(self.add_circuit)
-                main_layout.addWidget(add_circuit_button)
-
-                add_circuit_charger = QPushButton("Charger un circuit sauvegardé")
-                add_circuit_charger.clicked.connect(self.charger_circuit)
-                main_layout.addWidget(add_circuit_charger)
-
-                retour_menu = QPushButton("Retour au menu")
-                retour_menu.clicked.connect(self.init_main_window)
-                main_layout.addWidget(retour_menu)
-
-                mode_libre_layout = QHBoxLayout()
-                main_layout.addLayout(mode_libre_layout)
-
-                # Liste de circuit fait précédament loader en JSON
-                circuit_list = QVBoxLayout()
-                mode_libre_layout.addLayout(circuit_list)
-
-                # preview_circuit = ...
-                # mode_libre_layout.addLayout(preview_circuit)
-
+                self.afficher_mode_libre(main_layout)
             case Mode.Niveau:
-                self.afficher_sujets_niveau()
-            case Niveau:
-                self.afficher_niveau_O1()
-                return
+                self.afficher_mode_niveaux(main_layout)
 
-    def afficher_sujets_niveau(self):
-        main_layout = QVBoxLayout()
-        main_widget = QWidget()
-        main_widget.setLayout(main_layout)
-        self.setCentralWidget(main_widget)
+        retour_arriere = QPushButton("Retour en Arrière")
+        retour_arriere.clicked.connect(self.init_main_window)
+        main_layout.addWidget(retour_arriere)
 
-        titre = QLabel("AmpèrePro")
-        titre.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        titre.setStyleSheet("color:yellow")
+    def afficher_mode_libre(self, main_layout):
+        gif_electricite = QMovie("images/interface/mode_libre.gif")
 
-        police = QFont()
-        police.setPointSize(32)
-        titre.setFont(police)
+        label = QLabel()
+        label.setMovie(gif_electricite)
+        label.setScaledContents(True)
+        label.resize(200, 500)
+        gif_electricite.start()
 
-        main_layout.addWidget(titre)
+        main_layout.addWidget(label)
 
+        # Nouvelle Section Mode libre
+        add_circuit_button = QPushButton()
+        add_circuit_button.setText("Créer un nouveau circuit")
+        add_circuit_button.clicked.connect(self.add_circuit)
+        main_layout.addWidget(add_circuit_button)
+
+        mode_libre_layout = QHBoxLayout()
+        main_layout.addLayout(mode_libre_layout)
+
+        # Liste de circuit fait précédament loader en JSON
+        circuit_list = QVBoxLayout()
+        mode_libre_layout.addLayout(circuit_list)
+
+        # preview_circuit = ...
+        # mode_libre_layout.addLayout(preview_circuit)
+
+    def afficher_mode_niveaux(self, main_layout):
         subtitle = QLabel("Bienvenue ! Choisis un sujet")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(subtitle)
@@ -219,10 +200,6 @@ class AmperePro(QMainWindow):
                 bouton.clicked.connect(self.ouvrir_serie_parallele)
 
             main_layout.addWidget(bouton)
-
-        retour_arriere = QPushButton("Retour en Arrière")
-        retour_arriere.clicked.connect(self.init_main_window)
-        main_layout.addWidget(retour_arriere)
 
     def ouvrir_kirchoff(self):
         self.afficher_niveaux_sujet("Loi de Kirchoff")
@@ -287,11 +264,8 @@ class AmperePro(QMainWindow):
 
 
         retour_arriere = QPushButton("Retour aux sujets")
-        retour_arriere.clicked.connect(self.retour_sujets)
+        retour_arriere.clicked.connect(lambda : self.change_mode(Mode.Niveau))
         main_layout.addWidget(retour_arriere)
-
-    def retour_sujets(self):
-        self.afficher_sujets_niveau()
 
     def add_circuit(self):
         nouveau_circuit = Circuit(self)
@@ -388,9 +362,6 @@ class AmperePro(QMainWindow):
         self.menu_bar.clear()
         self.menu_bar.addMenu(self.menu_aide)
         self.menu_bar.addAction(self.quitter_action)
-
-    def charger_circuit(self):
-        pass
 
     def closeEvent(self, event):
 

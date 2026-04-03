@@ -12,7 +12,7 @@ class AProposWindow(QMainWindow):
         layout = QVBoxLayout()
 
         titre = QLabel("AmpèrePro")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         titre.setStyleSheet("font-size: 40px; font-weight: bold;")
         layout.addWidget(titre)
 
