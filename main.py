@@ -9,6 +9,7 @@ from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder
 from circuit_libre import Circuit, GraphicsView
+from niveau_ohm_1 import NiveauOhm1
 
 class Mode(Enum):
     Libre = 1
@@ -182,33 +183,35 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(subtitle)
 
         sujets = [
-            "Loi de Kirchoff",
             "Loi d'ohms",
-            "Série/Parallèle"
+            "Résistance équivalente",
+            "Loi de Kirchoff",
         ]
 
         for sujet in sujets:
             bouton = QPushButton(sujet)
 
-            if sujet == "Loi de Kirchoff":
-                bouton.clicked.connect(self.ouvrir_kirchoff)
-
-            elif sujet == "Loi d'ohms":
+            if sujet == "Loi d'ohms":
                 bouton.clicked.connect(self.ouvrir_ohms)
 
-            elif sujet == "Série/Parallèle":
+            elif sujet == "Résistance équivalente":
                 bouton.clicked.connect(self.ouvrir_serie_parallele)
 
-            main_layout.addWidget(bouton)
+            elif sujet == "Loi de Kirchoff":
+                bouton.clicked.connect(self.ouvrir_kirchoff)
 
-    def ouvrir_kirchoff(self):
-        self.afficher_niveaux_sujet("Loi de Kirchoff")
+
+            main_layout.addWidget(bouton)
 
     def ouvrir_ohms(self):
         self.afficher_niveaux_sujet("Loi d'ohms")
 
     def ouvrir_serie_parallele(self):
-        self.afficher_niveaux_sujet("Série/Parallèle")
+        self.afficher_niveaux_sujet("Résistance équivalente")
+
+    def ouvrir_kirchoff(self):
+        self.afficher_niveaux_sujet("Loi de Kirchoff")
+
 
     def afficher_niveaux_sujet(self, sujet):
         main_layout = QVBoxLayout()
@@ -236,7 +239,11 @@ class AmperePro(QMainWindow):
         progressions = [0, 0, 0, 0, 0]
 
         for i in range(5):
-            popup = Popup()
+            if sujet == "Loi d'ohms" and i == 0:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_1)
+            else:
+                popup = Popup()
+
             self.popups.append(popup)
 
             ligne_widget = QWidget()
@@ -266,6 +273,14 @@ class AmperePro(QMainWindow):
         retour_arriere = QPushButton("Retour aux sujets")
         retour_arriere.clicked.connect(lambda : self.change_mode(Mode.Niveau))
         main_layout.addWidget(retour_arriere)
+
+    def ouvrir_niveau_ohm_1(self):
+        niveau = NiveauOhm1(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1100, 850)
+
+    def retour_sujets(self):
+        self.change_mode(Mode.Niveau)
 
     def add_circuit(self):
         nouveau_circuit = Circuit(self)

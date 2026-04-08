@@ -5,8 +5,10 @@ from PySide6.QtGui import QPixmap
 
 
 class Popup(QWidget):
-    def __init__(self):
+    def __init__(self, callback_commencer=None):
         super().__init__()
+        # code de raf
+        self.callback_commencer = callback_commencer
 
         style_poppup = QFile("StyleSheet/StylePoppup.qss")
         if style_poppup.open(QFile.OpenModeFlag.ReadOnly):
@@ -29,11 +31,24 @@ class Popup(QWidget):
         description = QLabel("description simple du niveau")
         mainlayout.addWidget(description, 0, 1)
 
+        #code de raf
+        bouton_commencer = QPushButton("Commencer")
+        bouton_commencer.clicked.connect(self.commencer)
+        mainlayout.addWidget(bouton_commencer, 1, 0)
 
+        bouton_revenir = QPushButton("Revenir")
+        bouton_revenir.clicked.connect(self.hide)
+        mainlayout.addWidget(bouton_revenir, 1, 1)
 
         self.timer = QTimer()
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.hide)
+
+    def commencer(self):
+        self.hide()
+        if self.callback_commencer is not None:
+            self.callback_commencer()
+
 
     def enterEvent(self, event):
         self.timer.stop()
