@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
-                               QHBoxLayout)
+                               QHBoxLayout, QToolBar)
 import math
 import numpy as np
 import datetime
@@ -9,7 +9,7 @@ import datetime
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarder import Sauvegarder, CircuitLibre
-
+from Composantes import toolbar_composantes
 
 class Fil:
     def __init__(self, scene, lignes):
@@ -74,6 +74,11 @@ class Circuit(QGraphicsScene):
         # les ajouts seront 1, les jetés seront 2, composantes modifiées seront 3
         self.operations = []
 
+        self.allouer_fermeture = "oui"
+
+        # pour les composantes
+        self.toolbar = None
+
         # Menubar
         self.barre_menu = self.main_window.menuBar()
         self.menu_options = self.barre_menu.addMenu("Options")
@@ -97,7 +102,7 @@ class Circuit(QGraphicsScene):
         # Quitter
         quitter_action = QAction("Quitter", self)
         quitter_action.setShortcut("Ctrl+Q")
-        quitter_action.triggered.connect(self.quitter_triggered)
+        quitter_action.triggered.connect(self.main_window.close)
         self.menu_naviguer.addAction(quitter_action)
 
     def sauvegarder_triggered(self):
@@ -150,15 +155,18 @@ class Circuit(QGraphicsScene):
 
     def quitter_triggered(self):
         avertissement = QDialog()
+        # on ne peut pas cliquer sur le "x" du QDialog (ainsi on gère à 100% le clsoe event)
+        avertissement.setWindowFlags(avertissement.windowFlags() & ~Qt.WindowCloseButtonHint)
         avertissement.setWindowTitle("Voulez-vous Sauvegarder?")
         avertissement.setModal(True)
 
         layout_dialogue = QHBoxLayout()
         avertissement.setLayout(layout_dialogue)
 
-        # comme si on avait jamais souhaité quitter
+        # comme si on n'avait jamais souhaité quitter
         bouton_annuler = QPushButton("Annuler")
         bouton_annuler.clicked.connect(avertissement.close)
+        bouton_annuler.clicked.connect(self.refuser_fermeture)
 
         bouton_sauvegarder_et_quitter_total = QPushButton("Sauvegarder et Quitter")
         bouton_sauvegarder_et_quitter_total.clicked.connect(lambda: self.sauvegarder_et_quitter(avertissement))
@@ -166,17 +174,22 @@ class Circuit(QGraphicsScene):
         # ferme les deux fenêtres (dialogue et principale)
         bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
         bouton_quitter_sans_sauvegarder.clicked.connect(avertissement.close)
-        bouton_quitter_sans_sauvegarder.clicked.connect(self.main_window.close)
         layout_dialogue.addWidget(bouton_sauvegarder_et_quitter_total)
         layout_dialogue.addWidget(bouton_quitter_sans_sauvegarder)
         layout_dialogue.addWidget(bouton_annuler)
         avertissement.exec()
+
+        return self.allouer_fermeture
 
     def sauvegarder_et_quitter(self, dialog):
         # sauvegarde le circuit et ferme tout
         dialog.close()
         self.sauvegarder_triggered()
         self.main_window.close()
+
+    def refuser_fermeture(self):
+        self.ajouts = [1,2,2]
+        self.allouer_fermeture = "non"
 
     # première méthode non liée au menu à propos
     def dessiner_fond_grid(self):
@@ -526,6 +539,49 @@ class Circuit(QGraphicsScene):
         y = max(min(y, math.floor(self.scene_size.height() / self.taille_grid) * self.taille_grid), 0)
 
         return x, y
+
+    def creer_toolbar(self):
+        self.toolbar = QToolBar()
+        # ne permet pas à l'utilisateur de cacher la toolbar.
+        self.toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
+
+        class ToolbarButton(QPushButton):
+            def __init__(self, nom: str):
+                super().__init__()
+                self.nom = nom
+
+            def enterEvent(self, event):
+                self.setToolTip(self.nom)
+
+        # Ajoute le bouton main à la toolbar
+        main_icone = QIcon("images/toolbar/main.png")
+        main_bouton = ToolbarButton("Main")
+        main_bouton.setIcon(main_icone)
+        main_bouton.setIconSize(QSize(45, 45))
+        main_bouton.clicked.connect(self.main_click)
+        self.toolbar.addWidget(main_bouton)
+
+        # Ajouter un bouton dans la toolbar pour chaque composante
+        for composante in toolbar_composantes.values():
+            bouton = ToolbarButton(composante.nom)
+            bouton.setIcon(QIcon(composante.image_toolbar))
+            bouton.setIconSize(QSize(45, 45))
+
+            bouton.clicked.connect(lambda _, c=composante: self.toolbar_clicked(c))
+            self.toolbar.addWidget(bouton)
+
+        self.main_window.addToolBar(self.toolbar)
+
+    def supprimer_toolbar(self):
+        self.main_window.removeToolBar(self.toolbar)
+        self.toolbar.deleteLater()
+        self.toolbar = None
+
+    def main_click(self):
+        pass
+
+    def toolbar_clicked(self, composante):
+        pass
 
 
 class GraphicsView(QGraphicsView):

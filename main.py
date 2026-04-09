@@ -1,4 +1,4 @@
-from PySide6.QtCore import QFile, QTextStream
+from PySide6.QtCore import QFile, QTextStream, QSize
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QToolBar, QMenu, QProgressBar, QDialog
@@ -62,6 +62,8 @@ class AmperePro(QMainWindow):
         self.menu_bar.addAction(self.quitter_action)
 
         self.graphic_view = QGraphicsView()
+        self.nouveau_circuit = None
+        self.toolbar = None
 
     def init_main_window(self):
         main_layout = QVBoxLayout()
@@ -269,7 +271,6 @@ class AmperePro(QMainWindow):
 
             main_layout.addWidget(ligne_widget)
 
-
         retour_arriere = QPushButton("Retour aux sujets")
         retour_arriere.clicked.connect(lambda : self.change_mode(Mode.Niveau))
         main_layout.addWidget(retour_arriere)
@@ -283,9 +284,10 @@ class AmperePro(QMainWindow):
         self.change_mode(Mode.Niveau)
 
     def add_circuit(self):
-        nouveau_circuit = Circuit(self)
-        self.setCentralWidget(nouveau_circuit.graphics_view)
-        self.setMenuBar(nouveau_circuit.barre_menu)
+        self.nouveau_circuit = Circuit(self)
+        self.nouveau_circuit.creer_toolbar()
+        self.setCentralWidget(self.nouveau_circuit.graphics_view)
+        self.setMenuBar(self.nouveau_circuit.barre_menu)
         self.menu_bar.removeAction(self.quitter_action)
 
         # complétion de la barre menu avec la possibilité de revenir au menu principal
@@ -293,46 +295,7 @@ class AmperePro(QMainWindow):
         retour_action.setShortcut("Ctrl+M")
         retour_action.setIcon(QIcon("images/menubar/menu_principal.png"))
         retour_action.triggered.connect(self.retour_menu_triggered)
-        nouveau_circuit.menu_naviguer.addAction(retour_action)
-
-        toolbar = QToolBar()
-        # ne permet pas à l'utilisateur de cacher la toolbar.
-        toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
-
-        """class ToolbarButton(QPushButton):
-            def __init__(self, nom: str):
-                super().__init__()
-                self.nom = nom
-
-            def enterEvent(self, event):
-                self.setToolTip(self.nom)
-
-        # Ajoute le bouton main à la toolbar
-        main_icone = QIcon("images/toolbar/main.png")
-        main_bouton = ToolbarButton("Main")
-        main_bouton.setIcon(main_icone)
-        main_bouton.setIconSize(QSize(45, 45))
-        main_bouton.clicked.connect(nouveau_circuit.main_click)
-        toolbar.addWidget(main_bouton)
-
-        # Ajoute le bouton fil à la toolbar
-        fil_icone = QIcon("images/toolbar/fil.webp")
-        fil_bouton = ToolbarButton("Fil")
-        fil_bouton.setIcon(fil_icone)
-        fil_bouton.setIconSize(QSize(45, 45))
-        fil_bouton.clicked.connect(nouveau_circuit.fil_click)
-        toolbar.addWidget(fil_bouton)
-
-        # Ajouter un bouton dans la toolbar pour chaque composante
-        for composante in toolbar_composantes.values():
-            bouton = ToolbarButton(composante.nom)
-            bouton.setIcon(QIcon(composante.image_toolbar))
-            bouton.setIconSize(QSize(45, 45))
-
-            bouton.clicked.connect(lambda _, c=composante: new_circuit.toolbar_clicked(c))
-            toolbar.addWidget(bouton)
-
-        self.addToolBar(toolbar)"""
+        self.nouveau_circuit.menu_naviguer.addAction(retour_action)
 
     # méthodes pour barre menu de circuit libre
     def retour_menu_triggered(self):
@@ -346,10 +309,10 @@ class AmperePro(QMainWindow):
         bouton_annuler = QPushButton("Annuler")
         bouton_annuler.clicked.connect(avertissement.close)
 
-        bouton_sauvegarder_et_quitter = QPushButton("Sauvegarder et Quitter")
+        bouton_sauvegarder_et_quitter = QPushButton("Sauvegarder et Menu")
         bouton_sauvegarder_et_quitter.clicked.connect(lambda: self.sauvegarder_et_menu(avertissement))
 
-        bouton_quitter_sans_sauvegarder = QPushButton("quitter sans sauvegarder")
+        bouton_quitter_sans_sauvegarder = QPushButton("Menu sans sauvegarder")
         bouton_quitter_sans_sauvegarder.clicked.connect(lambda: self.menu_sans_sauvegarder(avertissement))
 
         layout_dialogue.addWidget(bouton_sauvegarder_et_quitter)
@@ -359,17 +322,18 @@ class AmperePro(QMainWindow):
         avertissement.exec()
 
     def retour_menu(self):
+        self.nouveau_circuit.supprimer_toolbar()
         self.init_main_window()
 
     def sauvegarder_et_menu(self, dialog):
-        nouveau_circuit = Circuit(self)
         #ferme QDialog, sauvegarde et retourne au menu principal
         dialog.close()
-        nouveau_circuit.sauvegarder_triggered()
+        self.nouveau_circuit.sauvegarder_triggered()
         self.retour_menu()
         self.menu_bar.clear()
         self.menu_bar.addMenu(self.menu_aide)
         self.menu_bar.addAction(self.quitter_action)
+        self.toolbar.clear()
 
     def menu_sans_sauvegarder(self, dialog):
         dialog.close()
@@ -377,13 +341,17 @@ class AmperePro(QMainWindow):
         self.menu_bar.clear()
         self.menu_bar.addMenu(self.menu_aide)
         self.menu_bar.addAction(self.quitter_action)
+        self.toolbar.clear()
 
     def closeEvent(self, event):
-
+        # change le "x" de la fenêtre du circuit libre
         if isinstance(self.centralWidget(), GraphicsView):
-            nouveau_circuit = Circuit(self)
-            nouveau_circuit.quitter_triggered()
+                resultat = self.nouveau_circuit.quitter_triggered()
 
+                if resultat == "oui":
+                    event.accept()
+                else:
+                    event.ignore()
         else:
             event.accept()
 

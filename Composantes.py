@@ -24,7 +24,6 @@ class Type(Enum):
     Amperemetre = 7
 
 
-# Description will be used for the documentation within the app
 class ComposanteBase(ABC):
     def __init__(self, type: Type, nom: str, image_toolbar: str, image_circuit: str, scale: int,
                  description: str):
