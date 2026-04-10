@@ -1,5 +1,6 @@
-## Requirements
+## Package Requirements
 
-- Python 
+- Python (>= 3.7)
 - Pyside 
 - NumPy
+- dacite

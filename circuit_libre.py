@@ -8,7 +8,7 @@ import datetime
 
 from a_propos import AProposWindow
 from docs import DocumentationWindow
-from sauvegarder import Sauvegarder, CircuitLibre
+from sauvegarde import Sauvegarde, CircuitLibre
 from Composantes import toolbar_composantes
 
 
@@ -95,7 +95,7 @@ class Fil:
 
 
 class Circuit(QGraphicsScene):
-    def __init__(self, mainwindow):
+    def __init__(self, mainwindow, id: str, mat: list | None):
         super().__init__()
         self.main_window = mainwindow
         self.scene_size = QSize(500, 500)
@@ -131,15 +131,13 @@ class Circuit(QGraphicsScene):
         self.fil_touche_depart = None
         self.fil_complet = False
 
+        # if mat is None:
+        # matrice devrait être initialiser, sinon on utilise elle passer par paramètre
         fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
         self.fils = [fil_base]
 
-        self.save = Sauvegarder()
-        # Id: Devrait être générer automatiquement lors de louverture du graphique
-        # Nom: Devrait être rentrer par l'utilisateur
-        # Devrait soit être loader par la config ou créé ou on demande le nom du circuit
-        self.nom = "Nom"
-        self.id = "Id"
+        self.save = Sauvegarde()
+        self.id = id
 
         # listes pour le rollback
         self.ajouts = []
@@ -179,10 +177,7 @@ class Circuit(QGraphicsScene):
         self.menu_naviguer.addAction(quitter_action)
 
     def sauvegarder_triggered(self):
-        date = int(datetime.datetime.now(datetime.UTC).timestamp())
-        circuit = CircuitLibre(self.id, self.nom, self.mat_points.tolist(), date)
-        # Note: probablement devrait appeler modifie_circuit() puisque cette function est pour la premiere fois seulement
-        self.save.ajout_circuit_libre(circuit)
+        self.save.modifie_circuit(self.id, self.mat_points.tolist())
 
     def rollback_possible(self):
         # à partir du moment où un élément est dans opérations, on peut rollback
@@ -229,7 +224,7 @@ class Circuit(QGraphicsScene):
     def quitter_triggered(self):
         avertissement = QDialog()
         # on ne peut pas cliquer sur le "x" du QDialog (ainsi on gère à 100% le clsoe event)
-        avertissement.setWindowFlags(avertissement.windowFlags() & ~Qt.WindowCloseButtonHint)
+        avertissement.setWindowFlags(avertissement.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
         avertissement.setWindowTitle("Voulez-vous Sauvegarder?")
         avertissement.setModal(True)
 
@@ -722,10 +717,10 @@ class GraphicsView(QGraphicsView):
         self.viewport().setMouseTracking(True)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.scene.clic_gauche_fil(event.position())
 
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             self.scene.clic_droit_fil()
 
     def mouseMoveEvent(self, event):
