@@ -8,25 +8,98 @@ import datetime
 
 from a_propos import AProposWindow
 from docs import DocumentationWindow
-from sauvegarder import Sauvegarder, CircuitLibre
+from sauvegarde import Sauvegarde, CircuitLibre
 from Composantes import toolbar_composantes
 
-class Fil:
-    def __init__(self, scene, lignes):
-        self.scene = scene
-        self.lignes = lignes
 
-    def enlever_lignes(self):
-        for ligne in self.lignes:
-            self.scene.removeItem(ligne)
+class Noeud:
+    def __init__(self):
+        self.voltage = 0
+        self.info_voisins = []
+
+    def ajouter_info(self, fil, noeud_voisin, main_window):
+        voisin_index = main_window.noeuds.index(noeud_voisin)
+        self.info_voisins.append([fil, voisin_index])
+
+    def enlever_info_fil(self, fil):
+        for k in range(len(self.info_voisins)):
+            if self.info_voisins[k][0] == fil:
+                del self.info_voisins[k]
+                break
+
+
+class Fil:
+    def __init__(self, main_window, points):
+        self.main_window = main_window
+        self.points = points
+        self.noeuds = None
+
+        # self.resistance, self.tension = self.calculs()
+        self.composantes = []
+
+        self.tension = 0
+        self.resistance = 0
+
+    def calculs(self):
+        res = 0
+        tension = 0
+        for composante in self.composantes:
+            if hasattr(composante, 'resistance'):
+                res += composante.resistance
+            if hasattr(composante, 'tension'):
+                tension += composante.tension
+        return res, tension
+
+    def ajouter_noeud(self, pos: QPointF, noeud: Noeud):
+        index_point = self.points.index(pos)
+        points_avant = self.points[:index_point]
+        points_apres = self.points[index_point + 1:]
+
+        if self.noeuds is None:
+            self.points = points_apres + points_avant
+            self.noeuds = [noeud, noeud]
+        else:
+            comp_avant = []
+            comp_apres = []
+            for i in range(len(self.composantes)):
+                pos_comp = self.composantes[i].point_debut
+                index_comp_points = self.points.index(pos_comp)
+
+                if index_point < index_comp_points:
+                    comp_avant = self.composantes[:i]
+                    comp_apres = self.composantes[i:]
+                    break
+
+            nouveau_fil = Fil(self.main_window, points_apres)
+            nouveau_fil.noeuds = [noeud, self.noeuds[1]]
+            nouveau_fil.composantes = comp_apres
+            self.main_window.fils.append(nouveau_fil)
+
+            for point_apres in points_apres:
+                i, j = self.main_window.pos_to_mat(point_apres.x(), point_apres.y())
+                self.main_window.mat_points[i, j] = len(self.main_window.fils)
+
+            self.noeuds[0].enlever_info_fil(self)
+            self.noeuds[0].ajouter_info(self, noeud, self.main_window)
+
+            if self.noeuds[0] != self.noeuds[1]:
+                self.noeuds[1].enlever_info_fil(self)
+            self.noeuds[1].ajouter_info(nouveau_fil, noeud, self.main_window)
+
+            noeud.ajouter_info(self, self.noeuds[0], self.main_window)
+            noeud.ajouter_info(self, self.noeuds[1], self.main_window)
+
+            self.composantes = comp_avant
+            self.noeuds = [self.noeuds[0], noeud]
+            self.points = points_avant
 
 
 class Circuit(QGraphicsScene):
-    def __init__(self, mainwindow):
+    def __init__(self, mainwindow, id: str, mat: list | None):
         super().__init__()
         self.main_window = mainwindow
         self.scene_size = QSize(500, 500)
-        self.graphics_view = GraphicsView(self, self.main_window)
+        self.graphics_view = GraphicsView(self)
         self.main_window.setCentralWidget(self.graphics_view)
         self.graphics_view.setMinimumSize(self.scene_size)
         self.graphics_view.setScene(self)
@@ -53,20 +126,18 @@ class Circuit(QGraphicsScene):
         self.dernier_point = None
 
         self.lignes = []
-        self.points_apres_pivot = []
+        self.noeuds = []
         self.points_avant_pivot = []
-        self.fil_touche = None
+        self.fil_touche_depart = None
         self.fil_complet = False
 
-        self.save = Sauvegarder()
-        # Id: Devrait être générer automatiquement lors de louverture du graphique
-        # Nom: Devrait être rentrer par l'utilisateur
-        # Devrait soit être loader par la config ou créé ou on demande le nom du circuit
-        self.nom  = "Nom"
-        self.id = "Id"
-
+        # if mat is None:
+        # matrice devrait être initialiser, sinon on utilise elle passer par paramètre
         fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
         self.fils = [fil_base]
+
+        self.save = Sauvegarde()
+        self.id = id
 
         # listes pour le rollback
         self.ajouts = []
@@ -106,10 +177,7 @@ class Circuit(QGraphicsScene):
         self.menu_naviguer.addAction(quitter_action)
 
     def sauvegarder_triggered(self):
-        date = int(datetime.datetime.now(datetime.UTC).timestamp())
-        circuit = CircuitLibre(self.id, self.nom, self.mat_points.tolist(), date)
-        # Note: probablement devrait appeler modifie_circuit() puisque cette function est pour la premiere fois seulement
-        self.save.ajout_circuit_libre(circuit)
+        self.save.modifie_circuit(self.id, self.mat_points.tolist())
 
     def rollback_possible(self):
         # à partir du moment où un élément est dans opérations, on peut rollback
@@ -156,7 +224,7 @@ class Circuit(QGraphicsScene):
     def quitter_triggered(self):
         avertissement = QDialog()
         # on ne peut pas cliquer sur le "x" du QDialog (ainsi on gère à 100% le clsoe event)
-        avertissement.setWindowFlags(avertissement.windowFlags() & ~Qt.WindowCloseButtonHint)
+        avertissement.setWindowFlags(avertissement.windowFlags() & ~Qt.WindowType.WindowCloseButtonHint)
         avertissement.setWindowTitle("Voulez-vous Sauvegarder?")
         avertissement.setModal(True)
 
@@ -239,7 +307,6 @@ class Circuit(QGraphicsScene):
         ligne_droite = self.ajouter_ligne(droite, haut, droite, bas)
         ligne_bas = self.ajouter_ligne(droite, bas, gauche, bas)
         ligne_gauche = self.ajouter_ligne(gauche, bas, gauche, haut)
-        fil_base = Fil(self, [ligne_haut, ligne_droite, ligne_bas, ligne_gauche])
 
         nb_points_x = round((droite - gauche) / self.taille_grid) + 1
         nb_points_y = round((bas - haut) / self.taille_grid) + 1
@@ -248,25 +315,38 @@ class Circuit(QGraphicsScene):
         self.mat_j0 = gauche
         matrice_points = np.zeros((nb_points_y, nb_points_x))
 
+        points_droite = []
+        points_gauche = []
         # lignes verticales
         for k in range(nb_points_y):
             y = haut + k * self.taille_grid
 
             mat_i, mat_j = self.pos_to_mat(droite, y)
             matrice_points[mat_i, mat_j] = 1
+            points_droite.append(QPointF(droite, y))
 
             mat_i, mat_j = self.pos_to_mat(gauche, y)
             matrice_points[mat_i, mat_j] = 1
+            points_gauche.append(QPointF(gauche, y))
 
+        points_haut = []
+        points_bas = []
         # lignes horizontales
         for k in range(nb_points_x - 2):
             x = gauche + (k + 1) * self.taille_grid
 
             mat_i, mat_j = self.pos_to_mat(x, haut)
             matrice_points[mat_i, mat_j] = 1
+            points_haut.append(QPointF(x, haut))
 
             mat_i, mat_j = self.pos_to_mat(x, bas)
             matrice_points[mat_i, mat_j] = 1
+            points_bas.append(QPointF(x, bas))
+
+        points_bas.reverse()
+        points_gauche.reverse()
+        points = points_haut + points_droite + points_bas + points_gauche
+        fil_base = Fil(self, points)
 
         return fil_base, matrice_points
 
@@ -285,8 +365,7 @@ class Circuit(QGraphicsScene):
             return 0
 
     def clic_gauche_fil(self, pos):
-        def mettre_index_mat(debut_ligne, fin_ligne):
-
+        def get_points_ligne(debut_ligne, fin_ligne):
             diff_x = fin_ligne.x() - debut_ligne.x()
             diff_y = fin_ligne.y() - debut_ligne.y()
             if abs(diff_x) > abs(diff_y):
@@ -301,103 +380,147 @@ class Circuit(QGraphicsScene):
                 sens_x = 0
 
             nb_points = round((diff_x * sens_x + diff_y * sens_y) / self.taille_grid)
-            for k in range(nb_points):
-                debut_ligne = self.lignes[-1].line().p1()
-                fin_ligne = self.lignes[-1].line().p2()
 
+            points = []
+            for k in range(nb_points):
                 pos_x = debut_ligne.x() + (k + 1) * self.taille_grid * sens_x
                 pos_y = debut_ligne.y() + (k + 1) * self.taille_grid * sens_y
-                i, j = self.pos_to_mat(pos_x, pos_y)
-                i, j = self.agrandir_matrice(i, j)
-                self.mat_points[i, j] = len(self.fils) + 1
+                points.append(QPointF(pos_x, pos_y))
 
-        touche = self.verifier_collision_fil(pos)
+            return points
+
+        def mettre_index_mat(ligne, index_fil):
+            debut_ligne = ligne.line().p1()
+            fin_ligne = ligne.line().p2()
+            points = get_points_ligne(debut_ligne, fin_ligne)
+
+            i_fin, j_fin = self.pos_to_mat(points[-1].x(), points[-1].y())
+            self.agrandir_matrice(i_fin, j_fin)
+
+            for point in points:
+                i, j = self.pos_to_mat(point.x(), point.y())
+                if self.mat_points[i, j] == 0:
+                    self.mat_points[i, j] = index_fil
+
+            return debut_ligne, fin_ligne, points
+
+        fil_touche = self.verifier_collision_fil(pos)
 
         if not self.dessine:
-            if touche != 0:
+            if fil_touche != 0:
                 self.dessine = True
                 x, y = self.pos_selon_grid(pos)
                 ligne = self.ajouter_ligne(x, y, x, y)
                 self.lignes.append(ligne)
                 self.dernier_point = QPointF(x, y)
 
-                i, j = self.pos_to_mat(x, y)
-                self.mat_points[i, j] = len(self.fils) + 1
-                self.touche = touche
+                self.fil_touche_depart = fil_touche
                 self.points_avant_pivot.append(QPointF(x, y))
 
         elif self.fil_complet:
-            debut_ligne = self.lignes[-1].line().p1()
-            fin_ligne = self.lignes[-1].line().p2()
-            mettre_index_mat(debut_ligne, fin_ligne)
+            debut_ligne, fin_ligne, points_apres_pivot = mettre_index_mat(self.lignes[-1], len(self.fils) + 1)
 
             # Ajouter noeud a premier et dernier point
+            points = self.points_avant_pivot + points_apres_pivot
 
-            nouveau_fil = Fil(self, self.lignes)
+            noeud_debut = Noeud()
+            self.noeuds.append(noeud_debut)
+            noeud_fin = Noeud()
+            self.noeuds.append(noeud_fin)
+
+            nouveau_fil = Fil(self, points[1:-1])
             self.fils.append(nouveau_fil)
-            self.operations.append(1)
-            self.ajouts.append("fil")
-            self.rollback_possible()
+            nouveau_fil.noeuds = [noeud_debut, noeud_fin]
+            noeud_debut.ajouter_info(nouveau_fil, noeud_fin, self)
+            noeud_fin.ajouter_info(nouveau_fil, noeud_debut, self)
+
+            fil_noeud1 = self.fils[self.fil_touche_depart - 1]
+            fil_noeud1.ajouter_noeud(points[0], noeud_debut)
+            # ajouter les noeuds à la matrice (à ij avoir ref aux noeuds)
+
+            fil_noeud2 = self.fils[self.verifier_collision_fil(fin_ligne) - 1]
+            fil_noeud2.ajouter_noeud(fin_ligne, noeud_fin)
+
+            self.rapetisser_matrice()
 
             self.lignes = []
             self.points_avant_pivot = []
-            self.points_avant_pivot = []
             self.dessine = False
 
-            # TODO Ajouter noeuds
         else:
-            debut_ligne = self.lignes[-1].line().p1()
-            fin_ligne = self.lignes[-1].line().p2()
-            mettre_index_mat(debut_ligne, fin_ligne)
+            debut_ligne, fin_ligne, points_apres_pivot = mettre_index_mat(self.lignes[-1], len(self.fils) + 1)
             ligne = self.ajouter_ligne(fin_ligne.x(), fin_ligne.y(), fin_ligne.x(), fin_ligne.y())
 
-            self.points_avant_pivot += self.points_apres_pivot
-            self.points_apres_pivot = []
+            self.points_avant_pivot += points_apres_pivot
             self.lignes.append(ligne)
             self.dernier_point = QPointF(fin_ligne.x(), fin_ligne.y())
             self.continuer_dessin(pos)
 
+    def calculer_voltage(self):
+        mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
+        mat_B = np.zeros((len(self.noeuds) - 1, 1))
+
+        noeud_zero = self.noeuds[-1]
+        noeud_zero.voltage = 0
+        for i in range(len(self.noeuds) - 1):
+            j_noeud = i
+            for info in self.noeuds[i].info_voisins:
+                j_voisin = info[1]
+                fil = info[0]
+
+                mat_A[i, j_noeud] += 1 / fil.resistance
+                mat_B[i, 0] -= fil.tension / fil.resistance
+                if self.noeuds[j_voisin] != noeud_zero:
+                    mat_A[i, j_voisin] -= 1 / fil.resistance
+
+        mat_X = np.linalg.solve(mat_A, mat_B)
+        for i in range(len(mat_X)):
+            self.noeuds[i].voltage = mat_X[i][0]
+
     def clic_droit_fil(self):
         if self.dessine:
             for ligne in self.lignes:
-                pos_ligne_x, pos_ligne_y = ligne.line().p2().x(), ligne.line().p2().y()
-                mat_i, mat_j = self.pos_to_mat(pos_ligne_x, pos_ligne_y)
-                self.mat_points[mat_i, mat_j] = 0
                 self.removeItem(ligne)
 
-            points = self.points_avant_pivot + self.points_apres_pivot
-            for point in points:
+            for point in self.points_avant_pivot:
                 i, j = self.pos_to_mat(point.x(), point.y())
-                if point == points[0]:
-                    self.mat_points[i, j] = self.touche
+                if point == self.points_avant_pivot[0]:
+                    self.mat_points[i, j] = self.fil_touche_depart
                 else:
                     self.mat_points[i, j] = 0
 
+            self.points_avant_pivot = []
             self.rapetisser_matrice()
+
             self.dessine = False
             self.lignes = []
 
     def agrandir_matrice(self, i, j):
         def agrandir(i_ajout, j_ajout, position, axe):
             matrice_ajout = np.zeros((i_ajout, j_ajout))
-            self.mat_points = np.insert(self.mat_points, position, matrice_ajout.flatten(), axis=axe)
+            if position == 0:
+                matrices = (matrice_ajout, self.mat_points)
+            else:
+                matrices = (self.mat_points, matrice_ajout)
+
+            self.mat_points = np.concatenate(matrices, axis=axe)
 
         mat_size_i, mat_size_j = self.mat_points.shape
         if j < 0:
-            agrandir(mat_size_i, 1, 0, 1)
-            self.mat_j0 -= self.taille_grid
+            agrandir(mat_size_i, abs(j), 0, 1)
+            self.mat_j0 -= self.taille_grid * abs(j)
             return i, j + 1
 
         elif j > mat_size_j - 1:
-            agrandir(mat_size_i, 1, mat_size_j, 1)
+            agrandir(mat_size_i, j - mat_size_j + 1, 1, 1)
 
         elif i < 0:
-            agrandir(1, mat_size_j, 0, 0)
-            self.mat_i0 -= self.taille_grid
+            agrandir(abs(i), mat_size_j, 0, 0)
+            self.mat_i0 -= self.taille_grid * abs(i)
             return i + 1, j
 
         elif i > mat_size_i - 1:
-            agrandir(1, mat_size_j, mat_size_i, 0)
+            agrandir(i - mat_size_i + 1, mat_size_j, 1, 0)
 
         return i, j
 
@@ -495,8 +618,13 @@ class Circuit(QGraphicsScene):
                 ligne_i, ligne_j = self.pos_to_mat(ligne_p2_x, ligne_p2_y)
 
                 while True:
-                    ligne_i, ligne_j = self.agrandir_matrice(ligne_i, ligne_j)
-                    mat_num = self.mat_points[ligne_i, ligne_j]
+                    if ligne_i < 0 or ligne_j < 0:
+                        mat_num = 0
+                    else:
+                        try:
+                            mat_num = self.mat_points[ligne_i, ligne_j]
+                        except IndexError:
+                            mat_num = 0
 
                     if mat_num != 0:
 
@@ -505,16 +633,14 @@ class Circuit(QGraphicsScene):
                             ligne_p2_y -= self.taille_grid * sens_y
                         else:
                             self.fil_complet = True
+
                         break
 
                     if ligne_p2_x == x and ligne_p2_y == y:
-                        self.points_apres_pivot.append(QPointF(ligne_p2_x, ligne_p2_y))
                         break
 
-                    ligne_i, ligne_j = self.agrandir_matrice(ligne_i, ligne_j)
                     ligne_i += sens_y
                     ligne_j += sens_x
-                    self.points_apres_pivot.append(QPointF(ligne_p2_x, ligne_p2_y))
                     ligne_p2_x += self.taille_grid * sens_x
                     ligne_p2_y += self.taille_grid * sens_y
 
@@ -585,30 +711,21 @@ class Circuit(QGraphicsScene):
 
 
 class GraphicsView(QGraphicsView):
-    def __init__(self, scene, main_window):
+    def __init__(self, scene):
         super().__init__(scene)
         self.scene = scene
         self.viewport().setMouseTracking(True)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.scene.clic_gauche_fil(event.position())
 
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             self.scene.clic_droit_fil()
 
     def mouseMoveEvent(self, event):
         if self.scene.dessine:
             self.scene.continuer_dessin(event.position())
-
-    """
-    def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton and self.main_window.dessine:
-            self.main_window.confirmer_fil()
-            self.main_window.points = []
-            self.main_window.lignes = []
-    """
-
 
 class LoisPhysiques:
     @staticmethod

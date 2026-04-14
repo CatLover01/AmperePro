@@ -1,16 +1,17 @@
-from PySide6.QtCore import QFile, QTextStream, QSize
+from PySide6.QtCore import QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QToolBar, QMenu, QProgressBar, QDialog
+    QGraphicsView, QMenu, QProgressBar, QDialog, QInputDialog
 from enum import Enum
 
 from popup import OuvertureFenetre, Popup
 from a_propos import AProposWindow
 from docs import DocumentationWindow
-from sauvegarder import Sauvegarder
+from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
 from niveau_ohm_1 import NiveauOhm1
 from niveau_ohm_2 import NiveauOhm2
+
 
 class Mode(Enum):
     Libre = 1
@@ -36,7 +37,7 @@ class AmperePro(QMainWindow):
         self.popups = None
         self.init_main_window()
 
-        self.data = Sauvegarder()
+        self.data = Sauvegarde()
         self.fenetre_a_propos = AProposWindow()
 
         # Menus
@@ -154,6 +155,13 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(retour_arriere)
 
     def afficher_mode_libre(self, main_layout):
+        circuit_libres = self.data.circuits_libre()
+        for circuit in circuit_libres:
+            circuit_button = QPushButton()
+            circuit_button.setText(circuit.nom)
+            circuit_button.clicked.connect(lambda: self.add_circuit(circuit))
+            main_layout.addWidget(circuit_button)
+
         gif_electricite = QMovie("images/interface/mode_libre.gif")
 
         label = QLabel()
@@ -167,7 +175,7 @@ class AmperePro(QMainWindow):
         # Nouvelle Section Mode libre
         add_circuit_button = QPushButton()
         add_circuit_button.setText("Créer un nouveau circuit")
-        add_circuit_button.clicked.connect(self.add_circuit)
+        add_circuit_button.clicked.connect(lambda: self.add_circuit(None))
         main_layout.addWidget(add_circuit_button)
 
         mode_libre_layout = QHBoxLayout()
@@ -203,7 +211,6 @@ class AmperePro(QMainWindow):
             elif sujet == "Loi de Kirchoff":
                 bouton.clicked.connect(self.ouvrir_kirchoff)
 
-
             main_layout.addWidget(bouton)
 
     def ouvrir_ohms(self):
@@ -214,7 +221,6 @@ class AmperePro(QMainWindow):
 
     def ouvrir_kirchoff(self):
         self.afficher_niveaux_sujet("Loi de Kirchoff")
-
 
     def afficher_niveaux_sujet(self, sujet):
         main_layout = QVBoxLayout()
@@ -275,7 +281,7 @@ class AmperePro(QMainWindow):
             main_layout.addWidget(ligne_widget)
 
         retour_arriere = QPushButton("Retour aux sujets")
-        retour_arriere.clicked.connect(lambda : self.change_mode(Mode.Niveau))
+        retour_arriere.clicked.connect(lambda: self.change_mode(Mode.Niveau))
         main_layout.addWidget(retour_arriere)
 
     def ouvrir_niveau_ohm_1(self):
@@ -291,8 +297,23 @@ class AmperePro(QMainWindow):
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)
 
-    def add_circuit(self):
-        self.nouveau_circuit = Circuit(self)
+    def add_circuit(self, circuit: CircuitLibre | None):
+        matrix = None
+        id = None
+
+        # Si circuit est None, on créé un nouveau circuit
+        if circuit is None:
+            nom, ok = QInputDialog.getText(self, "Nouveau circuit", "Entre le nom de ton circuit")
+            if nom and ok:
+                id = self.data.creation_circuit_libre(nom)
+            else:
+                # Si l'utilisateur a dismiss(quitter) le dialog pour le nom du circuit, on annuler la création du circuit
+                return
+        else:
+            matrix = circuit.matrix
+            id = circuit.id
+
+        self.nouveau_circuit = Circuit(self, id, matrix)
         self.nouveau_circuit.creer_toolbar()
         self.setCentralWidget(self.nouveau_circuit.graphics_view)
         self.setMenuBar(self.nouveau_circuit.barre_menu)
@@ -334,7 +355,7 @@ class AmperePro(QMainWindow):
         self.init_main_window()
 
     def sauvegarder_et_menu(self, dialog):
-        #ferme QDialog, sauvegarde et retourne au menu principal
+        # ferme QDialog, sauvegarde et retourne au menu principal
         dialog.close()
         self.nouveau_circuit.sauvegarder_triggered()
         self.retour_menu()
@@ -354,14 +375,15 @@ class AmperePro(QMainWindow):
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre
         if isinstance(self.centralWidget(), GraphicsView):
-                resultat = self.nouveau_circuit.quitter_triggered()
+            resultat = self.nouveau_circuit.quitter_triggered()
 
-                if resultat == "oui":
-                    event.accept()
-                else:
-                    event.ignore()
+            if resultat == "oui":
+                event.accept()
+            else:
+                event.ignore()
         else:
             event.accept()
+
 
 if __name__ == "__main__":
     app = QApplication()
