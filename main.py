@@ -11,7 +11,7 @@ from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
 from niveau_ohm_1 import NiveauOhm1
 from niveau_ohm_2 import NiveauOhm2
-
+from niveau_ohm_3 import NiveauOhm3
 
 class Mode(Enum):
     Libre = 1
@@ -252,6 +252,8 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_1)
             elif sujet == "Loi d'ohms" and i == 1:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_2)
+            elif sujet == "Loi d'ohms" and i == 2:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
             else:
                 popup = Popup()
 
@@ -293,6 +295,11 @@ class AmperePro(QMainWindow):
         niveau = NiveauOhm2(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1100, 850)
+
+    def ouvrir_niveau_ohm_3(self):
+        niveau = NiveauOhm3(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1200, 900)
 
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)
