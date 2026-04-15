@@ -37,7 +37,7 @@ class ComposanteBase(ABC):
 
 class Batterie(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Batterie, "Batterie", "images/toolbar/batterie.jpg",
+        super().__init__(Type.Batterie, "Batterie", "images/circuit/batterie.png",
                          "images/circuit/batterie.png", 40,
                          "- Fournit l’énergie électrique au circuit. <br>"
                          "- Crée une différence de potentiel (tension). <br>"
@@ -49,7 +49,7 @@ class Batterie(ComposanteBase):
 
 class LED(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.LED, "LED", "images/toolbar/LED.webp", "images/circuit/LED.png", 68,
+        super().__init__(Type.LED, "LED", "images/circuit/LED.png", "images/circuit/LED.png", 68,
                          "- Diode qui émet de la lumière quand le courant passe dans le bon sens <br>"
                          "- Elle a une polarité : anode (+) et cathode (-). <br>"
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
@@ -58,7 +58,7 @@ class LED(ComposanteBase):
 
 class Resistor(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Resistor, "Résistor", "images/toolbar/resistor.jpg",
+        super().__init__(Type.Resistor, "Résistor", "images/circuit/resistor.png",
                          "images/circuit/resistor.png", 56,
                          "- Composante qui limite le courant. <br>"
                          "- Unité : Ohms (Ω) <br>"
@@ -71,16 +71,16 @@ class Resistor(ComposanteBase):
 
 class Diode(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Diode, "Diode", "images/toolbar/diode.jpg", "images/circuit/diode.png", 30,
+        super().__init__(Type.Diode, "Diode", "images/circuit/diode.png", "images/circuit/diode.png", 30,
                          "- Laisse passer le courant dans un seul sens ( en résumé ). <br>"
                          "- Polarité importante. <br>"
-                         "- Utile pour boquer le retour de courant ou redresser un signal "
+                         "- Utile pour bloquer le retour de courant ou redresser un signal "
                          )
 
 
 class Interrupteur(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Interrupteur, "Interrupteur", "images/toolbar/interrupteur.jpg",
+        super().__init__(Type.Interrupteur, "Interrupteur", "images/circuit/interrupteur_ouvert.png",
                          "images/circuit/interrupteur_ouvert.png", 45,
                          "- Sert à ouvrir ou fermer un circuit. <br>"
                          "- Ouvert : le courant ne passe pas. <br>"
@@ -90,7 +90,7 @@ class Interrupteur(ComposanteBase):
 
 class Voltmetre(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Voltmetre, "Voltmètre", "images/toolbar/voltmetre.jpg",
+        super().__init__(Type.Voltmetre, "Voltmètre", "images/circuit/voltmetre.png",
                          "images/circuit/voltmetre.png", 40,
                          "- Sert à mesurer la tension (différence de potentiel) entre deux points. <br> "
                          "- Unité : Volt (V). <br> "
@@ -101,7 +101,7 @@ class Voltmetre(ComposanteBase):
 
 class Amperemetre(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Amperemetre, "Ampèremètre", "images/toolbar/amperemetre.jpg",
+        super().__init__(Type.Amperemetre, "Ampèremètre", "images/circuit/amperemetre.png",
                          "images/circuit/amperemetre.png", 40,
                          "- Sert à mesurer le courant électrique qui traverse une branche. <br>"
                          "- Unité : Ampères (A). <br> "

@@ -1,15 +1,15 @@
 from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream, QLineF
-from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon
+from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
-                               QHBoxLayout, QToolBar)
+                               QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem)
 import math
 import numpy as np
 import datetime
 
 from a_propos import AProposWindow
 from docs import DocumentationWindow
-from sauvegarde import Sauvegarde, CircuitLibre
 from Composantes import toolbar_composantes
+from sauvegarde import Sauvegarde, CircuitLibre
 
 
 class Noeud:
@@ -99,7 +99,7 @@ class Circuit(QGraphicsScene):
         super().__init__()
         self.main_window = mainwindow
         self.scene_size = QSize(500, 500)
-        self.graphics_view = GraphicsView(self)
+        self.graphics_view = GraphicsView(self, mainwindow)
         self.main_window.setCentralWidget(self.graphics_view)
         self.graphics_view.setMinimumSize(self.scene_size)
         self.graphics_view.setScene(self)
@@ -149,6 +149,14 @@ class Circuit(QGraphicsScene):
 
         # pour les composantes
         self.toolbar = None
+        self.selection = None
+        self.composante_selectionnee = None
+        self.image_composante = None
+        self.couleur_recouvre = None
+        self.accepter_modification = True
+        self.accepter_positionnement = False
+        self.composante = []
+        self.nombre_de_rotations = 0
 
         # Menubar
         self.barre_menu = self.main_window.menuBar()
@@ -194,8 +202,6 @@ class Circuit(QGraphicsScene):
             if dernier_ajout == "fil":
                 dernier_fil = self.fils.pop()
                 dernier_fil.enlever_lignes()
-                # le dernier fil est nécéssairement celui avec la plus haute valeur dans la matrice.
-                # on veut donc que toutes les instances de cette valeur redeviennent 0
                 valeur_fil_retire = np.max(self.mat_points)
                 self.mat_points[self.mat_points == valeur_fil_retire] = 0
                 # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
@@ -212,6 +218,7 @@ class Circuit(QGraphicsScene):
             else:
                 # replacer la dernière composante
                 pass
+
             self.jetes.remove(dernier_jete)
 
         else:
@@ -256,7 +263,6 @@ class Circuit(QGraphicsScene):
         self.main_window.close()
 
     def refuser_fermeture(self):
-        self.ajouts = [1,2,2]
         self.allouer_fermeture = "non"
 
     # première méthode non liée au menu à propos
@@ -455,6 +461,9 @@ class Circuit(QGraphicsScene):
             self.lignes.append(ligne)
             self.dernier_point = QPointF(fin_ligne.x(), fin_ligne.y())
             self.continuer_dessin(pos)
+            self.ajouts.append("fil")
+            self.operations.append(1)
+            self.rollback_possible()
 
     def calculer_voltage(self):
         mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
@@ -687,13 +696,21 @@ class Circuit(QGraphicsScene):
         main_bouton.clicked.connect(self.main_click)
         self.toolbar.addWidget(main_bouton)
 
+        # ajoute le bouton fil à la toolbar
+        fil_icone = QIcon("images/toolbar/fil.webp")
+        fil_bouton = ToolbarButton("Fil")
+        fil_bouton.setIcon(fil_icone)
+        fil_bouton.setIconSize(QSize(45, 45))
+        fil = "fil"
+        fil_bouton.clicked.connect(self.fil_click)
+        self.toolbar.addWidget(fil_bouton)
+
         # Ajouter un bouton dans la toolbar pour chaque composante
         for composante in toolbar_composantes.values():
             bouton = ToolbarButton(composante.nom)
             bouton.setIcon(QIcon(composante.image_toolbar))
             bouton.setIconSize(QSize(45, 45))
-
-            bouton.clicked.connect(lambda _, c=composante: self.toolbar_clicked(c))
+            bouton.clicked.connect(lambda _, c=composante: self.composante_toolbar_clicked(c))
             self.toolbar.addWidget(bouton)
 
         self.main_window.addToolBar(self.toolbar)
@@ -704,28 +721,194 @@ class Circuit(QGraphicsScene):
         self.toolbar = None
 
     def main_click(self):
-        pass
+        self.selection = "main"
 
-    def toolbar_clicked(self, composante):
-        pass
+    def composante_toolbar_clicked(self, composante):
+        if composante in toolbar_composantes.values():
+            self.selection = "composante"
+            self.composante_selectionnee = composante
+
+            if self.image_composante is not None:
+                self.removeItem(self.image_composante)
+                self.image_composante = None
+
+            pixmap = QPixmap(self.composante_selectionnee.image_circuit)
+            pixmap_scalise = pixmap.scaled(self.taille_grid * 2, self.taille_grid * 2)
+            self.image_composante = QGraphicsPixmapItem(pixmap_scalise)
+            self.image_composante.setPos(self.taille_grid, self.taille_grid)
+            self.image_composante.setOffset(-self.taille_grid, -self.taille_grid)
+            self.addItem(self.image_composante)
+            self.accepter_modification = True
+
+            perimetre = self.image_composante.boundingRect()
+            self.couleur_recouvre = QGraphicsRectItem(perimetre, self.image_composante)
+            self.couleur_recouvre.setOpacity(0.3)
+            self.couleur_recouvre.setZValue(1)
+            self.couleur_recouvre.setBrush(QColor(218, 44, 44))
+
+    def fil_click(self):
+        self.selection = "fil"
+        if self.image_composante is not None:
+            self.removeItem(self.image_composante)
+            self.image_composante = None
+        self.nombre_de_rotations = 0
+
+    def inserer_composante(self, composante):
+        if self.image_composante:
+            position = self.image_composante.scenePos()
+            self.removeItem(self.couleur_recouvre)
+            self.couleur_recouvre = None
+            self.composante.append(composante)
+            self.composante.append(position)
+            self.operations.append(1)
+            self.ajouts.append("composante")
+            self.accepter_modification = False
+            self.image_composante = None
+            self.nombre_de_rotations = 0
+
+    def clic_droit_composante(self):
+        self.image_composante.setRotation(self.image_composante.rotation() - 90)
+        self.nombre_de_rotations += 1
+
+    def sens_composante(self):
+        sens = self.nombre_de_rotations % 4
+        # de base l'image "pointe" à droite. 1 clic droit et elle pointe en haut, 2 à gauche, 3 en bas et 4 on redémarre
+        if sens == 0:
+            return "droite"
+        elif sens == 1:
+            return "haut"
+        elif sens == 2:
+            return"gauche"
+        else:
+            return "bas"
+
+    def valider_position(self):
+        position = self.image_composante.scenePos()
+        sens = self.sens_composante()
+        x = position.x()
+        y = position.y()
+        verdict = self.deja_occupe(position)
+
+        # chacune de ces collisions = 0 si elle n'existe pas (donc si aucun fil n'est présent à l'endroit vérifié).
+        collision_centre = self.verifier_collision_fil(position)
+        collision_droite = self.verifier_collision_fil(QPointF(x + self.taille_grid, y))
+        collision_gauche = self.verifier_collision_fil(QPointF(x - self.taille_grid, y))
+        collision_haut = self.verifier_collision_fil(QPointF(x, y + self.taille_grid))
+        collision_bas = self.verifier_collision_fil(QPointF(x, y - self.taille_grid))
+
+        if collision_centre == 0 or verdict == 2:
+            # on ne peut pas mettre une composante dans le vide. si elle ne touche aucun fil (collision_centre = 0),
+            # on ignore. La composante ne peut pas non plus toucher plus d'un fil, d'où les 4 autres conditions
+            self.accepter_positionnement = False
+
+        else:
+            if sens == "droite" or sens == "gauche":
+                # si la composante est à l'horizontal, on veut qu'il y ait un fil à droite et à gauche d'elle, mais
+                # pas directement en haut ou en bas
+                if collision_droite == 0 or collision_gauche == 0 or collision_haut != 0 or collision_bas != 0:
+                    self.accepter_positionnement = False
+                else:
+                    self.accepter_positionnement = True
+
+            else:
+                # raisonnement inverse pour la verticale
+                if collision_haut == 0 or collision_bas == 0 or collision_droite != 0 or collision_gauche != 0:
+                    self.accepter_positionnement = False
+                else:
+                    self.accepter_positionnement = True
+
+        self.couleur_image()
+
+    def deja_occupe(self, position):
+        # on veut la position des composantes déjà installées. Elle est données aux index impairs de self.composantes
+        refuser = self.composante[1::2]
+
+        x_refuses = []
+        for i in refuser:
+            x_refuses.append(i.x())
+            x_refuses.append(i.x() - self.taille_grid)
+            x_refuses.append(i.x() + self.taille_grid)
+            if self.sens_composante() == "droite" or self.sens_composante() == "gauche":
+                # on ne veut pas que deux composantes s'enchainent directement sur le même fil.
+                x_refuses.append(i.x() + self.taille_grid *2)
+                x_refuses.append(i.x() - self.taille_grid * 2)
+
+        y_refuses = []
+        for i in refuser:
+            y_refuses.append(i.y())
+            y_refuses.append(i.y() - self.taille_grid)
+            y_refuses.append(i.y() + self.taille_grid)
+            if self.sens_composante() == "haut" or self.sens_composante() == "bas":
+                # on ne veut pas que deux composantes s'enchainent directement sur le même fil.
+                y_refuses.append(i.y() - self.taille_grid*2)
+                y_refuses.append(i.y() + self.taille_grid*2)
+
+        total = 0
+        # si la position x ET y de la composante à ajouter est dans les listes ocuppées correspondantes,
+        # alors la composante actuelle "overlap" une déjà placée. On refusera donc le positionnement si total = 2.
+        if position.x() in x_refuses:
+            total += 1
+        if position.y() in y_refuses:
+            total += 1
+        return total
+
+    def couleur_image(self):
+        # vert si on peut placer la composante, rouge sinon
+        if not self.accepter_positionnement:
+            self.couleur_recouvre.setBrush(QColor(218, 44, 44))
+        else:
+            self.couleur_recouvre.setBrush(QColor(44, 246, 44))
+
+    def deplacer_composante(self, position):
+        x,y = self.pos_selon_grid(position)
+        pos_max_x = self.scene_size.width() - self.taille_grid
+        pos_max_y = self.scene_size.height() - self.taille_grid
+        # évite que la composante soit à moitié sortie de la grid
+        if x < self.taille_grid:
+            x = self.taille_grid
+        if y < self.taille_grid:
+            y = self.taille_grid
+        if x > pos_max_x:
+            x = pos_max_x
+        if y > pos_max_y:
+            y = pos_max_y
+        self.image_composante.setPos(x,y)
 
 
 class GraphicsView(QGraphicsView):
-    def __init__(self, scene):
+
+    def __init__(self, scene, main_window):
         super().__init__(scene)
         self.scene = scene
         self.viewport().setMouseTracking(True)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.scene.clic_gauche_fil(event.position())
+        if event.button() == Qt.LeftButton:
+            if self.scene.selection == "fil":
+                self.scene.clic_gauche_fil(event.position())
 
-        if event.button() == Qt.MouseButton.RightButton:
-            self.scene.clic_droit_fil()
+            elif self.scene.selection == "main":
+                pass
+                #TODO: si on souhaite utiliser la main, connecter cela à def clic_gauche_main
+
+            elif self.scene.selection == "composante" and self.scene.accepter_positionnement == True:
+                self.scene.inserer_composante(self.scene.selection)
+
+        if event.button() == Qt.RightButton:
+            if self.scene.selection == "fil":
+                self.scene.clic_droit_fil()
+            if self.scene.selection == "composante" and self.scene.accepter_modification == True:
+                self.scene.clic_droit_composante()
+                self.scene.valider_position()
 
     def mouseMoveEvent(self, event):
-        if self.scene.dessine:
+        if self.scene.selection == "fil" and self.scene.dessine:
             self.scene.continuer_dessin(event.position())
+        elif self.scene.selection == "composante" and self.scene.accepter_modification == True:
+            position_scene = self.mapToScene(event.position().toPoint())
+            self.scene.deplacer_composante(position_scene)
+            self.scene.valider_position()
+
 
 class LoisPhysiques:
     @staticmethod

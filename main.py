@@ -194,7 +194,7 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(subtitle)
 
         sujets = [
-            "Loi d'ohms",
+            "Loi d'ohm",
             "Résistance équivalente",
             "Loi de Kirchoff",
         ]
@@ -202,7 +202,7 @@ class AmperePro(QMainWindow):
         for sujet in sujets:
             bouton = QPushButton(sujet)
 
-            if sujet == "Loi d'ohms":
+            if sujet == "Loi d'ohm":
                 bouton.clicked.connect(self.ouvrir_ohms)
 
             elif sujet == "Résistance équivalente":
@@ -214,7 +214,7 @@ class AmperePro(QMainWindow):
             main_layout.addWidget(bouton)
 
     def ouvrir_ohms(self):
-        self.afficher_niveaux_sujet("Loi d'ohms")
+        self.afficher_niveaux_sujet("Loi d'ohm")
 
     def ouvrir_serie_parallele(self):
         self.afficher_niveaux_sujet("Résistance équivalente")
@@ -248,7 +248,7 @@ class AmperePro(QMainWindow):
         progressions = [0, 0, 0, 0, 0]
 
         for i in range(5):
-            if sujet == "Loi d'ohms" and i == 0:
+            if sujet == "Loi d'ohm" and i == 0:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_1)
             elif sujet == "Loi d'ohms" and i == 1:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_2)
@@ -306,7 +306,7 @@ class AmperePro(QMainWindow):
 
     def add_circuit(self, circuit: CircuitLibre | None):
         matrix = None
-        id = None
+        #id = None
 
         # Si circuit est None, on créé un nouveau circuit
         if circuit is None:
@@ -382,12 +382,12 @@ class AmperePro(QMainWindow):
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre
         if isinstance(self.centralWidget(), GraphicsView):
-            resultat = self.nouveau_circuit.quitter_triggered()
-
-            if resultat == "oui":
-                event.accept()
-            else:
-                event.ignore()
+                resultat = self.nouveau_circuit.quitter_triggered()
+                if resultat == "oui":
+                    event.accept()
+                else:
+                    event.ignore()
+                    self.nouveau_circuit.allouer_fermeture = "oui"
         else:
             event.accept()
 
