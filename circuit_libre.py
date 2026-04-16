@@ -4,7 +4,6 @@ from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDial
                                QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem)
 import math
 import numpy as np
-import datetime
 
 from a_propos import AProposWindow
 from docs import DocumentationWindow
@@ -29,10 +28,11 @@ class Noeud:
 
 
 class Fil:
-    def __init__(self, main_window, points):
-        self.main_window = main_window
+    def __init__(self, scene, points, lignes):
+        self.scene = scene
         self.points = points
         self.noeuds = None
+        self.lignes = lignes
 
         # self.resistance, self.tension = self.calculs()
         self.composantes = []
@@ -55,8 +55,25 @@ class Fil:
         points_avant = self.points[:index_point]
         points_apres = self.points[index_point + 1:]
 
+        for i in range(len(self.lignes)):
+            ligne = self.lignes[i]
+            p1 = ligne.line().p1()
+            p2 = ligne.line().p2()
+            x_max, x_min = max(p1.x(), p2.x()), min(p1.x(), p2.x())
+            y_max, y_min = max(p1.y(), p2.y()), min(p1.y(), p2.y())
+            if x_max >= pos.x() >= x_min and y_max >= pos.y() >= y_min:
+                ligne.setLine(QLineF(p1, pos))
+
+                nouvelle_ligne = self.scene.ajouter_ligne(pos.x(), pos.y(), p2.x(), p2.y())
+                self.lignes.insert(i + 1, nouvelle_ligne)
+
+                lignes_avant = self.lignes[:i+1]
+                lignes_apres = self.lignes[i+1:]
+                break
+
         if self.noeuds is None:
             self.points = points_apres + points_avant
+            self.lignes = lignes_apres + lignes_avant
             self.noeuds = [noeud, noeud]
         else:
             comp_avant = []
@@ -70,29 +87,35 @@ class Fil:
                     comp_apres = self.composantes[i:]
                     break
 
-            nouveau_fil = Fil(self.main_window, points_apres)
+            nouveau_fil = Fil(self.scene, points_apres, lignes_apres)
             nouveau_fil.noeuds = [noeud, self.noeuds[1]]
             nouveau_fil.composantes = comp_apres
-            self.main_window.fils.append(nouveau_fil)
+            self.scene.fils.append(nouveau_fil)
 
             for point_apres in points_apres:
-                i, j = self.main_window.pos_to_mat(point_apres.x(), point_apres.y())
-                self.main_window.mat_points[i, j] = len(self.main_window.fils)
+                i, j = self.scene.pos_to_mat(point_apres.x(), point_apres.y())
+                self.scene.mat_points[i, j] = len(self.scene.fils)
 
             self.noeuds[0].enlever_info_fil(self)
-            self.noeuds[0].ajouter_info(self, noeud, self.main_window)
+            self.noeuds[0].ajouter_info(self, noeud, self.scene)
 
             if self.noeuds[0] != self.noeuds[1]:
                 self.noeuds[1].enlever_info_fil(self)
-            self.noeuds[1].ajouter_info(nouveau_fil, noeud, self.main_window)
+            self.noeuds[1].ajouter_info(nouveau_fil, noeud, self.scene)
 
-            noeud.ajouter_info(self, self.noeuds[0], self.main_window)
-            noeud.ajouter_info(self, self.noeuds[1], self.main_window)
+            noeud.ajouter_info(self, self.noeuds[0], self.scene)
+            noeud.ajouter_info(self, self.noeuds[1], self.scene)
 
             self.composantes = comp_avant
             self.noeuds = [self.noeuds[0], noeud]
             self.points = points_avant
+            self.lignes = lignes_avant
 
+    def enlever_fil(self):
+        for composante in self.composantes:
+            self.scene.removeItem(composante)
+        for ligne in self.lignes:
+            self.scene.removeItem(ligne)
 
 class Circuit(QGraphicsScene):
     def __init__(self, mainwindow, id: str, mat: list | None):
@@ -204,10 +227,10 @@ class Circuit(QGraphicsScene):
         if dernier == 1:
             dernier_ajout = self.ajouts[-1]
             if dernier_ajout == "fil":
-                dernier_fil = self.fils.pop()
-                dernier_fil.enlever_lignes()
+                self.fils[-1].enlever_fil()
                 valeur_fil_retire = np.max(self.mat_points)
                 self.mat_points[self.mat_points == valeur_fil_retire] = 0
+                self.fils.pop()
                 # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
             else:
                 # enlever la dernière composante du dessin (donc les 3 dernières infos ajoutées)
@@ -365,7 +388,7 @@ class Circuit(QGraphicsScene):
         points_bas.reverse()
         points_gauche.reverse()
         points = points_haut + points_droite + points_bas + points_gauche
-        fil_base = Fil(self, points)
+        fil_base = Fil(self, points, [ligne_haut, ligne_droite, ligne_bas, ligne_gauche])
 
         return fil_base, matrice_points
 
@@ -447,13 +470,15 @@ class Circuit(QGraphicsScene):
             noeud_fin = Noeud()
             self.noeuds.append(noeud_fin)
 
-            nouveau_fil = Fil(self, points[1:-1])
+            nouveau_fil = Fil(self, points[1:-1], self.lignes)
             self.fils.append(nouveau_fil)
             nouveau_fil.noeuds = [noeud_debut, noeud_fin]
             noeud_debut.ajouter_info(nouveau_fil, noeud_fin, self)
             noeud_fin.ajouter_info(nouveau_fil, noeud_debut, self)
 
             fil_noeud1 = self.fils[self.fil_touche_depart - 1]
+            print(fil_noeud1.points)
+            print()
             fil_noeud1.ajouter_noeud(points[0], noeud_debut)
             # ajouter les noeuds à la matrice (à ij avoir ref aux noeuds)
 
@@ -465,6 +490,7 @@ class Circuit(QGraphicsScene):
             self.lignes = []
             self.points_avant_pivot = []
             self.dessine = False
+
 
         else:
             debut_ligne, fin_ligne, points_apres_pivot = mettre_index_mat(self.lignes[-1], len(self.fils) + 1)
@@ -802,6 +828,7 @@ class Circuit(QGraphicsScene):
     def inserer_composante(self, composante):
         if self.image_composante:
             position = self.image_composante.scenePos()
+            fil = self.verifier_collision_fil(position)
             # on enleve la surbrillance
             self.removeItem(self.couleur_recouvre)
             self.couleur_recouvre = None
@@ -817,6 +844,8 @@ class Circuit(QGraphicsScene):
             self.ajouts.append("composante")
             self.nombre_de_rotations = 0
             self.rollback_possible()
+            #On ajoute la composante au fil
+            self.fils[fil - 1].ajouter_composante(composante)
 
 
     def clic_droit_composante(self):
@@ -862,6 +891,7 @@ class Circuit(QGraphicsScene):
                     self.accepter_positionnement = False
                 else:
                     self.accepter_positionnement = True
+                    return collision_centre
 
             else:
                 # raisonnement inverse pour la verticale
@@ -869,6 +899,7 @@ class Circuit(QGraphicsScene):
                     self.accepter_positionnement = False
                 else:
                     self.accepter_positionnement = True
+                    return collision_centre
 
         self.couleur_image()
 
@@ -956,7 +987,7 @@ class Circuit(QGraphicsScene):
             x = pos_max_x
         if y > pos_max_y:
             y = pos_max_y
-        self.image_composante.setPos(x,y)
+        self.image_composante.setPos(x, y)
 
 
 class GraphicsView(QGraphicsView):
@@ -975,7 +1006,7 @@ class GraphicsView(QGraphicsView):
                 pass
                 #TODO: si on souhaite utiliser la main, connecter cela à def clic_gauche_main
 
-            elif self.scene.selection == "composante" and self.scene.accepter_positionnement == True:
+            elif self.scene.selection == "composante" and self.scene.accepter_positionnement:
                 self.scene.inserer_composante(self.scene.composante_selectionnee)
                 
             elif self.scene.selection == "poubelle":
