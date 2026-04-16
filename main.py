@@ -306,7 +306,6 @@ class AmperePro(QMainWindow):
 
     def add_circuit(self, circuit: CircuitLibre | None):
         matrix = None
-        #id = None
 
         # Si circuit est None, on créé un nouveau circuit
         if circuit is None:
