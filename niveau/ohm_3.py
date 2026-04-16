@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QMessageBox, QScrollArea
 )
 
-from image_niveau_3 import CIRCUIT1, CIRCUIT2, CIRCUIT3, CIRCUIT4, CIRCUIT5
+DOSSIER_IMAGES = "images/niveau/ohm/3/"
 
 class NiveauOhm3(QWidget):
     def __init__(self, retour_callback=None):
@@ -44,31 +44,31 @@ class NiveauOhm3(QWidget):
 
         self.questions = [
             {
-                "image": "circuit1.png",
+                "image": DOSSIER_IMAGES + "circuit1.png",
                 "texte": "La résistance dans R1 est de",
                 "reponse": 20,
                 "unite": "Ω"
             },
             {
-                "image": "circuit2.png",
+                "image": DOSSIER_IMAGES + "circuit2.png",
                 "texte": "La tension à la source est de",
                 "reponse": 100,
                 "unite": "V"
             },
             {
-                "image": "circuit3.png",
+                "image": DOSSIER_IMAGES + "circuit3.png",
                 "texte": "La résistance de la source lumineuse est de",
                 "reponse": 20,
                 "unite": "Ω"
             },
             {
-                "image": "circuit4.png",
+                "image": DOSSIER_IMAGES + "circuit4.png",
                 "texte": "L'intensité du courant sortant de l'ampoule est de",
                 "reponse": 0.6,
                 "unite": "A"
             },
             {
-                "image": "circuit5.png",
+                "image": DOSSIER_IMAGES + "circuit5.png",
                 "texte": "La différence de potentiel dans la résistance est de",
                 "reponse": 50,
                 "unite": "V"
