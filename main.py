@@ -17,6 +17,11 @@ class Mode(Enum):
     Libre = 1
     Niveau = 2
 
+class Sujet(Enum):
+    Ohm = "Loi d'ohm"
+    Resistance = "Résistance équivalente"
+    Kirchoff = "Loi de Kirchoff"
+
 
 class AmperePro(QMainWindow):
     def __init__(self):
@@ -193,36 +198,12 @@ class AmperePro(QMainWindow):
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(subtitle)
 
-        sujets = [
-            "Loi d'ohm",
-            "Résistance équivalente",
-            "Loi de Kirchoff",
-        ]
-
-        for sujet in sujets:
-            bouton = QPushButton(sujet)
-
-            if sujet == "Loi d'ohm":
-                bouton.clicked.connect(self.ouvrir_ohms)
-
-            elif sujet == "Résistance équivalente":
-                bouton.clicked.connect(self.ouvrir_serie_parallele)
-
-            elif sujet == "Loi de Kirchoff":
-                bouton.clicked.connect(self.ouvrir_kirchoff)
-
+        for sujet in Sujet:
+            bouton = QPushButton(sujet.value)
+            bouton.clicked.connect(lambda _, s=sujet: self.afficher_niveaux_sujet(s))
             main_layout.addWidget(bouton)
 
-    def ouvrir_ohms(self):
-        self.afficher_niveaux_sujet("Loi d'ohm")
-
-    def ouvrir_serie_parallele(self):
-        self.afficher_niveaux_sujet("Résistance équivalente")
-
-    def ouvrir_kirchoff(self):
-        self.afficher_niveaux_sujet("Loi de Kirchoff")
-
-    def afficher_niveaux_sujet(self, sujet):
+    def afficher_niveaux_sujet(self, sujet: Sujet):
         main_layout = QVBoxLayout()
         main_widget = QWidget()
         main_widget.setLayout(main_layout)
@@ -238,7 +219,7 @@ class AmperePro(QMainWindow):
 
         main_layout.addWidget(titre)
 
-        subtitle = QLabel("Sujet choisi : " + sujet)
+        subtitle = QLabel("Sujet choisi : " + sujet.value)
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(subtitle)
 
@@ -248,11 +229,11 @@ class AmperePro(QMainWindow):
         progressions = [0, 0, 0, 0, 0]
 
         for i in range(5):
-            if sujet == "Loi d'ohm" and i == 0:
+            if sujet == Sujet.Ohm and i == 0:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_1)
-            elif sujet == "Loi d'ohms" and i == 1:
+            elif sujet == Sujet.Ohm and i == 1:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_2)
-            elif sujet == "Loi d'ohms" and i == 2:
+            elif sujet ==Sujet.Ohm and i == 2:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
             else:
                 popup = Popup()
@@ -306,7 +287,6 @@ class AmperePro(QMainWindow):
 
     def add_circuit(self, circuit: CircuitLibre | None):
         matrix = None
-        #id = None
 
         # Si circuit est None, on créé un nouveau circuit
         if circuit is None:

@@ -131,10 +131,13 @@ class Circuit(QGraphicsScene):
         self.fil_touche_depart = None
         self.fil_complet = False
 
-        # if mat is None:
-        # matrice devrait être initialiser, sinon on utilise elle passer par paramètre
-        fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
-        self.fils = [fil_base]
+        if mat is None:
+            fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
+            self.fils = [fil_base]
+        else:
+            self.mat_points = np.array(mat)
+            # TODO: générer les fils a partir de la matrice?
+            self.fils = []
 
         self.save = Sauvegarde()
         self.id = id
@@ -964,7 +967,7 @@ class GraphicsView(QGraphicsView):
         self.viewport().setMouseTracking(True)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             if self.scene.selection == "fil":
                 self.scene.clic_gauche_fil(event.position())
 
@@ -978,7 +981,7 @@ class GraphicsView(QGraphicsView):
             elif self.scene.selection == "poubelle":
                 self.scene.jeter_composante(event.position())
 
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             if self.scene.selection == "fil":
                 self.scene.clic_droit_fil()
             if self.scene.selection == "composante" and self.scene.accepter_modification == True:

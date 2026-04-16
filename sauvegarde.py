@@ -22,16 +22,24 @@ class Sauvegarde:
             self.data = read("data.json")
         except (FileNotFoundError, JSONDecodeError):
             # Création d'un état par défaut si la sauvegarde n'existe pas ou malformé
-            default = {"niveau": 1, "circuits-libre": []}
-            write("data.json", default)
-            self.data = default
+            self.initialize_defaults()
+
+    def initialize_defaults(self):
+        default_data = {"niveau": 1, "circuits-libre": []}
+        write("data.json", default_data)
+        self.data = default_data
 
     def circuits_libre(self) -> list[CircuitLibre]:
         # Retourne la liste des circuits libres sauvegardés par l'utilisateur.
-        circuits = []
-        for circuit in self.data["circuits-libre"]:
-            circuits.append(from_dict(CircuitLibre, circuit))
-        return circuits
+        try:
+            circuits = []
+            for circuit in self.data["circuits-libre"]:
+                circuits.append(from_dict(CircuitLibre, circuit))
+            return circuits
+        except:
+            # Data malformé
+            self.initialize_defaults()
+            return []
 
     # Retourne l'id générer
     def creation_circuit_libre(self, nom: str) -> str:
@@ -43,7 +51,7 @@ class Sauvegarde:
         write("data.json", self.data)
         return id
 
-    def modifie_circuit(self, id: str, mat: list):
+    def modifie_circuit(self, id: str, mat: list) -> bool:
         for idx, circuit in enumerate(self.data["circuits-libre"]):
             if circuit["id"] != id: continue
 
