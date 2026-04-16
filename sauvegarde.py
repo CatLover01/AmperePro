@@ -29,6 +29,13 @@ class Sauvegarde:
         write("data.json", default_data)
         self.data = default_data
 
+    def delete_circuit(self, id: str):
+        for circuit in self.data["circuits-libre"] :
+            if circuit["id"] == id:
+                self.data["circuits-libre"].remove(circuit)
+                write("data.json", self.data)
+                break
+
     def circuits_libre(self) -> list[CircuitLibre]:
         # Retourne la liste des circuits libres sauvegardés par l'utilisateur.
         try:
