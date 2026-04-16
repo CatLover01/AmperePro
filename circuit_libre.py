@@ -744,11 +744,10 @@ class Circuit(QGraphicsScene):
         self.toolbar.addWidget(poubelle_bouton)
 
         # ajoute le bouton fil à la toolbar
-        fil_icone = QIcon("images/toolbar/fil.webp")
+        fil_icone = QIcon("images/toolbar/fil.png")
         fil_bouton = ToolbarButton("Fil")
         fil_bouton.setIcon(fil_icone)
         fil_bouton.setIconSize(QSize(45, 45))
-        fil = "fil"
         fil_bouton.clicked.connect(self.fil_click)
         self.toolbar.addWidget(fil_bouton)
 

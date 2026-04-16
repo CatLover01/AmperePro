@@ -95,7 +95,7 @@ class AmperePro(QMainWindow):
 
         # Mode Libre
         mode_libre_button = QPushButton()
-        mode_libre_button.setText(" Mode Libre")
+        mode_libre_button.setText("Mode Libre")
         mode_libre_button.clicked.connect(lambda: self.change_mode(Mode.Libre))
         mode_layout.addWidget(mode_libre_button)
 
