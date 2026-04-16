@@ -167,7 +167,9 @@ class Circuit(QGraphicsScene):
 
         # listes pour le rollback
         self.ajouts = []
-        self.jetes = []
+        self.composantes_jetes = []
+        self.fils_jetes = []
+        self.dernier_jete = []
         # les ajouts seront 1, les jetés seront 2, composantes modifiées seront 3
         self.operations = []
 
@@ -182,6 +184,8 @@ class Circuit(QGraphicsScene):
         self.accepter_modification = True
         self.accepter_positionnement = False
         self.zones_surbrillance = []
+        self.zones_blanches = []
+        self.grid_par_dessus = []
         self.composantes = []
         self.nombre_de_rotations = 0
 
@@ -223,6 +227,7 @@ class Circuit(QGraphicsScene):
             self._annuler_action.setEnabled(False)
 
     def rollback_triggered(self):
+
         dernier = self.operations[-1]
         if dernier == 1:
             dernier_ajout = self.ajouts[-1]
@@ -233,35 +238,58 @@ class Circuit(QGraphicsScene):
                 self.fils.pop()
                 # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
             else:
-                # enlever la dernière composante du dessin (donc les 3 dernières infos ajoutées)
-                longueur = len(self.composantes)
                 # on retire tout ce qui est lié à ce qui est enlevé de self.composantes
-                self.composantes.pop(longueur-1)
-                image_composante_supprimee = self.composantes.pop(longueur - 2)
-                self.composantes.pop(longueur - 3)
+                position = self.composantes.pop()
+                image_composante_supprimee = self.composantes.pop()
+                self.composantes.pop()
 
-                # on retire de la scène l'image de la composante
+                # on retire de la scène l'image de la composante, son carré blanc et son grid par dessus
                 self.removeItem(image_composante_supprimee)
-                # le dernier ajout est donc une composante
+                self.retirer_carre_blanc(position)
+                self.supprimer_lignes_supplementaires(position)
 
             self.ajouts.pop()
 
         elif dernier == 2:
-            dernier_jete = self.jetes[-1]
+            dernier_jete = self.dernier_jete[-1]
             if dernier_jete == "fil":
-                # replacer le fil enlevé
+                # replacer le fil enlevé (et toute sa "bande")
                 pass
             else:
-                # replacer la dernière composante
-                pass
+                # on sort les éléments supprimés de "jeter" pour les ajouter à "composante"
+                position = self.composantes_jetes.pop()
+                image = self.composantes_jetes.pop()
+                composante = self.composantes_jetes.pop()
+                self.composantes.append(composante)
+                self.composantes.append(image)
+                self.composantes.append(position)
 
-            self.jetes.pop()
+                # on réajoute au fil la composante "réapparue"
+                #fil = self.verifier_collision_fil(position)
+                #self.fils[fil - 1].ajouter_composante(composante)
+
+                # on remet l'image sur le circuit
+                image_a_ajouter = image
+                image_a_ajouter.setPos(position)
+                self.addItem(image_a_ajouter)
+                # on lui réajoute un carré blanc
+                coin_sup_gauche_x = position.x() - self.taille_grid
+                coin_sup_gauche_y = position.y() - self.taille_grid
+                zone_blanche = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
+                                                 self.taille_grid * 2)
+                zone_blanche.setOpacity(1)
+                zone_blanche.setZValue(0)
+                zone_blanche.setBrush(QColor(255, 255, 255))
+                self.addItem(zone_blanche)
+                self.zones_blanches.append(zone_blanche)
+
+            self.dernier_jete.pop()
 
         else:
             # annuler la plus récente modification à une composante.
             pass
 
-        self.operations.remove(dernier)
+        self.operations.pop()
         self.rollback_possible()
 
     def quitter_triggered(self):
@@ -775,10 +803,6 @@ class Circuit(QGraphicsScene):
     def poubelle_click(self):
         self.selection = "poubelle"
 
-        if hasattr(self, "zones_surbrillance"):
-            for item in self.zones_surbrillance:
-                self.removeItem(item)
-
         emplacements_composantes = self.composantes[2::3]
         # on indique "l'aire" de chaques composantes
         for emplacement in emplacements_composantes:
@@ -794,6 +818,7 @@ class Circuit(QGraphicsScene):
             self.zones_surbrillance.append(zone_surbrillance)
 
     def composante_toolbar_clicked(self, composante):
+
         if composante in toolbar_composantes.values():
             self.selection = "composante"
             self.composante_selectionnee = composante
@@ -807,6 +832,7 @@ class Circuit(QGraphicsScene):
             self.image_composante = QGraphicsPixmapItem(pixmap_scalise)
             self.image_composante.setPos(self.taille_grid, self.taille_grid)
             self.image_composante.setOffset(-self.taille_grid, -self.taille_grid)
+            self.image_composante.setZValue(3)
             self.addItem(self.image_composante)
             self.accepter_modification = True
 
@@ -819,6 +845,7 @@ class Circuit(QGraphicsScene):
 
     def fil_click(self):
         self.selection = "fil"
+
         if self.image_composante is not None:
             self.removeItem(self.image_composante)
             self.image_composante = None
@@ -831,6 +858,48 @@ class Circuit(QGraphicsScene):
             # on enleve la surbrillance
             self.removeItem(self.couleur_recouvre)
             self.couleur_recouvre = None
+            # on cache le fil sous la composante
+            coin_sup_gauche_x = position.x() - self.taille_grid
+            coin_sup_gauche_y = position.y() - self.taille_grid
+            zone_blanche = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
+                                                  self.taille_grid * 2)
+            zone_blanche.setOpacity(1)
+            zone_blanche.setZValue(0)
+            zone_blanche.setBrush(QColor(255,255,255))
+            self.addItem(zone_blanche)
+            self.zones_blanches.append(zone_blanche)
+
+            # on remet le grid où la composante
+            # on stocke les lignes ajoutées dans une liste pour ensuite la supprimée si besoin
+            bloc_de_lignes = []
+            pen = QPen(QColorConstants.Gray)
+            # ajoute les lignes horizontale
+            multiple = -1
+            while multiple <= 1:
+                x1 = position.x() - self.taille_grid
+                x2 = position.x() + self.taille_grid
+                y = position.y() + multiple * self.taille_grid
+
+                ligne = self.addLine(x1, y, x2, y, pen)
+                ligne.setZValue(2.5)
+                bloc_de_lignes.append(ligne)
+                multiple += 1
+
+            # ajoute lignes verticales
+            multiple = -1
+            while multiple <= 1:
+                y1 = position.y() - self.taille_grid
+                y2 = position.y() + self.taille_grid
+                x = position.x() + multiple * self.taille_grid
+
+                ligne = self.addLine(x, y1, x, y2, pen)
+                ligne.setZValue(2.5)
+                bloc_de_lignes.append(ligne)
+                multiple += 1
+
+            self.grid_par_dessus.append(bloc_de_lignes)
+            self.grid_par_dessus.append(position)
+
             # on ajoute le type de composante, son image sur la scène et sa position à self.composantes
             self.composantes.append(composante)
             self.composantes.append(self.image_composante)
@@ -845,7 +914,6 @@ class Circuit(QGraphicsScene):
             self.rollback_possible()
             #On ajoute la composante au fil
             self.fils[fil - 1].ajouter_composante(composante)
-
 
     def clic_droit_composante(self):
         self.image_composante.setRotation(self.image_composante.rotation() - 90)
@@ -884,23 +952,51 @@ class Circuit(QGraphicsScene):
 
         else:
             if sens == "droite" or sens == "gauche":
+                collision_moins_un =  self.verifier_collision_fil(QPointF(x - 2 * self.taille_grid, y))
+                collision_plus_un = self.verifier_collision_fil(QPointF(x + 2 * self.taille_grid, y))
                 # si la composante est à l'horizontal, on veut qu'il y ait un fil à droite et à gauche d'elle, mais
                 # pas directement en haut ou en bas
                 if collision_droite == 0 or collision_gauche == 0 or collision_haut != 0 or collision_bas != 0:
                     self.accepter_positionnement = False
-                else:
-                    self.accepter_positionnement = True
-                    return collision_centre
-
-            else:
-                # raisonnement inverse pour la verticale
-                if collision_haut == 0 or collision_bas == 0 or collision_droite != 0 or collision_gauche != 0:
+                elif collision_moins_un == 0 or collision_plus_un == 0:
                     self.accepter_positionnement = False
                 else:
                     self.accepter_positionnement = True
-                    return collision_centre
+
+            else:
+                collision_moins_un = self.verifier_collision_fil(QPointF(x, y - 2 * self.taille_grid))
+                collision_plus_un = self.verifier_collision_fil(QPointF(x, y + 2 * self.taille_grid))
+                # raisonnement inverse pour la verticale
+                if collision_haut == 0 or collision_bas == 0 or collision_droite != 0 or collision_gauche != 0:
+                    self.accepter_positionnement = False
+                elif collision_moins_un == 0 or collision_plus_un == 0:
+                    self.accepter_positionnement = False
+                else:
+                    self.accepter_positionnement = True
 
         self.couleur_image()
+
+    def supprimer_lignes_supplementaires(self, position):
+        index = self.grid_par_dessus.index(position)
+        # même raisonnement que dans jeter composante
+        if index > 1:
+            liste_avant = self.grid_par_dessus[0:index - 1]
+        else:
+            liste_avant = []
+
+        element = self.grid_par_dessus[index - 1:index + 1]
+
+        if index != len(self.grid_par_dessus) - 1:
+            liste_apres = self.grid_par_dessus[index + 1:]
+        else:
+            liste_apres = []
+
+        self.grid_par_dessus = liste_avant
+        for i in liste_apres:
+            self.grid_par_dessus.append(i)
+
+        for i in element[0]:
+            self.removeItem(i)
 
     def deja_occupe(self, position):
         # on veut la position des composantes déjà installées. Elle est données aux index impairs de self.composantess
@@ -949,30 +1045,52 @@ class Circuit(QGraphicsScene):
                 break
 
         if a_jeter:
+            # on split la liste en 3: avant l'élément (si jamais), l'élément et après l'élément (si jamais)
             point_a_trouver = a_jeter.mapToScene(a_jeter.rect().center())
+            index = self.composantes.index(point_a_trouver)
 
-            index = 0
-            for element in self.composantes:
-                if point_a_trouver == element:
-                    break
-                index +=1
+            if index > 2:
+                liste_avant = self.composantes[0:index - 2]
 
-            # on retire tout ce qui est lié à ce qui est enlevé de self.composantes
-            position_supprimee = self.composantes.pop(index)
-            image_composante_supprimee = self.composantes.pop(index-1)
-            composante_supprimee = self.composantes.pop(index-2)
+            else:
+                liste_avant = []
+
+            element = self.composantes[index - 2:index + 1]
+
+            if index != len(self.composantes) - 1:
+                liste_apres = self.composantes[index + 1:]
+            else:
+                liste_apres = []
+
+            #on recrée self.composantes sans celle enlevée
+            self.composantes = liste_avant
+            for i in liste_apres:
+                self.composantes.append(i)
+
+            position_supprimee = element.pop()
+            image_composante_supprimee = element.pop()
+            composante_supprimee = element.pop()
 
             # on retire de la scène l'image de la composante et le carré rouge associé
             self.removeItem(image_composante_supprimee)
             self.removeItem(a_jeter)
 
+            # on enleve le carré blanc et le grid supplémentaire
+            self.retirer_carre_blanc(position_supprimee)
+            self.supprimer_lignes_supplementaires(position_supprimee)
+
             # on note ce qu'on vient d'enlever pour le rollback
             self.operations.append(2)
-            self.jetes.append(composante_supprimee)
-            self.jetes.append(image_composante_supprimee)
-            self.jetes.append(position_supprimee)
+            self.composantes_jetes.append(composante_supprimee)
+            self.composantes_jetes.append(image_composante_supprimee)
+            self.composantes_jetes.append(position_supprimee)
+            self.dernier_jete.append("composante")
 
-        
+            self.selection = None
+            if hasattr(self, "zones_surbrillance"):
+                for item in self.zones_surbrillance:
+                    self.removeItem(item)
+
     def deplacer_composante(self, position):
         x,y = self.pos_selon_grid(position)
         pos_max_x = self.scene_size.width() - self.taille_grid
@@ -988,6 +1106,13 @@ class Circuit(QGraphicsScene):
             y = pos_max_y
         self.image_composante.setPos(x, y)
 
+    def retirer_carre_blanc(self, position):
+        lieu_a_retirer = QPointF(position.x() - self.taille_grid, position.y()-self.taille_grid)
+        elements = self.items(lieu_a_retirer)
+        for element in elements:
+            if element in self.zones_blanches:
+                self.removeItem(element)
+                self.zones_blanches.remove(element)
 
 class GraphicsView(QGraphicsView):
 
