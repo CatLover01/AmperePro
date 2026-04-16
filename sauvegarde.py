@@ -25,7 +25,7 @@ class Sauvegarde:
             self.initialize_defaults()
 
     def initialize_defaults(self):
-        default_data = {"niveau": 1, "circuits-libre": []}
+        default_data = {"circuits-libre": []}
         write("data.json", default_data)
         self.data = default_data
 
