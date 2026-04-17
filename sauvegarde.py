@@ -25,9 +25,16 @@ class Sauvegarde:
             self.initialize_defaults()
 
     def initialize_defaults(self):
-        default_data = {"niveau": 1, "circuits-libre": []}
+        default_data = {"circuits-libre": []}
         write("data.json", default_data)
         self.data = default_data
+
+    def delete_circuit(self, id: str):
+        for circuit in self.data["circuits-libre"] :
+            if circuit["id"] == id:
+                self.data["circuits-libre"].remove(circuit)
+                write("data.json", self.data)
+                break
 
     def circuits_libre(self) -> list[CircuitLibre]:
         # Retourne la liste des circuits libres sauvegardés par l'utilisateur.

@@ -1,7 +1,7 @@
-from PySide6.QtCore import QFile, QTextStream
+from PySide6.QtCore import QFile, QTextStream, QTimer
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QMenu, QProgressBar, QDialog, QInputDialog
+    QGraphicsView, QMenu, QProgressBar, QDialog, QInputDialog, QMessageBox
 from enum import Enum
 
 from niveau.ohm_4 import NiveauOhm4
@@ -15,9 +15,11 @@ from niveau.ohm_2 import NiveauOhm2
 from niveau.ohm_3 import NiveauOhm3
 from niveau.ohm_4 import NiveauOhm4
 
+
 class Mode(Enum):
     Libre = 1
     Niveau = 2
+
 
 class Sujet(Enum):
     Ohm = "Loi d'ohm"
@@ -97,7 +99,7 @@ class AmperePro(QMainWindow):
 
         # Mode Libre
         mode_libre_button = QPushButton()
-        mode_libre_button.setText(" Mode Libre")
+        mode_libre_button.setText("Mode Libre")
         mode_libre_button.clicked.connect(lambda: self.change_mode(Mode.Libre))
         mode_layout.addWidget(mode_libre_button)
 
@@ -161,12 +163,33 @@ class AmperePro(QMainWindow):
         retour_arriere.clicked.connect(self.init_main_window)
         main_layout.addWidget(retour_arriere)
 
+    def afficher_supprimer_circuit(self, id: str):
+        reponse = QMessageBox.question(self, "Supprimer Circuit",
+                                       "Êtes vous sur de supprimer ce circuit?\nCette action est irreversible")
+        if reponse == QMessageBox.StandardButton.Yes:
+            self.data.delete_circuit(id)
+            # Reload la page pour que le circuit enlevé ne soit plus accessible
+            self.change_mode(Mode.Libre)
+
     def afficher_mode_libre(self, main_layout):
+        class QPushButtonCustom(QPushButton):
+            def __init__(self, click_droit_callback):
+                super().__init__()
+                self.callback = click_droit_callback
+
+            def mousePressEvent(self, e):
+                if e.button() == Qt.MouseButton.RightButton:
+                    # Délai de 100ms pour corriger le bug où le clic droit reste bloqué.
+                    # Sans ce délai, il faut recliquer pour réinitialiser l’état du bouton.
+                    QTimer.singleShot(100, self.callback)
+                super().mousePressEvent(e)
+
         circuit_libres = self.data.circuits_libre()
         for circuit in circuit_libres:
-            circuit_button = QPushButton()
+            circuit_button = QPushButtonCustom(lambda: self.afficher_supprimer_circuit(circuit.id))
             circuit_button.setText(circuit.nom)
             circuit_button.clicked.connect(lambda: self.add_circuit(circuit))
+
             main_layout.addWidget(circuit_button)
 
         gif_electricite = QMovie("images/interface/mode_libre.gif")
@@ -235,7 +258,7 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_1)
             elif sujet == Sujet.Ohm and i == 1:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_2)
-            elif sujet ==Sujet.Ohm and i == 2:
+            elif sujet == Sujet.Ohm and i == 2:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
             elif sujet ==Sujet.Ohm and i == 3:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
@@ -371,12 +394,12 @@ class AmperePro(QMainWindow):
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre
         if isinstance(self.centralWidget(), GraphicsView):
-                resultat = self.nouveau_circuit.quitter_triggered()
-                if resultat == "oui":
-                    event.accept()
-                else:
-                    event.ignore()
-                    self.nouveau_circuit.allouer_fermeture = "oui"
+            resultat = self.nouveau_circuit.quitter_triggered()
+            if resultat == "oui":
+                event.accept()
+            else:
+                event.ignore()
+                self.nouveau_circuit.allouer_fermeture = "oui"
         else:
             event.accept()
 
