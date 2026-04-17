@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
     QGraphicsView, QMenu, QProgressBar, QDialog, QInputDialog
 from enum import Enum
 
+from niveau.ohm_4 import NiveauOhm4
 from popup import OuvertureFenetre, Popup
 from a_propos import AProposWindow
 from docs import DocumentationWindow
@@ -12,6 +13,7 @@ from circuit_libre import Circuit, GraphicsView
 from niveau.ohm_1 import NiveauOhm1
 from niveau.ohm_2 import NiveauOhm2
 from niveau.ohm_3 import NiveauOhm3
+from niveau.ohm_4 import NiveauOhm4
 
 class Mode(Enum):
     Libre = 1
@@ -235,6 +237,8 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_2)
             elif sujet ==Sujet.Ohm and i == 2:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
+            elif sujet ==Sujet.Ohm and i == 3:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
             else:
                 popup = Popup()
 
@@ -279,6 +283,11 @@ class AmperePro(QMainWindow):
 
     def ouvrir_niveau_ohm_3(self):
         niveau = NiveauOhm3(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1200, 900)
+
+    def ouvrir_niveau_ohm_4(self):
+        niveau = NiveauOhm4(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
 
