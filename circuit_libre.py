@@ -1,7 +1,7 @@
 from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream, QLineF, QRectF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
-                               QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem)
+                               QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog)
 import math
 import numpy as np
 
@@ -67,8 +67,8 @@ class Fil:
                 nouvelle_ligne = self.scene.ajouter_ligne(pos.x(), pos.y(), p2.x(), p2.y())
                 self.lignes.insert(i + 1, nouvelle_ligne)
 
-                lignes_avant = self.lignes[:i+1]
-                lignes_apres = self.lignes[i+1:]
+                lignes_avant = self.lignes[:i + 1]
+                lignes_apres = self.lignes[i + 1:]
                 break
 
         if self.noeuds is None:
@@ -117,8 +117,9 @@ class Fil:
         for ligne in self.lignes:
             self.scene.removeItem(ligne)
 
+
 class Circuit(QGraphicsScene):
-    def __init__(self, mainwindow, id: str, mat: list | None):
+    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str, mat: list | None):
         super().__init__()
         self.main_window = mainwindow
         self.scene_size = QSize(500, 500)
@@ -162,7 +163,7 @@ class Circuit(QGraphicsScene):
             # TODO: générer les fils a partir de la matrice?
             self.fils = []
 
-        self.save = Sauvegarde()
+        self.sauvegarde = sauvegarde
         self.id = id
 
         # listes pour le rollback
@@ -216,7 +217,16 @@ class Circuit(QGraphicsScene):
         self.menu_naviguer.addAction(quitter_action)
 
     def sauvegarder_triggered(self):
-        self.save.modifie_circuit(self.id, self.mat_points.tolist())
+        # Si l'id est None, on demande un nom pour le circuit + on le créé
+        if self.id is None:
+            nom, ok = QInputDialog.getText(self.main_window, "Nouveau circuit", "Entre le nom de ton circuit")
+            if nom and ok:
+                self.id = self.sauvegarde.creation_circuit_libre(nom)
+            else:
+                # Si l'utilisateur a dismiss(quitter) le dialog pour le nom du circuit, on annuler la création du circuit
+                return
+        else:
+            self.sauvegarde.modifie_circuit(self.id, self.mat_points.tolist())
 
     def rollback_possible(self):
         # à partir du moment où un élément est dans opérations, on peut rollback
@@ -265,8 +275,8 @@ class Circuit(QGraphicsScene):
                 self.composantes.append(position)
 
                 # on réajoute au fil la composante "réapparue"
-                #fil = self.verifier_collision_fil(position)
-                #self.fils[fil - 1].ajouter_composante(composante)
+                # fil = self.verifier_collision_fil(position)
+                # self.fils[fil - 1].ajouter_composante(composante)
 
                 # on remet l'image sur le circuit
                 image_a_ajouter = image
@@ -762,7 +772,7 @@ class Circuit(QGraphicsScene):
         main_bouton.setIconSize(QSize(45, 45))
         main_bouton.clicked.connect(self.main_click)
         self.toolbar.addWidget(main_bouton)
-        
+
         # ajoute le bouton poubelle à la toolbar
         poubelle_icone = QIcon("images/toolbar/poubelle.webp")
         poubelle_bouton = ToolbarButton("Main")
@@ -796,10 +806,10 @@ class Circuit(QGraphicsScene):
 
     def main_click(self):
         self.selection = "main"
-        
+
     def clic_gauche_main(self):
         pass
-    
+
     def poubelle_click(self):
         self.selection = "poubelle"
 
@@ -862,10 +872,10 @@ class Circuit(QGraphicsScene):
             coin_sup_gauche_x = position.x() - self.taille_grid
             coin_sup_gauche_y = position.y() - self.taille_grid
             zone_blanche = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
-                                                  self.taille_grid * 2)
+                                             self.taille_grid * 2)
             zone_blanche.setOpacity(1)
             zone_blanche.setZValue(0)
-            zone_blanche.setBrush(QColor(255,255,255))
+            zone_blanche.setBrush(QColor(255, 255, 255))
             self.addItem(zone_blanche)
             self.zones_blanches.append(zone_blanche)
 
@@ -912,7 +922,7 @@ class Circuit(QGraphicsScene):
             self.ajouts.append("composante")
             self.nombre_de_rotations = 0
             self.rollback_possible()
-            #On ajoute la composante au fil
+            # On ajoute la composante au fil
             self.fils[fil - 1].ajouter_composante(composante)
 
     def clic_droit_composante(self):
@@ -927,7 +937,7 @@ class Circuit(QGraphicsScene):
         elif sens == 1:
             return "haut"
         elif sens == 2:
-            return"gauche"
+            return "gauche"
         else:
             return "bas"
 
@@ -952,7 +962,7 @@ class Circuit(QGraphicsScene):
 
         else:
             if sens == "droite" or sens == "gauche":
-                collision_moins_un =  self.verifier_collision_fil(QPointF(x - 2 * self.taille_grid, y))
+                collision_moins_un = self.verifier_collision_fil(QPointF(x - 2 * self.taille_grid, y))
                 collision_plus_un = self.verifier_collision_fil(QPointF(x + 2 * self.taille_grid, y))
                 # si la composante est à l'horizontal, on veut qu'il y ait un fil à droite et à gauche d'elle, mais
                 # pas directement en haut ou en bas
@@ -1000,7 +1010,7 @@ class Circuit(QGraphicsScene):
 
     def deja_occupe(self, position):
         # on veut la position des composantes déjà installées. Elle est données aux index impairs de self.composantess
-        refusees= self.composantes[2::3]
+        refusees = self.composantes[2::3]
 
         positions_refusees = []
         for i in refusees:
@@ -1021,7 +1031,7 @@ class Circuit(QGraphicsScene):
 
             else:
                 positions_refusees.append(QPointF(x_position, y_position + 2 * self.taille_grid))
-                positions_refusees.append(QPointF(x_position , y_position - 2 * self.taille_grid))
+                positions_refusees.append(QPointF(x_position, y_position - 2 * self.taille_grid))
 
         verdict = "accepter"
         if QPointF(position.x(), position.y()) in positions_refusees:
@@ -1062,7 +1072,7 @@ class Circuit(QGraphicsScene):
             else:
                 liste_apres = []
 
-            #on recrée self.composantes sans celle enlevée
+            # on recrée self.composantes sans celle enlevée
             self.composantes = liste_avant
             for i in liste_apres:
                 self.composantes.append(i)
@@ -1092,7 +1102,7 @@ class Circuit(QGraphicsScene):
                     self.removeItem(item)
 
     def deplacer_composante(self, position):
-        x,y = self.pos_selon_grid(position)
+        x, y = self.pos_selon_grid(position)
         pos_max_x = self.scene_size.width() - self.taille_grid
         pos_max_y = self.scene_size.height() - self.taille_grid
         # évite que la composante soit à moitié sortie de la grid
@@ -1107,12 +1117,13 @@ class Circuit(QGraphicsScene):
         self.image_composante.setPos(x, y)
 
     def retirer_carre_blanc(self, position):
-        lieu_a_retirer = QPointF(position.x() - self.taille_grid, position.y()-self.taille_grid)
+        lieu_a_retirer = QPointF(position.x() - self.taille_grid, position.y() - self.taille_grid)
         elements = self.items(lieu_a_retirer)
         for element in elements:
             if element in self.zones_blanches:
                 self.removeItem(element)
                 self.zones_blanches.remove(element)
+
 
 class GraphicsView(QGraphicsView):
 
@@ -1128,11 +1139,11 @@ class GraphicsView(QGraphicsView):
 
             elif self.scene.selection == "main":
                 pass
-                #TODO: si on souhaite utiliser la main, connecter cela à def clic_gauche_main
+                # TODO: si on souhaite utiliser la main, connecter cela à def clic_gauche_main
 
             elif self.scene.selection == "composante" and self.scene.accepter_positionnement:
                 self.scene.inserer_composante(self.scene.composante_selectionnee)
-                
+
             elif self.scene.selection == "poubelle":
                 self.scene.jeter_composante(event.position())
 

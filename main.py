@@ -1,10 +1,9 @@
 from PySide6.QtCore import QFile, QTextStream, QTimer
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QMenu, QProgressBar, QDialog, QInputDialog, QMessageBox
+    QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
-from niveau.ohm_4 import NiveauOhm4
 from popup import OuvertureFenetre, Popup
 from a_propos import AProposWindow
 from docs import DocumentationWindow
@@ -46,7 +45,7 @@ class AmperePro(QMainWindow):
         self.popups = None
         self.init_main_window()
 
-        self.data = Sauvegarde()
+        self.sauvegarde = Sauvegarde()
         self.fenetre_a_propos = AProposWindow()
 
         # Menus
@@ -167,7 +166,7 @@ class AmperePro(QMainWindow):
         reponse = QMessageBox.question(self, "Supprimer Circuit",
                                        "Êtes vous sur de supprimer ce circuit?\nCette action est irreversible")
         if reponse == QMessageBox.StandardButton.Yes:
-            self.data.delete_circuit(id)
+            self.sauvegarde.delete_circuit(id)
             # Reload la page pour que le circuit enlevé ne soit plus accessible
             self.change_mode(Mode.Libre)
 
@@ -184,7 +183,7 @@ class AmperePro(QMainWindow):
                     QTimer.singleShot(100, self.callback)
                 super().mousePressEvent(e)
 
-        circuit_libres = self.data.circuits_libre()
+        circuit_libres = self.sauvegarde.circuits_libre()
         for circuit in circuit_libres:
             circuit_button = QPushButtonCustom(lambda: self.afficher_supprimer_circuit(circuit.id))
             circuit_button.setText(circuit.nom)
@@ -214,9 +213,6 @@ class AmperePro(QMainWindow):
         # Liste de circuit fait précédament loader en JSON
         circuit_list = QVBoxLayout()
         mode_libre_layout.addLayout(circuit_list)
-
-        # preview_circuit = ...
-        # mode_libre_layout.addLayout(preview_circuit)
 
     def afficher_mode_niveaux(self, main_layout):
         subtitle = QLabel("Bienvenue ! Choisis un sujet")
@@ -260,7 +256,7 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_2)
             elif sujet == Sujet.Ohm and i == 2:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
-            elif sujet ==Sujet.Ohm and i == 3:
+            elif sujet == Sujet.Ohm and i == 3:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
             else:
                 popup = Popup()
@@ -319,20 +315,13 @@ class AmperePro(QMainWindow):
 
     def add_circuit(self, circuit: CircuitLibre | None):
         matrix = None
+        id = None
 
-        # Si circuit est None, on créé un nouveau circuit
-        if circuit is None:
-            nom, ok = QInputDialog.getText(self, "Nouveau circuit", "Entre le nom de ton circuit")
-            if nom and ok:
-                id = self.data.creation_circuit_libre(nom)
-            else:
-                # Si l'utilisateur a dismiss(quitter) le dialog pour le nom du circuit, on annuler la création du circuit
-                return
-        else:
+        if circuit is not None:
             matrix = circuit.matrix
             id = circuit.id
 
-        self.nouveau_circuit = Circuit(self, id, matrix)
+        self.nouveau_circuit = Circuit(self, self.sauvegarde, id, matrix)
         self.nouveau_circuit.creer_toolbar()
         self.setCentralWidget(self.nouveau_circuit.graphics_view)
         self.setMenuBar(self.nouveau_circuit.barre_menu)
