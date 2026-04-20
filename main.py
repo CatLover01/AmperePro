@@ -9,10 +9,11 @@ from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
-from niveau.ohm_1 import NiveauOhm1
-from niveau.ohm_2 import NiveauOhm2
-from niveau.ohm_3 import NiveauOhm3
-from niveau.ohm_4 import NiveauOhm4
+from Niveau.LoiOhm.ohm_1 import NiveauOhm1
+from Niveau.LoiOhm.ohm_2 import NiveauOhm2
+from Niveau.LoiOhm.ohm_3 import NiveauOhm3
+from Niveau.LoiOhm.ohm_4 import NiveauOhm4
+from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
 
 
 class Mode(Enum):
@@ -258,6 +259,8 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
             elif sujet == Sujet.Ohm and i == 3:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
+            elif sujet == Sujet.Kirchoff and i == 0:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_1)
             else:
                 popup = Popup()
 
@@ -309,6 +312,11 @@ class AmperePro(QMainWindow):
         niveau = NiveauOhm4(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
+
+    def ouvrir_niveau_kirchoff_1(self):
+        niveau = NiveauKirchoff1(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1100, 850)
 
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)
