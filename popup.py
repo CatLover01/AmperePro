@@ -22,23 +22,19 @@ class Popup(QWidget):
         mainlayout = QGridLayout()
         self.setLayout(mainlayout)
 
-        # apercu niveau
-        image_niveau = QLabel(pixmap=QPixmap("images/Interface/AmperePro_logo.png"))  #changer la photo
-        image_niveau.setFixedSize(300, 150)
-        mainlayout.addWidget(image_niveau, 0, 0)
+
+
 
         # desscription niveau
         description = QLabel("description simple du niveau")
-        mainlayout.addWidget(description, 0, 1)
+        mainlayout.addWidget(description, 0, 0,0,2)
 
         #code de raf
         bouton_commencer = QPushButton("Commencer")
         bouton_commencer.clicked.connect(self.commencer)
-        mainlayout.addWidget(bouton_commencer, 1, 0)
+        mainlayout.addWidget(bouton_commencer, 0,0,0,2)
 
-        bouton_revenir = QPushButton("Revenir")
-        bouton_revenir.clicked.connect(self.hide)
-        mainlayout.addWidget(bouton_revenir, 1, 1)
+
 
         self.timer = QTimer()
         self.timer.setSingleShot(True)
