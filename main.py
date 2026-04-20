@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
+from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from popup import OuvertureFenetre, Popup
 from a_propos import AProposWindow
 from docs import DocumentationWindow
@@ -261,6 +262,8 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
             elif sujet == Sujet.Kirchoff and i == 0:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_1)
+            elif sujet == Sujet.Kirchoff and i == 1:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_2)
             else:
                 popup = Popup()
 
@@ -316,7 +319,12 @@ class AmperePro(QMainWindow):
     def ouvrir_niveau_kirchoff_1(self):
         niveau = NiveauKirchoff1(self.retour_sujets)
         self.setCentralWidget(niveau)
-        self.resize(1100, 850)
+        self.resize(1200, 900)
+
+    def ouvrir_niveau_kirchoff_2(self):
+        niveau = NiveauKirchoff2(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1200, 900)
 
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)

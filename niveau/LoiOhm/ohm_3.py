@@ -44,13 +44,13 @@ class NiveauOhm3(QWidget):
 
         self.questions = [
             {
-                "image": DOSSIER_IMAGES + "circuit_K_2.png",
+                "image": DOSSIER_IMAGES + "circuit1.png",
                 "texte": "La résistance dans R1 est de",
                 "reponse": 20,
                 "unite": "Ω"
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_K_1.png",
+                "image": DOSSIER_IMAGES + "circuit2.png",
                 "texte": "La tension à la source est de",
                 "reponse": 100,
                 "unite": "V"
