@@ -14,6 +14,7 @@ from niveau.LoiOhm.ohm_1 import NiveauOhm1
 from niveau.LoiOhm.ohm_2 import NiveauOhm2
 from niveau.LoiOhm.ohm_3 import NiveauOhm3
 from niveau.LoiOhm.ohm_4 import NiveauOhm4
+from niveau.LoiOhm.ohm_5 import NiveauOhm5
 from niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
 
 
@@ -260,6 +261,8 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
             elif sujet == Sujet.Ohm and i == 3:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
+            elif sujet == Sujet.Ohm and i == 4:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_5)
             elif sujet == Sujet.Kirchoff and i == 0:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_1)
             elif sujet == Sujet.Kirchoff and i == 1:
@@ -313,6 +316,11 @@ class AmperePro(QMainWindow):
 
     def ouvrir_niveau_ohm_4(self):
         niveau = NiveauOhm4(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1200, 900)
+
+    def ouvrir_niveau_ohm_5(self):
+        niveau = NiveauOhm5(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
 
