@@ -14,6 +14,7 @@ from niveau.ohm_1 import NiveauOhm1
 from niveau.ohm_2 import NiveauOhm2
 from niveau.ohm_3 import NiveauOhm3
 from niveau.ohm_4 import NiveauOhm4
+from niveau.ohm_5 import NiveauOhm5
 
 
 class Mode(Enum):
@@ -262,6 +263,8 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
             elif sujet ==Sujet.Ohm and i == 3:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
+            elif sujet ==Sujet.Ohm and i == 4:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_5)
             else:
                 popup = Popup()
 
@@ -311,6 +314,11 @@ class AmperePro(QMainWindow):
 
     def ouvrir_niveau_ohm_4(self):
         niveau = NiveauOhm4(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1200, 900)
+
+    def ouvrir_niveau_ohm_5(self):
+        niveau = NiveauOhm5(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
 
