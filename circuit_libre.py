@@ -4,10 +4,7 @@ from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDial
                                QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog)
 import math
 import numpy as np
-
-from a_propos import AProposWindow
-from docs import DocumentationWindow
-from Composantes import toolbar_composantes
+from Composantes import toolbar_composantes, InfosComposantes
 from sauvegarde import Sauvegarde, CircuitLibre
 
 
@@ -128,9 +125,6 @@ class Circuit(QGraphicsScene):
         self.graphics_view.setMinimumSize(self.scene_size)
         self.graphics_view.setScene(self)
 
-        self.fenetre_doc = DocumentationWindow()
-        self.fenetre_a_propos = AProposWindow()
-
         self.largeur = self.scene_size.width()
         self.hauteur = self.scene_size.height()
         # La distance entre chaque ligne dans le grid
@@ -171,10 +165,9 @@ class Circuit(QGraphicsScene):
         self.composantes_jetes = []
         self.fils_jetes = []
         self.dernier_jete = []
+        self.modifications = []
         # les ajouts seront 1, les jetés seront 2, composantes modifiées seront 3
         self.operations = []
-
-        self.allouer_fermeture = "oui"
 
         # pour les composantes
         self.toolbar = None
@@ -189,11 +182,13 @@ class Circuit(QGraphicsScene):
         self.grid_par_dessus = []
         self.composantes = []
         self.nombre_de_rotations = 0
+        self.infos_composantes = InfosComposantes()
 
         # Menubar
         self.barre_menu = self.main_window.menuBar()
         self.menu_options = self.barre_menu.addMenu("Options")
         self.menu_naviguer = self.barre_menu.addMenu("Naviguer")
+        self.allouer_fermeture = "oui"
 
         # sauvegarder
         sauvegarder_action = QAction("Sauvegarder", self)
@@ -515,8 +510,6 @@ class Circuit(QGraphicsScene):
             noeud_fin.ajouter_info(nouveau_fil, noeud_debut, self)
 
             fil_noeud1 = self.fils[self.fil_touche_depart - 1]
-            print(fil_noeud1.points)
-            print()
             fil_noeud1.ajouter_noeud(points[0], noeud_debut)
             # ajouter les noeuds à la matrice (à ij avoir ref aux noeuds)
 
@@ -541,6 +534,11 @@ class Circuit(QGraphicsScene):
             self.ajouts.append("fil")
             self.operations.append(1)
             self.rollback_possible()
+
+    def fil_accepte(self, position):
+        #TODO: valider que l'on peut mettre un fil (pas de composantes, pas collé à un autre fil
+        pass
+
 
     def calculer_voltage(self):
         mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
@@ -865,6 +863,7 @@ class Circuit(QGraphicsScene):
         if self.image_composante:
             position = self.image_composante.scenePos()
             fil = self.verifier_collision_fil(position)
+            sens = self.sens_composante()
             # on enleve la surbrillance
             self.removeItem(self.couleur_recouvre)
             self.couleur_recouvre = None
@@ -910,8 +909,9 @@ class Circuit(QGraphicsScene):
             self.grid_par_dessus.append(bloc_de_lignes)
             self.grid_par_dessus.append(position)
 
-            # on ajoute le type de composante, son image sur la scène et sa position à self.composantes
-            self.composantes.append(composante)
+            # on ajoute les infos de la composante, son image sur la scène et sa position à self.composantes
+            infos = self.infos_composantes.liste_a_ajouter(composante, sens)
+            self.composantes.append(infos)
             self.composantes.append(self.image_composante)
             self.composantes.append(position)
             # on reset les variables liées à l'ajout de composantes
@@ -923,7 +923,7 @@ class Circuit(QGraphicsScene):
             self.nombre_de_rotations = 0
             self.rollback_possible()
             # On ajoute la composante au fil
-            self.fils[fil - 1].ajouter_composante(composante)
+            #self.fils[fil - 1].ajouter_composante(composante)
 
     def clic_droit_composante(self):
         self.image_composante.setRotation(self.image_composante.rotation() - 90)
@@ -940,6 +940,18 @@ class Circuit(QGraphicsScene):
             return "gauche"
         else:
             return "bas"
+
+    @staticmethod
+    def sens_a_pivot(image, sens):
+        if sens == "droite":
+            image.setRotation(0)
+        elif sens == "haut":
+            image.setRotation(-90)
+        elif sens == "gauche":
+            image.setRotation(-180)
+        else:
+            image.setRotation(-270)
+        return image
 
     def valider_position(self):
         position = self.image_composante.scenePos()
@@ -1124,6 +1136,89 @@ class Circuit(QGraphicsScene):
                 self.removeItem(element)
                 self.zones_blanches.remove(element)
 
+    def modifier_composante(self, position):
+        a_modifier = None
+        # on veut trouver l'élément à la position du clic (élément associé au carré blanc sur lequel il est)
+        for zone in self.zones_blanches:
+            position_curseur_traduite = zone.mapFromScene(position)
+            if zone.contains(position_curseur_traduite):
+                a_modifier = zone
+                break
+        # si un élément est à la position cherchée, on l'identifie
+        if a_modifier:
+            point_a_trouver = a_modifier.mapToScene(a_modifier.rect().center())
+            index = self.composantes.index(point_a_trouver)
+            # on veut envoyer à la fonction la liste de la compoosante, située 2 empalcemnts avant la position
+            element = self.composantes[index-2]
+            # permet de juger l'étape à suivre
+            decision = self.infos_composantes.verifier_composante_modifiee(element)
+        # si aucun élément n'est à la position clickée, le double click est ignoré
+        else:
+            return
+
+        # si on a une diode ou un led, on ignore le click
+        if decision == "ignorer":
+            return
+        # opérations liées aux autre composantes
+        elif decision == "Batterie":
+            modification, volt_avant, volt_apres = self.infos_composantes.fenetre_batterie(element)
+            # on va devoir reformer self.composantes avec le nouvel  si voltage modifié
+            if modification:
+                apres = self.composantes[index-1:]
+                self.composantes = self.composantes[0:index-2]
+                self.composantes.append(modification)
+                self.composantes.extend(apres)
+                self.modifications.append(["Batterie", position, volt_avant, volt_apres])
+
+        elif decision == "Résistor":
+            modification, resistance_avant, resistance_apres = self.infos_composantes.fenetre_resistor(element)
+            # on va devoir reformer self.composantes avec le nouvel  si voltage modifié
+            if modification:
+                apres = self.composantes[index-1:]
+                self.composantes = self.composantes[0:index-2]
+                self.composantes.append(modification)
+                self.composantes.extend(apres)
+                self.modifications.append(["Résistor", position, resistance_avant, resistance_apres])
+
+        elif decision == "Interrupteur":
+            # on va supprimer de la scène l'image de l'ancien interrupteur
+            ancienne_image = self.composantes[index-1]
+            self.removeItem(ancienne_image)
+
+            # double cliquer sur l'interrupteur l'ouvre ou le ferme selon
+            etat = element[2]
+            if etat == "ouvert":
+                # on met l'image de l'interrupteur fermé
+                nouvelle_image = QPixmap("images/circuit/interrupteur_ferme.png")
+                # on modifie les données
+                element = element[0:2]
+                element.append("fermé")
+                self.modifications.append(["interrupteur", "fermé"])
+            else:
+                # on met l'image de l'interrupteur fermé
+                nouvelle_image = QPixmap("images/circuit/interrupteur_ouvert.png")
+                # on modifie les données
+                element = element[0:2]
+                element.append("ouvert")
+                self.modifications.append(["Interrupteur", "ouvert"])
+
+            pixmap_scalise = nouvelle_image.scaled(self.taille_grid * 2, self.taille_grid * 2)
+            image_composante = QGraphicsPixmapItem(pixmap_scalise)
+            image_composante.setPos(ancienne_image.pos())
+            image_composante.setZValue(3)
+            image_composante.setOffset(-self.taille_grid, -self.taille_grid)
+            sens = element[1]
+            image_tourne = self.sens_a_pivot(image_composante, sens)
+            self.addItem(image_tourne)
+
+            # self.composantes à jour
+            apres = self.composantes[index:]
+            self.composantes = self.composantes[0:index - 2]
+            self.composantes.append(element)
+            self.composantes.append(image_tourne)
+            self.composantes.extend(apres)
+
+        self.operations.append(3)
 
 class GraphicsView(QGraphicsView):
 
@@ -1161,6 +1256,11 @@ class GraphicsView(QGraphicsView):
             position_scene = self.mapToScene(event.position().toPoint())
             self.scene.deplacer_composante(position_scene)
             self.scene.valider_position()
+
+    def mouseDoubleClickEvent(self, event):
+        if not self.scene.image_composante:
+            position_scene = self.mapToScene(event.position().toPoint())
+            self.scene.modifier_composante(position_scene)
 
 
 class LoisPhysiques:

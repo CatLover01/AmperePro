@@ -4,17 +4,17 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
-from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
+from niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from popup import OuvertureFenetre, Popup
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
-from Niveau.LoiOhm.ohm_1 import NiveauOhm1
-from Niveau.LoiOhm.ohm_2 import NiveauOhm2
-from Niveau.LoiOhm.ohm_3 import NiveauOhm3
-from Niveau.LoiOhm.ohm_4 import NiveauOhm4
-from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
+from niveau.LoiOhm.ohm_1 import NiveauOhm1
+from niveau.LoiOhm.ohm_2 import NiveauOhm2
+from niveau.LoiOhm.ohm_3 import NiveauOhm3
+from niveau.LoiOhm.ohm_4 import NiveauOhm4
+from niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
 
 
 class Mode(Enum):

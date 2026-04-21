@@ -1,8 +1,9 @@
 from collections.abc import Callable
 from enum import Enum
 
-from PySide6.QtGui import QPixmap, Qt, QTransform
-from PySide6.QtWidgets import QGraphicsPixmapItem
+from PySide6.QtGui import QPixmap, Qt, QTransform, QDoubleValidator, QIntValidator
+from PySide6.QtWidgets import QGraphicsPixmapItem, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, \
+    QDoubleSpinBox
 from abc import ABC
 
 
@@ -44,7 +45,7 @@ class Batterie(ComposanteBase):
                          "- Possède une borne positive (+) et négative (-). <br>"
                          "- Permet au courant de circuler dans le circuit."
                          )
-        self.tension = 100
+
 
 
 class LED(ComposanteBase):
@@ -66,7 +67,6 @@ class Resistor(ComposanteBase):
                          "- Baisse l'intensité du courant. <br>"
                          "- V en Volts, R en Ohms, I en Ampères"
                          )
-        self.resistance = 100
 
 
 class Diode(ComposanteBase):
@@ -166,6 +166,176 @@ class Composante:
                 pixmap = QPixmap(image)
                 pixmap_scaled = pixmap.scaled(self.base.scale, self.base.scale, Qt.AspectRatioMode.KeepAspectRatio)
                 self.item_instance.setPixmap(pixmap_scaled)
+
+class InfosComposantes:
+    @staticmethod
+    def infos_batterie(sens):
+        nom = "Batterie"
+        direction = sens
+        voltage = 10
+        return[nom, direction, voltage]
+
+    @staticmethod
+    def infos_led(sens):
+        nom = "LED"
+        direction = sens
+        return[nom, direction]
+
+    @staticmethod
+    def infos_resistor(sens):
+        nom = "Résistor"
+        direction = sens
+        resistance = 1000
+        return[nom, direction, resistance]
+
+    @staticmethod
+    def infos_diode(sens):
+        nom = "Diode"
+        direction = sens
+        return[nom, direction]
+
+    @staticmethod
+    def infos_interrupteur(sens):
+        nom = "Interrupteur"
+        direction = sens
+        etat = "ouvert"
+        return[nom, direction, etat]
+
+    @staticmethod
+    def infos_amperemetre(sens):
+        nom = "Amperemetre"
+        direction = sens
+        affichage = 0
+        return[nom, direction, affichage]
+
+    @staticmethod
+    def infos_voltmetre(sens):
+        nom = "Voltmetre"
+        direction = sens
+        affichage = 0
+        return[nom, direction, affichage]
+
+    def liste_a_ajouter(self, composante, sens):
+        nom = composante.nom
+        retourne =[]
+        if nom == "Batterie":
+            retourne = self.infos_batterie(sens)
+        elif nom == "LED":
+            retourne = self.infos_led(sens)
+        elif nom == "Résistor":
+            retourne = self.infos_resistor(sens)
+        elif nom == "Diode":
+            retourne = self.infos_diode(sens)
+        elif nom == "Interrupteur":
+            retourne = self.infos_interrupteur(sens)
+        elif nom == "Ampèremètre":
+            retourne = self.infos_amperemetre(sens)
+        elif nom == "Voltmètre":
+            retourne = self.infos_voltmetre(sens)
+
+        return retourne
+
+    def verifier_composante_modifiee(self, element):
+        nom = element[0]
+        # on ne peut pas modifier une led et une diode
+        if nom == "LED" or nom == "Diode":
+            return "ignorer"
+        # sinon on veut savoir le nom de la composante pour l'étape à suivre.
+        else:
+            return nom
+
+
+    def fenetre_batterie(self, infos_batterie):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Batterie")
+        layout_principal = QVBoxLayout()
+        fenetre.setLayout(layout_principal)
+        sous_layout = QHBoxLayout()
+        layout_principal.addLayout(sous_layout)
+
+        texte = QLabel("Tension (V): ")
+        sous_layout.addWidget(texte)
+        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes) avec une décimale de précision
+        nombre = QDoubleSpinBox()
+        nombre.setRange(0, 999.9)
+        nombre.setDecimals(1)
+        # on donne au line edit la valeur actuelle de tension (10v si aucune modification)
+        valeur = infos_batterie[-1]
+        nombre.setValue(valeur)
+        sous_layout.addWidget(nombre)
+
+        # boutons ok et annuler
+        sous_layout_deux = QHBoxLayout()
+        layout_principal.addLayout(sous_layout_deux)
+        bouton_ok = QPushButton("OK")
+        bouton_ok.clicked.connect(fenetre.accept)
+        sous_layout_deux.addWidget(bouton_ok)
+        bouton_annuler = QPushButton("Annuler")
+        bouton_annuler.clicked.connect(fenetre.reject)
+        sous_layout_deux.addWidget(bouton_annuler)
+        verifier_return = fenetre.exec()
+
+        # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
+        if verifier_return == QDialog.Accepted:
+            if verifier_return == QDialog.Accepted:
+                if valeur != nombre.value():
+                    infos_batterie = infos_batterie[0:2]
+                    infos_batterie.append(nombre.value())
+                    return infos_batterie, valeur, nombre.value()
+        else:
+            return None, None, None
+
+    def fenetre_resistor(self, infos_resistor):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Résistor")
+        layout_principal = QVBoxLayout()
+        fenetre.setLayout(layout_principal)
+        sous_layout = QHBoxLayout()
+        layout_principal.addLayout(sous_layout)
+
+        texte = QLabel("Résistance (Ω): ")
+        sous_layout.addWidget(texte)
+        # on veut que la résistance inscrite soit un nombre entre 0 et 10000 (résistances réalistes) avec une décimale de précision
+        nombre = QDoubleSpinBox()
+        nombre.setRange(0, 9999.9)
+        nombre.setDecimals(1)
+        # on donne au line edit la valeur actuelle de tension (10v si aucune modification)
+        valeur = infos_resistor[-1]
+        nombre.setValue(valeur)
+        sous_layout.addWidget(nombre)
+
+        # boutons ok et annuler
+        sous_layout_deux = QHBoxLayout()
+        layout_principal.addLayout(sous_layout_deux)
+        bouton_ok = QPushButton("OK")
+        bouton_ok.clicked.connect(fenetre.accept)
+        sous_layout_deux.addWidget(bouton_ok)
+        bouton_annuler = QPushButton("Annuler")
+        bouton_annuler.clicked.connect(fenetre.reject)
+        sous_layout_deux.addWidget(bouton_annuler)
+        verifier_return = fenetre.exec()
+
+        # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
+        if verifier_return == QDialog.Accepted:
+            if valeur != nombre.value():
+                infos_resistor = infos_resistor[0:2]
+                infos_resistor.append(nombre.value())
+                return infos_resistor, valeur, nombre.value()
+        else:
+            return None, None, None
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 toolbar_composantes = {
