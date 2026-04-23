@@ -2,15 +2,15 @@ from enum import Enum
 
 from PySide6.QtWidgets import QVBoxLayout, QDialog
 
-from niveau.LoiOhm.ohm_1 import NiveauOhm1
-from niveau.LoiOhm.ohm_2 import NiveauOhm2
-from niveau.LoiOhm.ohm_3 import NiveauOhm3
-from niveau.LoiOhm.ohm_4 import NiveauOhm4
-from niveau.LoiOhm.ohm_5 import NiveauOhm5
-from niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
-from niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
-from niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
-from niveau.Resistance_equivalente.re_1 import NiveauRE1
+from Niveau.LoiOhm.ohm_1 import NiveauOhm1
+from Niveau.LoiOhm.ohm_2 import NiveauOhm2
+from Niveau.LoiOhm.ohm_3 import NiveauOhm3
+from Niveau.LoiOhm.ohm_4 import NiveauOhm4
+from Niveau.LoiOhm.ohm_5 import NiveauOhm5
+from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
+from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
+from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
+from Niveau.Resistance_equivalente.re_1 import NiveauRE1
 
 
 class Sujet(Enum):

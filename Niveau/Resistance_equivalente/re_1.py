@@ -60,12 +60,12 @@ class NiveauRE1(QWidget):
         self.questions_widgets = []
 
         self.questions = [
-            ("images/niveau/Résistance équivalente/1/RE-circuit1.png", "série"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit2.png", "série"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit3.png", "parallèle"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit4.png", "série"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit5.png", "mixte"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit6.png", "série"),
+            ("images/Niveau/Résistance équivalente/1/RE-circuit1.png", "série"),
+            ("images/Niveau/Résistance équivalente/1/RE-circuit2.png", "série"),
+            ("images/Niveau/Résistance équivalente/1/RE-circuit3.png", "parallèle"),
+            ("images/Niveau/Résistance équivalente/1/RE-circuit4.png", "série"),
+            ("images/Niveau/Résistance équivalente/1/RE-circuit5.png", "mixte"),
+            ("images/Niveau/Résistance équivalente/1/RE-circuit6.png", "série"),
         ]
 
         layout_exterieur = QVBoxLayout()
