@@ -4,7 +4,8 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
-from popup import OuvertureFenetre, Popup
+from Button import RightClickButton, ToolTipButton
+from Niveau.niveau import Sujet, descriptions
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
@@ -15,19 +16,14 @@ from Niveau.LoiOhm.ohm_3 import NiveauOhm3
 from Niveau.LoiOhm.ohm_4 import NiveauOhm4
 from Niveau.LoiOhm.ohm_5 import NiveauOhm5
 from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
-#from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
+from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
 from Niveau.Resistance_equivalente.re_1 import NiveauRE1
+
 
 class Mode(Enum):
     Libre = 1
     Niveau = 2
-
-
-class Sujet(Enum):
-    Ohm = "Loi d'ohm"
-    Resistance = "Résistance équivalente"
-    Kirchoff = "Loi de Kirchoff"
 
 
 class AmperePro(QMainWindow):
@@ -46,7 +42,6 @@ class AmperePro(QMainWindow):
 
         self.title = None
         self.fenetre_doc = None
-        self.popups = None
         self.init_main_window()
 
         self.sauvegarde = Sauvegarde()
@@ -175,21 +170,9 @@ class AmperePro(QMainWindow):
             self.change_mode(Mode.Libre)
 
     def afficher_mode_libre(self, main_layout):
-        class QPushButtonCustom(QPushButton):
-            def __init__(self, click_droit_callback):
-                super().__init__()
-                self.callback = click_droit_callback
-
-            def mousePressEvent(self, e):
-                if e.button() == Qt.MouseButton.RightButton:
-                    # Délai de 200ms pour corriger le bug où le clic droit reste bloqué.
-                    # Sans ce délai, il faut recliquer pour réinitialiser l’état du bouton.
-                    QTimer.singleShot(200, self.callback)
-                super().mousePressEvent(e)
-
         circuit_libres = self.sauvegarde.circuits_libre()
         for circuit in circuit_libres:
-            circuit_button = QPushButtonCustom(lambda: self.afficher_supprimer_circuit(circuit.id))
+            circuit_button = RightClickButton(lambda: self.afficher_supprimer_circuit(circuit.id))
             circuit_button.setText(circuit.nom)
             circuit_button.clicked.connect(lambda: self.add_circuit(circuit))
 
@@ -248,36 +231,29 @@ class AmperePro(QMainWindow):
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(subtitle)
 
-        self.popups = []
-
         difficultes = ["★☆☆☆☆", "★★☆☆☆", "★★★☆☆", "★★★★☆", "★★★★★"]
         progressions = [0, 0, 0, 0, 0]
 
         for i in range(5):
+            callback = None
             if sujet == Sujet.Ohm and i == 0:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_1)
+                callback = self.ouvrir_niveau_ohm_1
             elif sujet == Sujet.Ohm and i == 1:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_2)
+                callback = self.ouvrir_niveau_ohm_2
             elif sujet == Sujet.Ohm and i == 2:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_3)
+                callback = self.ouvrir_niveau_ohm_3
             elif sujet == Sujet.Ohm and i == 3:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
+                callback = self.ouvrir_niveau_ohm_4
             elif sujet == Sujet.Ohm and i == 4:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_5)
-
+                callback = self.ouvrir_niveau_ohm_5
             elif sujet == Sujet.Kirchoff and i == 0:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_1)
+                callback = self.ouvrir_niveau_kirchoff_1
             elif sujet == Sujet.Kirchoff and i == 1:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_2)
+                callback = self.ouvrir_niveau_kirchoff_2
             elif sujet == Sujet.Kirchoff and i == 2:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_3)
+                callback = self.ouvrir_niveau_kirchoff_3
             elif sujet == Sujet.Resistance and i == 0:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_re_1)
-            else:
-                popup = Popup()
-
-
-            self.popups.append(popup)
+                callback = self.ouvrir_niveau_re_1
 
             ligne_widget = QWidget()
             ligne_layout = QHBoxLayout()
@@ -290,7 +266,9 @@ class AmperePro(QMainWindow):
             barre_progression.setFormat(str(progressions[i]) + "%")
             barre_progression.setFixedWidth(140)
 
-            bouton_niveau = OuvertureFenetre("Niveau " + str(i + 1), popup)
+            bouton_niveau = ToolTipButton(descriptions[sujet][i + 1], "Niveau " + str(i + 1))
+            if callback is not None:
+                bouton_niveau.clicked.connect(callback)
 
             label_difficulte = QLabel(difficultes[i])
             label_difficulte.setFixedWidth(80)

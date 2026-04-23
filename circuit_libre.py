@@ -4,8 +4,10 @@ from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDial
                                QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog)
 import math
 import numpy as np
+
+from Button import ToolTipButton
 from Composantes import toolbar_composantes, InfosComposantes
-from sauvegarde import Sauvegarde, CircuitLibre
+from sauvegarde import Sauvegarde
 
 
 class Noeud:
@@ -766,17 +768,9 @@ class Circuit(QGraphicsScene):
         # ne permet pas à l'utilisateur de cacher la toolbar.
         self.toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
 
-        class ToolbarButton(QPushButton):
-            def __init__(self, nom: str):
-                super().__init__()
-                self.nom = nom
-
-            def enterEvent(self, event):
-                self.setToolTip(self.nom)
-
         # Ajoute le bouton main à la toolbar
         main_icone = QIcon("images/toolbar/main.png")
-        main_bouton = ToolbarButton("Main")
+        main_bouton = ToolTipButton("Main")
         main_bouton.setIcon(main_icone)
         main_bouton.setIconSize(QSize(45, 45))
         main_bouton.clicked.connect(self.main_click)
@@ -784,7 +778,7 @@ class Circuit(QGraphicsScene):
 
         # ajoute le bouton poubelle à la toolbar
         poubelle_icone = QIcon("images/toolbar/poubelle.webp")
-        poubelle_bouton = ToolbarButton("Main")
+        poubelle_bouton = ToolTipButton("Main")
         poubelle_bouton.setIcon(poubelle_icone)
         poubelle_bouton.setIconSize(QSize(45, 45))
         poubelle_bouton.clicked.connect(self.poubelle_click)
@@ -792,7 +786,7 @@ class Circuit(QGraphicsScene):
 
         # ajoute le bouton fil à la toolbar
         fil_icone = QIcon("images/toolbar/fil.png")
-        fil_bouton = ToolbarButton("Fil")
+        fil_bouton = ToolTipButton("Fil")
         fil_bouton.setIcon(fil_icone)
         fil_bouton.setIconSize(QSize(45, 45))
         fil_bouton.clicked.connect(self.fil_click)
@@ -800,7 +794,7 @@ class Circuit(QGraphicsScene):
 
         # Ajouter un bouton dans la toolbar pour chaque composante
         for composante in toolbar_composantes.values():
-            bouton = ToolbarButton(composante.nom)
+            bouton = ToolTipButton(composante.nom)
             bouton.setIcon(QIcon(composante.image_toolbar))
             bouton.setIconSize(QSize(45, 45))
             bouton.clicked.connect(lambda _, c=composante: self.composante_toolbar_clicked(c))
