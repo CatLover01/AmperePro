@@ -283,8 +283,11 @@ class InfosComposantes:
                     infos_batterie = infos_batterie[0:2]
                     infos_batterie.append(nombre.value())
                     return infos_batterie, valeur, nombre.value()
+
+            else:
+                return None, None
         else:
-            return None, None, None
+            return None, None
 
     @staticmethod
     def fenetre_resistor(infos_resistor):
@@ -322,9 +325,12 @@ class InfosComposantes:
             if valeur != nombre.value():
                 infos_resistor = infos_resistor[0:2]
                 infos_resistor.append(nombre.value())
-                return infos_resistor, valeur, nombre.value()
+                return infos_resistor, valeur
+            else:
+                return None, None
+
         else:
-            return None, None, None
+            return None, None
 
     @staticmethod
     def retourner_image(liste):

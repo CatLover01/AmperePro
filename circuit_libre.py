@@ -323,8 +323,8 @@ class Circuit(QGraphicsScene):
                 image = self.composantes_jetes.pop()
                 composante = self.composantes_jetes.pop()
 
-                apres = self.composantes[index + 1:]
-                self.composantes = self.composantes[:index-2]
+                apres = self.composantes[index*3:]
+                self.composantes = self.composantes[:index*3]
                 self.composantes.append(composante)
                 self.composantes.append(image)
                 self.composantes.append(position)
@@ -348,6 +348,37 @@ class Circuit(QGraphicsScene):
                 zone_blanche.setBrush(QColor(255, 255, 255))
                 self.addItem(zone_blanche)
                 self.zones_blanches.append(zone_blanche)
+
+                # on remet le grid où la composante
+                # on stocke les lignes ajoutées dans une liste pour ensuite la supprimée si besoin
+                bloc_de_lignes = []
+                pen = QPen(QColorConstants.Gray)
+                # ajoute les lignes horizontale
+                multiple = -1
+                while multiple <= 1:
+                    x1 = position.x() - self.taille_grid
+                    x2 = position.x() + self.taille_grid
+                    y = position.y() + multiple * self.taille_grid
+
+                    ligne = self.addLine(x1, y, x2, y, pen)
+                    ligne.setZValue(2.5)
+                    bloc_de_lignes.append(ligne)
+                    multiple += 1
+
+                # ajoute lignes verticales
+                multiple = -1
+                while multiple <= 1:
+                    y1 = position.y() - self.taille_grid
+                    y2 = position.y() + self.taille_grid
+                    x = position.x() + multiple * self.taille_grid
+
+                    ligne = self.addLine(x, y1, x, y2, pen)
+                    ligne.setZValue(2.5)
+                    bloc_de_lignes.append(ligne)
+                    multiple += 1
+
+                self.grid_par_dessus.append(bloc_de_lignes)
+                self.grid_par_dessus.append(position)
 
             self.dernier_jete.pop()
 
@@ -1226,7 +1257,7 @@ class Circuit(QGraphicsScene):
             self.composantes_jetes.append(composante_supprimee)
             self.composantes_jetes.append(image_composante_supprimee)
             self.composantes_jetes.append(position_supprimee)
-            self.composantes_jetes.append(index)
+            self.composantes_jetes.append(math.floor(index/3))
             self.dernier_jete.append("composante")
 
             self.selection = None
@@ -1293,14 +1324,14 @@ class Circuit(QGraphicsScene):
                 self.modifications.append(["Batterie", position, volt_avant, volt_apres])
 
         elif decision == "Résistor":
-            modification, resistance_avant, resistance_apres = self.infos_composantes.fenetre_resistor(element)
+            modification, resistance_avant = self.infos_composantes.fenetre_resistor(element)
             # on va devoir reformer self.composantes avec le nouvel  si voltage modifié
             if modification:
                 apres = self.composantes[index-1:]
                 self.composantes = self.composantes[0:index-2]
                 self.composantes.append(modification)
                 self.composantes.extend(apres)
-                self.modifications.append(["Résistor", position, resistance_avant, resistance_apres])
+                self.modifications.append(["Résistor", position, resistance_avant])
 
         elif decision == "Interrupteur":
             # on va supprimer de la scène l'image de l'ancien interrupteur
@@ -1363,7 +1394,7 @@ class Circuit(QGraphicsScene):
         # on ajuste pour le rollback
         self.operations.append(3)
         self.modifications.append(["tourner", image_composante.pos()])
-        print(self.modifications)
+
 
     def tourner_image_operation(self, position):
         index = self.composantes.index(position)
