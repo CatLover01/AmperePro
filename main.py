@@ -4,19 +4,19 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
-from niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from popup import OuvertureFenetre, Popup
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
 from Niveau.LoiOhm.ohm_1 import NiveauOhm1
-from niveau.LoiOhm.ohm_2 import NiveauOhm2
-from niveau.LoiOhm.ohm_3 import NiveauOhm3
-from niveau.LoiOhm.ohm_4 import NiveauOhm4
-from niveau.LoiOhm.ohm_5 import NiveauOhm5
-from niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
-
+from Niveau.LoiOhm.ohm_2 import NiveauOhm2
+from Niveau.LoiOhm.ohm_3 import NiveauOhm3
+from Niveau.LoiOhm.ohm_4 import NiveauOhm4
+from Niveau.LoiOhm.ohm_5 import NiveauOhm5
+from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
+from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
+from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
 
 class Mode(Enum):
     Libre = 1
@@ -266,7 +266,7 @@ class AmperePro(QMainWindow):
             elif sujet == Sujet.Kirchoff and i == 0:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_1)
             elif sujet == Sujet.Kirchoff and i == 1:
-                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_2)
+                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_3)
             else:
                 popup = Popup()
 
@@ -329,8 +329,8 @@ class AmperePro(QMainWindow):
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
 
-    def ouvrir_niveau_kirchoff_2(self):
-        niveau = NiveauKirchoff2(self.retour_sujets)
+    def ouvrir_niveau_kirchoff_3(self):
+        niveau = NiveauKirchoff3(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
 
