@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from enum import Enum
 
-from PySide6.QtGui import QPixmap, Qt, QTransform, QDoubleValidator, QIntValidator
-from PySide6.QtWidgets import QGraphicsPixmapItem, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, \
+from PySide6.QtGui import QPixmap, Qt, QTransform
+from PySide6.QtWidgets import QGraphicsPixmapItem, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
 from abc import ABC
 
@@ -45,7 +45,6 @@ class Batterie(ComposanteBase):
                          "- Possède une borne positive (+) et négative (-). <br>"
                          "- Permet au courant de circuler dans le circuit."
                          )
-
 
 
 class LED(ComposanteBase):
@@ -167,57 +166,58 @@ class Composante:
                 pixmap_scaled = pixmap.scaled(self.base.scale, self.base.scale, Qt.AspectRatioMode.KeepAspectRatio)
                 self.item_instance.setPixmap(pixmap_scaled)
 
+
 class InfosComposantes:
     @staticmethod
     def infos_batterie(sens):
         nom = "Batterie"
         direction = sens
         voltage = 10
-        return[nom, direction, voltage]
+        return [nom, direction, voltage]
 
     @staticmethod
     def infos_led(sens):
         nom = "LED"
         direction = sens
-        return[nom, direction]
+        return [nom, direction]
 
     @staticmethod
     def infos_resistor(sens):
         nom = "Résistor"
         direction = sens
         resistance = 1000
-        return[nom, direction, resistance]
+        return [nom, direction, resistance]
 
     @staticmethod
     def infos_diode(sens):
         nom = "Diode"
         direction = sens
-        return[nom, direction]
+        return [nom, direction]
 
     @staticmethod
     def infos_interrupteur(sens):
         nom = "Interrupteur"
         direction = sens
         etat = "ouvert"
-        return[nom, direction, etat]
+        return [nom, direction, etat]
 
     @staticmethod
     def infos_amperemetre(sens):
         nom = "Amperemetre"
         direction = sens
         affichage = 0
-        return[nom, direction, affichage]
+        return [nom, direction, affichage]
 
     @staticmethod
     def infos_voltmetre(sens):
         nom = "Voltmetre"
         direction = sens
         affichage = 0
-        return[nom, direction, affichage]
+        return [nom, direction, affichage]
 
     def liste_a_ajouter(self, composante, sens):
         nom = composante.nom
-        retourne =[]
+        retourne = []
         if nom == "Batterie":
             retourne = self.infos_batterie(sens)
         elif nom == "LED":
