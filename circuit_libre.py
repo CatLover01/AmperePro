@@ -1,5 +1,5 @@
 from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream, QLineF, QRectF
-from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon, QPixmap, QColor
+from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon, QPixmap, QColor, QImage
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
                                QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog)
 import math
@@ -135,7 +135,7 @@ class Circuit(QGraphicsScene):
         self.dessiner_fond_grid()
 
         largeur_fil_base = 200
-        hauteur_fil_base = 100
+        hauteur_fil_base = 140
 
         self.debut_matrice_i = None
         self.debut_matrice_j = None
@@ -262,12 +262,17 @@ class Circuit(QGraphicsScene):
                 pass
             else:
                 # on sort les éléments supprimés de "jeter" pour les ajouter à "composante"
+                index = self.composantes_jetes.pop()
                 position = self.composantes_jetes.pop()
                 image = self.composantes_jetes.pop()
                 composante = self.composantes_jetes.pop()
+
+                apres = self.composantes[index + 1:]
+                self.composantes = self.composantes[:index-2]
                 self.composantes.append(composante)
                 self.composantes.append(image)
                 self.composantes.append(position)
+                self.composantes.extend(apres)
 
                 # on réajoute au fil la composante "réapparue"
                 # fil = self.verifier_collision_fil(position)
@@ -292,7 +297,12 @@ class Circuit(QGraphicsScene):
 
         else:
             # annuler la plus récente modification à une composante.
-            pass
+            dernier_element = self.modifications.pop()
+            operation = dernier_element[0]
+
+            if operation == "tourner":
+                self.tourner_image_operation(dernier_element[1])
+
 
         self.operations.pop()
         self.rollback_possible()
@@ -1106,6 +1116,7 @@ class Circuit(QGraphicsScene):
             self.composantes_jetes.append(composante_supprimee)
             self.composantes_jetes.append(image_composante_supprimee)
             self.composantes_jetes.append(position_supprimee)
+            self.composantes_jetes.append(index)
             self.dernier_jete.append("composante")
 
             self.selection = None
@@ -1144,11 +1155,12 @@ class Circuit(QGraphicsScene):
             if zone.contains(position_curseur_traduite):
                 a_modifier = zone
                 break
+
         # si un élément est à la position cherchée, on l'identifie
         if a_modifier:
             point_a_trouver = a_modifier.mapToScene(a_modifier.rect().center())
             index = self.composantes.index(point_a_trouver)
-            # on veut envoyer à la fonction la liste de la compoosante, située 2 empalcemnts avant la position
+            # on veut envoyer à la fonction la liste de la composante, située 2 empalcemnts avant la position
             element = self.composantes[index-2]
             # permet de juger l'étape à suivre
             decision = self.infos_composantes.verifier_composante_modifiee(element)
@@ -1208,17 +1220,74 @@ class Circuit(QGraphicsScene):
             image_composante.setZValue(3)
             image_composante.setOffset(-self.taille_grid, -self.taille_grid)
             sens = element[1]
-            image_tourne = self.sens_a_pivot(image_composante, sens)
-            self.addItem(image_tourne)
+            image_tournee = self.sens_a_pivot(image_composante, sens)
+            self.addItem(image_tournee)
 
             # self.composantes à jour
             apres = self.composantes[index:]
             self.composantes = self.composantes[0:index - 2]
             self.composantes.append(element)
-            self.composantes.append(image_tourne)
+            self.composantes.append(image_tournee)
             self.composantes.extend(apres)
 
         self.operations.append(3)
+
+    def tourner_image_composante(self, position):
+        a_modifier = None
+        # on veut trouver l'élément à la position du clic (élément associé au carré blanc sur lequel il est)
+        for zone in self.zones_blanches:
+            position_curseur_traduite = zone.mapFromScene(position)
+            if zone.contains(position_curseur_traduite):
+                a_modifier = zone
+                break
+
+        # si un élément est à la position cherchée, on l'identifie
+        if a_modifier:
+            point_a_trouver = a_modifier.mapToScene(a_modifier.rect().center())
+        else:
+            return
+
+        # on tourne l'image
+        image_composante = self.tourner_image_operation(point_a_trouver)
+
+        # on ajuste pour le rollback
+        self.operations.append(3)
+        self.modifications.append(["tourner", image_composante.pos()])
+        print(self.modifications)
+
+    def tourner_image_operation(self, position):
+        index = self.composantes.index(position)
+        element = self.composantes[index - 2]
+        # 1 on supprime l'image devant être tournée
+        ancienne_image = self.composantes[index - 1]
+        self.removeItem(ancienne_image)
+        # 2 on recrée l'image
+        infos_image, sens, nouveau_sens = self.infos_composantes.retourner_image(element)
+        image = QPixmap(infos_image)
+        image_scalisee = image.scaled(self.taille_grid * 2, self.taille_grid * 2)
+        image_composante = QGraphicsPixmapItem(image_scalisee)
+        image_composante.setPos(ancienne_image.pos())
+        image_composante.setZValue(3)
+        image_composante.setOffset(-self.taille_grid, -self.taille_grid)
+        image_tournee = self.sens_a_pivot(image_composante, sens)
+        # 3 on tourne l'image de 180 degrés avant de l'ajouter
+        image_tournee.setRotation(image_tournee.rotation() - 180)
+        self.addItem(image_tournee)
+
+        # self.composantes à jour
+        nouvel_element = [element[0]]
+        nouvel_element.append(nouveau_sens)
+        if len(element) > 2:
+            apres = element[2:]
+            nouvel_element.extend(apres)
+
+        apres = self.composantes[index:]
+        self.composantes = self.composantes[0:index - 2]
+        self.composantes.append(nouvel_element)
+        self.composantes.append(image_tournee)
+        self.composantes.extend(apres)
+        return image_tournee
+
 
 class GraphicsView(QGraphicsView):
 
@@ -1258,9 +1327,15 @@ class GraphicsView(QGraphicsView):
             self.scene.valider_position()
 
     def mouseDoubleClickEvent(self, event):
-        if not self.scene.image_composante:
-            position_scene = self.mapToScene(event.position().toPoint())
-            self.scene.modifier_composante(position_scene)
+        if event.button() == Qt.MouseButton.LeftButton:
+            if not self.scene.image_composante:
+                position_scene = self.mapToScene(event.position().toPoint())
+                self.scene.modifier_composante(position_scene)
+
+        elif event.button() == Qt.MouseButton.RightButton:
+            if not self.scene.image_composante:
+                position_scene = self.mapToScene(event.position().toPoint())
+                self.scene.tourner_image_composante(position_scene)
 
 
 class LoisPhysiques:
