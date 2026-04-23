@@ -263,9 +263,12 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_4)
             elif sujet == Sujet.Ohm and i == 4:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_ohm_5)
+
             elif sujet == Sujet.Kirchoff and i == 0:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_1)
             elif sujet == Sujet.Kirchoff and i == 1:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_2)
+            elif sujet == Sujet.Kirchoff and i == 2:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_3)
             else:
                 popup = Popup()
@@ -326,6 +329,11 @@ class AmperePro(QMainWindow):
 
     def ouvrir_niveau_kirchoff_1(self):
         niveau = NiveauKirchoff1(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1200, 900)
+
+    def ouvrir_niveau_kirchoff_2(self):
+        niveau = NiveauKirchoff2(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
 
