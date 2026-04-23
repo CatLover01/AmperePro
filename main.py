@@ -238,7 +238,7 @@ class AmperePro(QMainWindow):
             barre_progression.setFixedWidth(140)
 
             bouton_niveau = ToolTipButton(descriptions[sujet][i + 1], "Niveau " + str(i + 1))
-            bouton_niveau.clicked.connect(lambda: self.ouvrir_niveau(sujet, i+1))
+            bouton_niveau.clicked.connect(lambda _, niveau=i+1: self.ouvrir_niveau(sujet, niveau))
 
             label_difficulte = QLabel(difficultes[i])
             label_difficulte.setFixedWidth(80)
