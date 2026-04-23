@@ -10,7 +10,7 @@ from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
-from niveau.LoiOhm.ohm_1 import NiveauOhm1
+from Niveau.LoiOhm.ohm_1 import NiveauOhm1
 from niveau.LoiOhm.ohm_2 import NiveauOhm2
 from niveau.LoiOhm.ohm_3 import NiveauOhm3
 from niveau.LoiOhm.ohm_4 import NiveauOhm4

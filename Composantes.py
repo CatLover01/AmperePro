@@ -235,7 +235,8 @@ class InfosComposantes:
 
         return retourne
 
-    def verifier_composante_modifiee(self, element):
+    @staticmethod
+    def verifier_composante_modifiee(element):
         nom = element[0]
         # on ne peut pas modifier une led et une diode
         if nom == "LED" or nom == "Diode":
@@ -244,8 +245,8 @@ class InfosComposantes:
         else:
             return nom
 
-
-    def fenetre_batterie(self, infos_batterie):
+    @staticmethod
+    def fenetre_batterie(infos_batterie):
         fenetre = QDialog()
         fenetre.setWindowTitle("Batterie")
         layout_principal = QVBoxLayout()
@@ -285,7 +286,8 @@ class InfosComposantes:
         else:
             return None, None, None
 
-    def fenetre_resistor(self, infos_resistor):
+    @staticmethod
+    def fenetre_resistor(infos_resistor):
         fenetre = QDialog()
         fenetre.setWindowTitle("Résistor")
         layout_principal = QVBoxLayout()
@@ -324,18 +326,23 @@ class InfosComposantes:
         else:
             return None, None, None
 
+    @staticmethod
+    def retourner_image(liste):
+        nom_composante = liste[0]
+        sens = liste[1]
+        classe = composantes.get(nom_composante)
+        image = classe.image_circuit
+        nouveau_sens = ""
+        if sens == "haut":
+            nouveau_sens = "bas"
+        elif sens == "bas":
+            nouveau_sens = "haut"
+        elif sens == "droite":
+            nouveau_sens = "gauche"
+        else:
+            nouveau_sens = "droite"
 
-
-
-
-
-
-
-
-
-
-
-
+        return image, sens, nouveau_sens
 
 
 toolbar_composantes = {
@@ -346,3 +353,11 @@ toolbar_composantes = {
     Type.Interrupteur: Interrupteur(),
     Type.Voltmetre: Voltmetre(),
     Type.Amperemetre: Amperemetre()}
+
+composantes = {"Batterie": Batterie(),
+               "LED": LED(),
+               "Résistor": Resistor(),
+               "Diode": Diode(),
+               "Interrupteur": Interrupteur(),
+               "Voltmètre": Voltmetre(),
+               "Ampèremètre": Amperemetre()}

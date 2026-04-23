@@ -34,7 +34,7 @@ class NiveauOhm4(QWidget):
                 "bonne_position": 1,
             },
             {
-                "image": "images/niveau/ohm/4/circuit4-2.png",
+                "image": "images/niveau/ohm/4/circuit4-3.png",
                 "bonne_position": 2,
             },
             {
@@ -109,7 +109,7 @@ class NiveauOhm4(QWidget):
         ligne_ordre = QVBoxLayout()
         textes = [
             "1 : Plus petite résistance",
-            "2 : Deuxième plus petite résistance",
+            "3 : Deuxième plus petite résistance",
             "3 : Troisième plus petite résistance",
             "4 : Quatrième plus petite résistance",
             "5 : Cinquième plus petite résistance",
