@@ -271,6 +271,7 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_2)
             elif sujet == Sujet.Kirchoff and i == 2:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_3)
+
             elif sujet == Sujet.Resistance and i == 0:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_re_1)
             else:

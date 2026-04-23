@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QMessageBox, QScrollArea
+    QPushButton, QMessageBox, QScrollArea, QRadioButton, QButtonGroup
 )
 
 
@@ -13,43 +13,44 @@ class ChoixCircuit(QWidget):
         self.choix = None
 
         layout = QHBoxLayout()
+        layout.setSpacing(25)
+        layout.setAlignment(Qt.AlignCenter)
         self.setLayout(layout)
 
-        self.btn_serie = QPushButton("Série")
-        self.btn_parallele = QPushButton("Parallèle")
-        self.btn_mixte = QPushButton("Série + Parallèle")
+        self.btn_serie = QRadioButton("Série")
+        self.btn_parallele = QRadioButton("Parallèle")
+        self.btn_mixte = QRadioButton("Mixte")
 
-        self.btn_serie.clicked.connect(self.select_serie)
-        self.btn_parallele.clicked.connect(self.select_parallele)
-        self.btn_mixte.clicked.connect(self.select_mixte)
+        self.groupe = QButtonGroup(self)
+        self.groupe.addButton(self.btn_serie)
+        self.groupe.addButton(self.btn_parallele)
+        self.groupe.addButton(self.btn_mixte)
+        self.groupe.setExclusive(True)
+
+        self.btn_serie.toggled.connect(self.mettre_a_jour_choix)
+        self.btn_parallele.toggled.connect(self.mettre_a_jour_choix)
+        self.btn_mixte.toggled.connect(self.mettre_a_jour_choix)
+
+        self.btn_serie.setFont(QFont("", 14))
+        self.btn_parallele.setFont(QFont("", 14))
+        self.btn_mixte.setFont(QFont("", 14))
 
         layout.addWidget(self.btn_serie)
         layout.addWidget(self.btn_parallele)
         layout.addWidget(self.btn_mixte)
 
-    def reset_styles(self):
-        self.btn_serie.setStyleSheet("")
-        self.btn_parallele.setStyleSheet("")
-        self.btn_mixte.setStyleSheet("")
-
-    def select_serie(self):
-        self.choix = "serie"
-        self.reset_styles()
-        self.btn_serie.setStyleSheet("border: 2px solid yellow;")
-
-    def select_parallele(self):
-        self.choix = "parallele"
-        self.reset_styles()
-        self.btn_parallele.setStyleSheet("border: 2px solid yellow;")
-
-    def select_mixte(self):
-        self.choix = "mixte"
-        self.reset_styles()
-        self.btn_mixte.setStyleSheet("border: 2px solid yellow;")
+    def mettre_a_jour_choix(self):
+        if self.btn_serie.isChecked():
+            self.choix = "série"
+        elif self.btn_parallele.isChecked():
+            self.choix = "parallèle"
+        elif self.btn_mixte.isChecked():
+            self.choix = "mixte"
+        else:
+            self.choix = None
 
     def get_choix(self):
         return self.choix
-
 
 class NiveauRE1(QWidget):
     def __init__(self, retour_callback=None):
@@ -59,12 +60,12 @@ class NiveauRE1(QWidget):
         self.questions_widgets = []
 
         self.questions = [
-            ("images/niveau/Résistance équivalente/1/RE-circuit1.png", "serie"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit2.png", "serie"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit3.png", "mixte"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit4.png", "mixte"),
+            ("images/niveau/Résistance équivalente/1/RE-circuit1.png", "série"),
+            ("images/niveau/Résistance équivalente/1/RE-circuit2.png", "série"),
+            ("images/niveau/Résistance équivalente/1/RE-circuit3.png", "parallèle"),
+            ("images/niveau/Résistance équivalente/1/RE-circuit4.png", "série"),
             ("images/niveau/Résistance équivalente/1/RE-circuit5.png", "mixte"),
-            ("images/niveau/Résistance équivalente/1/RE-circuit6.png", "mixte"),
+            ("images/niveau/Résistance équivalente/1/RE-circuit6.png", "série"),
         ]
 
         layout_exterieur = QVBoxLayout()
@@ -80,7 +81,7 @@ class NiveauRE1(QWidget):
         main_layout = QVBoxLayout()
         contenu.setLayout(main_layout)
 
-        titre = QLabel("Resistance_equivalente - Niveau 1")
+        titre = QLabel("Résistance équivalente - Niveau 1")
         titre.setAlignment(Qt.AlignCenter)
         police = QFont()
         police.setPointSize(28)
@@ -91,16 +92,6 @@ class NiveauRE1(QWidget):
         consigne.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(consigne)
 
-        rappel = QLabel(
-            "Série : Req = R1 + R2 + ...\n"
-            "Parallèle : 1/Req = 1/R1 + 1/R2 + ...\n"
-            "Mixte : combinaison série et parallèle"
-        )
-        rappel.setAlignment(Qt.AlignCenter)
-        police_rappel = QFont()
-        police_rappel.setPointSize(16)
-        rappel.setFont(police_rappel)
-        main_layout.addWidget(rappel)
 
         for path, bonne_rep in self.questions:
             self.ajouter_question(main_layout, path, bonne_rep)
