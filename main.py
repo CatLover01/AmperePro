@@ -15,7 +15,7 @@ from Niveau.LoiOhm.ohm_3 import NiveauOhm3
 from Niveau.LoiOhm.ohm_4 import NiveauOhm4
 from Niveau.LoiOhm.ohm_5 import NiveauOhm5
 from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
-from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
+from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff23
 from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
 
 class Mode(Enum):
