@@ -390,6 +390,49 @@ class Circuit(QGraphicsScene):
             if operation == "tourner":
                 self.tourner_image_operation(dernier_element[1])
 
+            elif operation == "Batterie":
+                    index = dernier_element[1]
+                    volt_avant = dernier_element[2]
+                    element = self.composantes[index-2]
+                    element = element[0:2]
+                    element.append(volt_avant)
+                    apres = self.composantes[index - 1:]
+                    self.composantes = self.composantes[0:index - 2]
+                    self.composantes.append(element)
+                    self.composantes.extend(apres)
+
+            elif operation == "Résistor":
+                    index = dernier_element[1]
+                    volt_avant = dernier_element[2]
+                    element = self.composantes[index - 2]
+                    element = element[0:2]
+                    element.append(volt_avant)
+                    apres = self.composantes[index - 1:]
+                    self.composantes = self.composantes[0:index - 2]
+                    self.composantes.append(element)
+                    self.composantes.extend(apres)
+
+            elif operation == "Interrupteur":
+                index = dernier_element[2]
+                ancienne_image = self.composantes[index - 1]
+                element = self.composantes[index - 2]
+                self.removeItem(ancienne_image)
+
+                if dernier_element[1] == "ouvert":
+                    # on met l'image de l'interrupteur fermé
+                    nouvelle_image = QPixmap("images/circuit/interrupteur_ferme.png")
+                    # on modifie les données
+                    element = element[0:2]
+                    element.append("fermé")
+                else:
+                    # on met l'image de l'interrupteur ouvert
+                    nouvelle_image = QPixmap("images/circuit/interrupteur_ouvert.png")
+                    # on modifie les données
+                    element = element[0:2]
+                    element.append("ouvert")
+
+                self.ouvrir_ferme_interrupteur(nouvelle_image, ancienne_image, element, index)
+
 
         self.operations.pop()
         self.rollback_possible()
@@ -1077,13 +1120,17 @@ class Circuit(QGraphicsScene):
             #self.fils[fil - 1].ajouter_composante(composante)
 
     def clic_droit_composante(self):
-        self.image_composante.setRotation(self.image_composante.rotation() - 90)
-        self.nombre_de_rotations += 1
+        liste_refusee = ["Ampèremètre", "Voltmètre"]
+        if self.composante_selectionnee.nom not in liste_refusee:
+            self.image_composante.setRotation(self.image_composante.rotation() - 90)
+            self.nombre_de_rotations += 1
 
     def sens_composante(self):
         sens = self.nombre_de_rotations % 4
         # de base l'image "pointe" à droite. 1 clic droit et elle pointe en haut, 3 à gauche, 3 en bas et 4 on redémarre
-        if sens == 0:
+        if self.composante_selectionnee.nom == "Ampèremètre" or self.composante_selectionnee.nom == "Voltmètre":
+            return None
+        elif sens == 0:
             return "droite"
         elif sens == 1:
             return "haut"
@@ -1135,6 +1182,24 @@ class Circuit(QGraphicsScene):
                     self.accepter_positionnement = False
                 else:
                     self.accepter_positionnement = True
+
+            elif not sens:
+                if collision_droite != 0 and collision_gauche != 0 and collision_haut == 0 and collision_bas == 0:
+                    collision_moins_un = self.verifier_collision_fil(QPointF(x - 2 * self.taille_grid, y))
+                    collision_plus_un = self.verifier_collision_fil(QPointF(x + 2 * self.taille_grid, y))
+                    if collision_moins_un != 0 and collision_plus_un != 0:
+                        self.accepter_positionnement = True
+                    else:
+                        self.accepter_positionnement = False
+                elif collision_haut != 0 and collision_bas != 0 and collision_droite == 0 and collision_gauche == 0:
+                    collision_moins_un = self.verifier_collision_fil(QPointF(x, y - 2 * self.taille_grid))
+                    collision_plus_un = self.verifier_collision_fil(QPointF(x, y + 2 * self.taille_grid))
+                    if collision_moins_un != 0 and collision_plus_un != 0:
+                        self.accepter_positionnement = True
+                    else:
+                        self.accepter_positionnement = False
+                else:
+                    self.accepter_positionnement = False
 
             else:
                 collision_moins_un = self.verifier_collision_fil(QPointF(x, y - 2 * self.taille_grid))
@@ -1314,14 +1379,16 @@ class Circuit(QGraphicsScene):
             return
         # opérations liées aux autre composantes
         elif decision == "Batterie":
-            modification, volt_avant, volt_apres = self.infos_composantes.fenetre_batterie(element)
+            modification, volt_avant = self.infos_composantes.fenetre_batterie(element)
             # on va devoir reformer self.composantes avec le nouvel  si voltage modifié
             if modification:
                 apres = self.composantes[index-1:]
                 self.composantes = self.composantes[0:index-2]
                 self.composantes.append(modification)
                 self.composantes.extend(apres)
-                self.modifications.append(["Batterie", position, volt_avant, volt_apres])
+                self.modifications.append(["Batterie", index, volt_avant])
+            else:
+                return
 
         elif decision == "Résistor":
             modification, resistance_avant = self.infos_composantes.fenetre_resistor(element)
@@ -1331,7 +1398,9 @@ class Circuit(QGraphicsScene):
                 self.composantes = self.composantes[0:index-2]
                 self.composantes.append(modification)
                 self.composantes.extend(apres)
-                self.modifications.append(["Résistor", position, resistance_avant])
+                self.modifications.append(["Résistor", index, resistance_avant])
+            else:
+                return
 
         elif decision == "Interrupteur":
             # on va supprimer de la scène l'image de l'ancien interrupteur
@@ -1346,32 +1415,35 @@ class Circuit(QGraphicsScene):
                 # on modifie les données
                 element = element[0:2]
                 element.append("fermé")
-                self.modifications.append(["interrupteur", "fermé"])
+                self.modifications.append(["Interrupteur", "fermé", index])
             else:
-                # on met l'image de l'interrupteur fermé
+                # on met l'image de l'interrupteur ouvert
                 nouvelle_image = QPixmap("images/circuit/interrupteur_ouvert.png")
                 # on modifie les données
                 element = element[0:2]
                 element.append("ouvert")
-                self.modifications.append(["Interrupteur", "ouvert"])
+                self.modifications.append(["Interrupteur", "ouvert", index])
 
-            pixmap_scalise = nouvelle_image.scaled(self.taille_grid * 2, self.taille_grid * 2)
-            image_composante = QGraphicsPixmapItem(pixmap_scalise)
-            image_composante.setPos(ancienne_image.pos())
-            image_composante.setZValue(3)
-            image_composante.setOffset(-self.taille_grid, -self.taille_grid)
-            sens = element[1]
-            image_tournee = self.sens_a_pivot(image_composante, sens)
-            self.addItem(image_tournee)
-
-            # self.composantes à jour
-            apres = self.composantes[index:]
-            self.composantes = self.composantes[0:index - 2]
-            self.composantes.append(element)
-            self.composantes.append(image_tournee)
-            self.composantes.extend(apres)
+            self.ouvrir_ferme_interrupteur(nouvelle_image, ancienne_image, element, index)
 
         self.operations.append(3)
+
+    def ouvrir_ferme_interrupteur(self, nouvelle_image, ancienne_image, element, index):
+        pixmap_scalise = nouvelle_image.scaled(self.taille_grid * 2, self.taille_grid * 2)
+        image_composante = QGraphicsPixmapItem(pixmap_scalise)
+        image_composante.setPos(ancienne_image.pos())
+        image_composante.setZValue(3)
+        image_composante.setOffset(-self.taille_grid, -self.taille_grid)
+        sens = element[1]
+        image_tournee = self.sens_a_pivot(image_composante, sens)
+        self.addItem(image_tournee)
+
+        # self.composantes à jour
+        apres = self.composantes[index:]
+        self.composantes = self.composantes[0:index - 2]
+        self.composantes.append(element)
+        self.composantes.append(image_tournee)
+        self.composantes.extend(apres)
 
     def tourner_image_composante(self, position):
         a_modifier = None
@@ -1388,8 +1460,16 @@ class Circuit(QGraphicsScene):
         else:
             return
 
-        # on tourne l'image
-        image_composante = self.tourner_image_operation(point_a_trouver)
+        # on tourne l'image sauf si résistor, ampèremètre ou voltmètre
+        liste_refusée = ["Résistor", "Ampèremètre", "Voltmètre"]
+        index = self.composantes.index(point_a_trouver) - 2
+        element = self.composantes[index]
+        element = element[0]
+        if element not in liste_refusée:
+            image_composante = self.tourner_image_operation(point_a_trouver)
+        else:
+            return
+
 
         # on ajuste pour le rollback
         self.operations.append(3)
