@@ -17,6 +17,7 @@ from Niveau.LoiOhm.ohm_5 import NiveauOhm5
 from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
 from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
+from Niveau.Resistance_equivalente.re_1 import NiveauRE1
 
 class Mode(Enum):
     Libre = 1
@@ -270,8 +271,11 @@ class AmperePro(QMainWindow):
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_2)
             elif sujet == Sujet.Kirchoff and i == 2:
                 popup = Popup(callback_commencer=self.ouvrir_niveau_kirchoff_3)
+            elif sujet == Sujet.Resistance and i == 0:
+                popup = Popup(callback_commencer=self.ouvrir_niveau_re_1)
             else:
                 popup = Popup()
+
 
             self.popups.append(popup)
 
@@ -339,6 +343,11 @@ class AmperePro(QMainWindow):
 
     def ouvrir_niveau_kirchoff_3(self):
         niveau = NiveauKirchoff3(self.retour_sujets)
+        self.setCentralWidget(niveau)
+        self.resize(1200, 900)
+
+    def ouvrir_niveau_re_1(self):
+        niveau = NiveauRE1(self.retour_sujets)
         self.setCentralWidget(niveau)
         self.resize(1200, 900)
 
