@@ -255,7 +255,7 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(retour_arriere)
 
     def ouvrir_niveau(self, sujet, niveau):
-        window = NiveauWindow(sujet, niveau, self.retour_sujets)
+        window = NiveauWindow(sujet, niveau)
         window.exec()
 
     def retour_sujets(self):
