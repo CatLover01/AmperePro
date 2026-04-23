@@ -1,15 +1,22 @@
-from PySide6.QtCore import QFile, QTextStream
+from PySide6.QtCore import QFile, QTextStream, QTimer
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
+from niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from Button import RightClickButton, ToolTipButton
 from Niveau.niveau import Sujet, descriptions, NiveauWindow
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
+from niveau.LoiOhm.ohm_1 import NiveauOhm1
+from niveau.LoiOhm.ohm_2 import NiveauOhm2
+from niveau.LoiOhm.ohm_3 import NiveauOhm3
+from niveau.LoiOhm.ohm_4 import NiveauOhm4
+from niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
+
 
 class Mode(Enum):
     Libre = 1
