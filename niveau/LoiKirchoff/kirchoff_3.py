@@ -1,14 +1,14 @@
 from PySide6.QtCore import Qt, QRegularExpression
-from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtGui import QFont, QPixmap, QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QMessageBox, QScrollArea
 )
 
-DOSSIER_IMAGES = "images/niveau/kirchoff/2/"
+DOSSIER_IMAGES = "images/niveau/kirchoff/3/"
 
 
-class NiveauKirchoff2(QWidget):
+class NiveauKirchoff3(QWidget):
     def __init__(self, retour_callback=None):
         super().__init__()
 
@@ -31,7 +31,7 @@ class NiveauKirchoff2(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(25)
 
-        titre = QLabel("Loi de Kirchoff - Niveau 2")
+        titre = QLabel("Loi de Kirchoff - Niveau 3")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
         police_titre.setPointSize(30)
@@ -45,28 +45,28 @@ class NiveauKirchoff2(QWidget):
 
         self.questions = [
             {
-                "image": DOSSIER_IMAGES + "circuit_k_2.1.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
                 "texte": "Une des mailles dans le circuit en partant du point A",
                 "reponse": "'ABEFA',ABCDEFA",
 
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_k_2.2.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
                 "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
                 "reponse": "12-4I2-6I3=0",
 
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_k_2.3.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
                 "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
                 "reponse": "-6+6I2+6-3I1",
 
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_k_2.4.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.4.png",
                 "texte": "À partir du point D trouve l'éqaution d'une maille\n"
                          " sachant que I\u2081 = I\u2082 + I\u2083",
-                "reponse": "", #à repenser
+                "reponse": "",  #à repenser
             },
 
         ]
@@ -120,6 +120,10 @@ class NiveauKirchoff2(QWidget):
         champ_reponse = QLineEdit()
         champ_reponse.setFixedWidth(140)
 
+        regex = QRegularExpression("^[I0-9+=-]*$")
+        validator = QRegularExpressionValidator(regex)
+        champ_reponse.setValidator(validator)
+
         ligne_question.addStretch()
         ligne_question.addWidget(label_question)
         ligne_question.addSpacing(10)
@@ -133,16 +137,30 @@ class NiveauKirchoff2(QWidget):
 
         self.reponses.append((champ_reponse, bonne_reponse))
 
+    def normaliser_equation(self, eq):
+        eq = eq.replace(" ", "")
+
+        if "=" not in eq:
+            return eq
+
+        gauche, droite = eq.split("=")
+        return f"{gauche}-{droite}"
+
     def valider_reponses(self):
         bonnes = 0
         total = len(self.reponses)
 
         for champ, bonne_reponse in self.reponses:
-            texte = champ.text().strip().replace(",", ".")
+            texte = champ.text().strip()
+
+            if not texte:
+                continue
 
             try:
-                valeur = float(texte)
-                if abs(valeur - bonne_reponse) < 0.01:
+                eq_reponse = self.normaliser_equation(texte)
+                eq_correcte = self.normaliser_equation(bonne_reponse)
+
+                if eq_reponse == eq_correcte:
                     bonnes += 1
             except ValueError:
                 pass

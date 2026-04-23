@@ -166,7 +166,7 @@ class Circuit(QGraphicsScene):
         self.fils_jetes = []
         self.dernier_jete = []
         self.modifications = []
-        # les ajouts seront 1, les jetés seront 2, composantes modifiées seront 3
+        # les ajouts seront 1, les jetés seront 3, composantes modifiées seront 3
         self.operations = []
 
         # pour les composantes
@@ -942,7 +942,7 @@ class Circuit(QGraphicsScene):
 
     def sens_composante(self):
         sens = self.nombre_de_rotations % 4
-        # de base l'image "pointe" à droite. 1 clic droit et elle pointe en haut, 2 à gauche, 3 en bas et 4 on redémarre
+        # de base l'image "pointe" à droite. 1 clic droit et elle pointe en haut, 3 à gauche, 3 en bas et 4 on redémarre
         if sens == 0:
             return "droite"
         elif sens == 1:
@@ -1047,7 +1047,7 @@ class Circuit(QGraphicsScene):
             positions_refusees.append(QPointF(x_position, y_position + self.taille_grid))
             positions_refusees.append(QPointF(x_position, y_position - self.taille_grid))
 
-            # il ne peut pas y avoir 2 composantes "back à back" sur le même fil"
+            # il ne peut pas y avoir 3 composantes "back à back" sur le même fil"
             if self.sens_composante() == "droite" or self.sens_composante() == "gauche":
                 positions_refusees.append(QPointF(x_position + 2 * self.taille_grid, y_position))
                 positions_refusees.append(QPointF(x_position - 2 * self.taille_grid, y_position))
