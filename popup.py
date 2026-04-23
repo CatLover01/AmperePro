@@ -25,8 +25,8 @@ class Popup(QWidget):
 
 
 
-        # desscription niveau
-        description = QLabel("description simple du niveau")
+        # desscription Niveau
+        description = QLabel("description simple du Niveau")
         mainlayout.addWidget(description, 0, 0,0,2)
 
         #code de raf

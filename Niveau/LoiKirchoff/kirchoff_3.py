@@ -1,13 +1,14 @@
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtCore import Qt, QRegularExpression
+from PySide6.QtGui import QFont, QPixmap, QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QMessageBox, QScrollArea
 )
 
-DOSSIER_IMAGES = "images/niveau/ohm/3/"
+DOSSIER_IMAGES = "images/Niveau/kirchoff/3/"
 
-class NiveauOhm3(QWidget):
+
+class NiveauKirchoff3(QWidget):
     def __init__(self, retour_callback=None):
         super().__init__()
 
@@ -30,49 +31,44 @@ class NiveauOhm3(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(25)
 
-        titre = QLabel("Loi d'Ohm - Niveau 3")
+        titre = QLabel("Loi de Kirchoff - Niveau 3")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
         police_titre.setPointSize(30)
         titre.setFont(police_titre)
         main_layout.addWidget(titre)
 
-        consigne = QLabel("Détermine les valeurs manquantes pour chacune des mises en situation proposées.")
+        consigne = QLabel("Identifier les différentes mailles dans les cirucits suivants")
         consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         consigne.setWordWrap(True)
         main_layout.addWidget(consigne)
 
         self.questions = [
             {
-                "image": DOSSIER_IMAGES + "circuit1.png",
-                "texte": "La résistance dans R1 est de",
-                "reponse": 20,
-                "unite": "Ω"
+                "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
+                "texte": "Une des mailles dans le circuit en partant du point A",
+                "reponse": "'ABEFA',ABCDEFA",
+
             },
             {
-                "image": DOSSIER_IMAGES + "circuit2.png",
-                "texte": "La tension à la source est de",
-                "reponse": 100,
-                "unite": "V"
+                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
+                "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
+                "reponse": "12-4I2-6I3=0",
+
             },
             {
-                "image": DOSSIER_IMAGES + "circuit3.png",
-                "texte": "La résistance de la source lumineuse est de",
-                "reponse": 20,
-                "unite": "Ω"
+                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
+                "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
+                "reponse": "-6+6I2+6-3I1",
+
             },
             {
-                "image": DOSSIER_IMAGES + "circuit4.png",
-                "texte": "L'intensité du courant sortant de l'ampoule est de",
-                "reponse": 0.6,
-                "unite": "A"
+                "image": DOSSIER_IMAGES + "circuit_k_3.4.png",
+                "texte": "À partir du point D trouve l'éqaution d'une maille\n"
+                         " sachant que I\u2081 = I\u2082 + I\u2083",
+                "reponse": "",  #à repenser
             },
-            {
-                "image": DOSSIER_IMAGES + "circuit5.png",
-                "texte": "La différence de potentiel dans la résistance est de",
-                "reponse": 50,
-                "unite": "V"
-            }
+
         ]
 
         for question in self.questions:
@@ -81,7 +77,6 @@ class NiveauOhm3(QWidget):
                 question["image"],
                 question["texte"],
                 question["reponse"],
-                question["unite"]
             )
 
         boutons_layout = QHBoxLayout()
@@ -102,7 +97,7 @@ class NiveauOhm3(QWidget):
 
         main_layout.addLayout(boutons_layout)
 
-    def ajouter_question(self, main_layout, image_path, texte_question, bonne_reponse, unite):
+    def ajouter_question(self, main_layout, image_path, texte_question, bonne_reponse):
         bloc = QVBoxLayout()
         bloc.setSpacing(12)
 
@@ -125,14 +120,15 @@ class NiveauOhm3(QWidget):
         champ_reponse = QLineEdit()
         champ_reponse.setFixedWidth(140)
 
-        label_unite = QLabel(unite)
+        regex = QRegularExpression("^[I0-9+=-]*$")
+        validator = QRegularExpressionValidator(regex)
+        champ_reponse.setValidator(validator)
 
         ligne_question.addStretch()
         ligne_question.addWidget(label_question)
         ligne_question.addSpacing(10)
         ligne_question.addWidget(champ_reponse)
         ligne_question.addSpacing(5)
-        ligne_question.addWidget(label_unite)
         ligne_question.addStretch()
 
         bloc.addLayout(ligne_question)
@@ -141,16 +137,30 @@ class NiveauOhm3(QWidget):
 
         self.reponses.append((champ_reponse, bonne_reponse))
 
+    def normaliser_equation(self, eq):
+        eq = eq.replace(" ", "")
+
+        if "=" not in eq:
+            return eq
+
+        gauche, droite = eq.split("=")
+        return f"{gauche}-{droite}"
+
     def valider_reponses(self):
         bonnes = 0
         total = len(self.reponses)
 
         for champ, bonne_reponse in self.reponses:
-            texte = champ.text().strip().replace(",", ".")
+            texte = champ.text().strip()
+
+            if not texte:
+                continue
 
             try:
-                valeur = float(texte)
-                if abs(valeur - bonne_reponse) < 0.01:
+                eq_reponse = self.normaliser_equation(texte)
+                eq_correcte = self.normaliser_equation(bonne_reponse)
+
+                if eq_reponse == eq_correcte:
                     bonnes += 1
             except ValueError:
                 pass

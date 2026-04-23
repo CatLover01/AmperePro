@@ -52,7 +52,7 @@ class NiveauKirchoff1(QWidget):
         lettre = ["A", "B", "C", "D", "E", "F"]
         q1_layout = QVBoxLayout()
 
-        circuit1 = QLabel(pixmap=QPixmap("images/niveau/kirchoff/1/circuit_K_1.1.png"))
+        circuit1 = QLabel(pixmap=QPixmap("images/Niveau/kirchoff/1/circuit_K_1.1.png"))
         circuit1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         q1_layout.addWidget(circuit1)
 
@@ -69,7 +69,7 @@ class NiveauKirchoff1(QWidget):
 
         q2_layout = QVBoxLayout()
 
-        circuit2 = QLabel(pixmap=QPixmap("images/niveau/kirchoff/1/circuit_K_1.2.png"))
+        circuit2 = QLabel(pixmap=QPixmap("images/Niveau/kirchoff/1/circuit_K_1.2.png"))
         circuit2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         q2_layout.addWidget(circuit2)
 

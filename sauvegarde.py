@@ -17,8 +17,8 @@ class CircuitLibre:
 class Sauvegarde:
     def __init__(self):
         try:
-            # Données utilisateur: niveau atteint, circuits personnalisés
-            # Format attendu: {"niveau": int, "circuits_libre": list}
+            # Données utilisateur: Niveau atteint, circuits personnalisés
+            # Format attendu: {"Niveau": int, "circuits_libre": list}
             self.data = read("data.json")
         except (FileNotFoundError, JSONDecodeError):
             # Création d'un état par défaut si la sauvegarde n'existe pas ou malformé
