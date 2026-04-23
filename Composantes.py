@@ -236,7 +236,7 @@ class InfosComposantes:
         return retourne
 
     @staticmethod
-    def verifier_composante_modifiee(self, element):
+    def verifier_composante_modifiee(element):
         nom = element[0]
         # on ne peut pas modifier une led et une diode
         if nom == "LED" or nom == "Diode":
@@ -246,7 +246,7 @@ class InfosComposantes:
             return nom
 
     @staticmethod
-    def fenetre_batterie(self, infos_batterie):
+    def fenetre_batterie(infos_batterie):
         fenetre = QDialog()
         fenetre.setWindowTitle("Batterie")
         layout_principal = QVBoxLayout()

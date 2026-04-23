@@ -306,6 +306,7 @@ class Circuit(QGraphicsScene):
 
         self.operations.pop()
         self.rollback_possible()
+        print(self.operations)
 
     def quitter_triggered(self):
         avertissement = QDialog()
