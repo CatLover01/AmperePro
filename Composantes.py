@@ -14,7 +14,7 @@ class Cote(Enum):
     Bas = 4
 
 
-# Type de composante dont nous supportons
+# Type de composante que nous supportons
 class Type(Enum):
     Batterie = 1
     LED = 2
