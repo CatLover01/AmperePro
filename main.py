@@ -15,7 +15,7 @@ from Niveau.LoiOhm.ohm_3 import NiveauOhm3
 from Niveau.LoiOhm.ohm_4 import NiveauOhm4
 from Niveau.LoiOhm.ohm_5 import NiveauOhm5
 from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
-from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
+#from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
 from Niveau.Resistance_equivalente.re_1 import NiveauRE1
 
@@ -182,9 +182,9 @@ class AmperePro(QMainWindow):
 
             def mousePressEvent(self, e):
                 if e.button() == Qt.MouseButton.RightButton:
-                    # Délai de 100ms pour corriger le bug où le clic droit reste bloqué.
+                    # Délai de 200ms pour corriger le bug où le clic droit reste bloqué.
                     # Sans ce délai, il faut recliquer pour réinitialiser l’état du bouton.
-                    QTimer.singleShot(100, self.callback)
+                    QTimer.singleShot(200, self.callback)
                 super().mousePressEvent(e)
 
         circuit_libres = self.sauvegarde.circuits_libre()
