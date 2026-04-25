@@ -46,7 +46,7 @@ descriptions = {
 
 class NiveauWindow(QDialog):
     # Niveau commence à 1
-    def __init__(self, sujet: Sujet, niveau: int):
+    def __init__(self, sujet: Sujet, niveau: int, retour_sujet):
         super().__init__()
 
         # Longeur et largeur par défault
