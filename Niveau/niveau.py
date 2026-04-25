@@ -11,6 +11,7 @@ from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
 from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
 from Niveau.Resistance_equivalente.re_1 import NiveauRE1
+from Niveau.Resistance_equivalente.re_2 import NiveauRE2
 
 
 class Sujet(Enum):
@@ -75,6 +76,8 @@ class NiveauWindow(QDialog):
 
         elif sujet == Sujet.Resistance and niveau == 1:
             widget = NiveauRE1(self.quitter)
+        elif sujet == Sujet.Resistance and niveau == 2:
+            widget = NiveauRE2(retour_sujet)
 
         if widget is not None:
             layout = QVBoxLayout()
