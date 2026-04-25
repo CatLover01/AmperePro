@@ -52,12 +52,14 @@ class ChoixCircuit(QWidget):
     def get_choix(self):
         return self.choix
 
+
 class NiveauRE1(QWidget):
     def __init__(self, retour_callback=None):
         super().__init__()
 
         self.retour_callback = retour_callback
         self.questions_widgets = []
+        self.fenetre_doc = None
 
         self.questions = [
             ("images/niveau/Résistance équivalente/1/RE-circuit1.png", "série"),
@@ -71,6 +73,16 @@ class NiveauRE1(QWidget):
         layout_exterieur = QVBoxLayout()
         self.setLayout(layout_exterieur)
 
+        # === BOUTON AIDE EN HAUT ===
+        top_layout = QHBoxLayout()
+        top_layout.addStretch()
+
+        aide = QPushButton("Aide")
+        aide.clicked.connect(self.ouvrir_aide)
+
+        top_layout.addWidget(aide)
+        layout_exterieur.addLayout(top_layout)
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
@@ -81,7 +93,7 @@ class NiveauRE1(QWidget):
         main_layout = QVBoxLayout()
         contenu.setLayout(main_layout)
 
-        titre = QLabel("Résistance équivalente - Niveau 1 ")
+        titre = QLabel("Résistance équivalente - Niveau 1")
         titre.setAlignment(Qt.AlignCenter)
         police = QFont()
         police.setPointSize(28)
@@ -91,7 +103,6 @@ class NiveauRE1(QWidget):
         consigne = QLabel("Identifie si chaque circuit est en série, en parallèle ou mixte.")
         consigne.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(consigne)
-
 
         for path, bonne_rep in self.questions:
             self.ajouter_question(main_layout, path, bonne_rep)
@@ -132,6 +143,25 @@ class NiveauRE1(QWidget):
         layout.addLayout(bloc)
 
         self.questions_widgets.append((choix_widget, bonne_reponse))
+
+    def ouvrir_aide(self):
+        from docs import DocumentationWindow
+        from PySide6.QtCore import QFile, QTextStream, Qt
+
+        parent_window = self.window()
+
+        self.fenetre_doc = DocumentationWindow(parent_window)
+        self.fenetre_doc.setWindowModality(Qt.NonModal)
+
+        style_docu = QFile("StyleSheet/StyleDocumentation.qss")
+        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
+            stream_docu = QTextStream(style_docu)
+            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+            style_docu.close()
+
+        self.fenetre_doc.show()
+        self.fenetre_doc.raise_()
+        self.fenetre_doc.activateWindow()
 
     def valider(self):
         bonnes = 0

@@ -238,7 +238,9 @@ class AmperePro(QMainWindow):
             barre_progression.setFixedWidth(140)
 
             bouton_niveau = ToolTipButton(descriptions[sujet][i + 1], "Niveau " + str(i + 1))
-            bouton_niveau.clicked.connect(lambda: self.ouvrir_niveau(sujet, i+1))
+            bouton_niveau.clicked.connect(
+                lambda checked=False, s=sujet, n=i + 1: self.ouvrir_niveau(s, n)
+            )
 
             label_difficulte = QLabel(difficultes[i])
             label_difficulte.setFixedWidth(80)
@@ -255,8 +257,9 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(retour_arriere)
 
     def ouvrir_niveau(self, sujet, niveau):
-        window = NiveauWindow(sujet, niveau, self.retour_sujets)
-        window.exec()
+        self.window_niveau = NiveauWindow(sujet, niveau, self.retour_sujets)
+        self.window_niveau.setModal(True)
+        self.window_niveau.open()
 
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)
