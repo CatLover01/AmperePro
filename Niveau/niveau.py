@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Callable
 
 from PySide6.QtWidgets import QVBoxLayout, QDialog
 
@@ -47,33 +46,40 @@ descriptions = {
 
 class NiveauWindow(QDialog):
     # Niveau commence à 1
-    def __init__(self, sujet: Sujet, niveau: int, retour_sujet: Callable):
+    def __init__(self, sujet: Sujet, niveau: int):
         super().__init__()
+
+        # Longeur et largeur par défault
         self.resize(1200, 900)
 
         widget = None
         if sujet == Sujet.Ohm and niveau == 1:
-            widget = NiveauOhm1(retour_sujet)
+            widget = NiveauOhm1(self.quitter)
+            self.resize(1100, 850)
         elif sujet == Sujet.Ohm and niveau == 2:
-            widget = NiveauOhm2(retour_sujet)
+            widget = NiveauOhm2(self.quitter)
+            self.resize(1100, 850)
         elif sujet == Sujet.Ohm and niveau == 3:
-            widget = NiveauOhm3(retour_sujet)
+            widget = NiveauOhm3(self.quitter)
         elif sujet == Sujet.Ohm and niveau == 4:
-            widget = NiveauOhm4(retour_sujet)
+            widget = NiveauOhm4(self.quitter)
         elif sujet == Sujet.Ohm and niveau == 5:
-            widget = NiveauOhm5(retour_sujet)
+            widget = NiveauOhm5(self.quitter)
 
         elif sujet == Sujet.Kirchoff and niveau == 1:
-            widget = NiveauKirchoff1(retour_sujet)
+            widget = NiveauKirchoff1(self.quitter)
         elif sujet == Sujet.Kirchoff and niveau == 2:
-            widget = NiveauKirchoff2(retour_sujet)
+            widget = NiveauKirchoff2(self.quitter)
         elif sujet == Sujet.Kirchoff and niveau == 3:
-            widget = NiveauKirchoff3(retour_sujet)
+            widget = NiveauKirchoff3(self.quitter)
 
         elif sujet == Sujet.Resistance and niveau == 1:
-            widget = NiveauRE1(retour_sujet)
+            widget = NiveauRE1(self.quitter)
 
         if widget is not None:
             layout = QVBoxLayout()
             layout.addWidget(widget)
             self.setLayout(layout)
+
+    def quitter(self):
+        self.close()

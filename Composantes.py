@@ -14,7 +14,7 @@ class Cote(Enum):
     Bas = 4
 
 
-# Type de composante dont nous supportons
+# Type de composante que nous supportons
 class Type(Enum):
     Batterie = 1
     LED = 2
@@ -203,17 +203,15 @@ class InfosComposantes:
 
     @staticmethod
     def infos_amperemetre(sens):
-        nom = "Amperemetre"
-        direction = sens
+        nom = "Ampèremètre"
         affichage = 0
-        return [nom, direction, affichage]
+        return [nom,affichage]
 
     @staticmethod
     def infos_voltmetre(sens):
-        nom = "Voltmetre"
-        direction = sens
+        nom = "Voltmètre"
         affichage = 0
-        return [nom, direction, affichage]
+        return [nom, affichage]
 
     def liste_a_ajouter(self, composante, sens):
         nom = composante.nom
@@ -282,9 +280,11 @@ class InfosComposantes:
                 if valeur != nombre.value():
                     infos_batterie = infos_batterie[0:2]
                     infos_batterie.append(nombre.value())
-                    return infos_batterie, valeur, nombre.value()
+                    return infos_batterie, valeur
+                else:
+                    return None, None
         else:
-            return None, None, None
+            return None, None
 
     @staticmethod
     def fenetre_resistor(infos_resistor):
@@ -322,9 +322,12 @@ class InfosComposantes:
             if valeur != nombre.value():
                 infos_resistor = infos_resistor[0:2]
                 infos_resistor.append(nombre.value())
-                return infos_resistor, valeur, nombre.value()
+                return infos_resistor, valeur
+            else:
+                return None, None
+
         else:
-            return None, None, None
+            return None, None
 
     @staticmethod
     def retourner_image(liste):
