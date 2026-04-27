@@ -11,6 +11,7 @@ from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
 from circuit_libre import Circuit, GraphicsView
 
+
 class Mode(Enum):
     Libre = 1
     Niveau = 2
@@ -225,7 +226,6 @@ class AmperePro(QMainWindow):
         progressions = [0, 0, 0, 0, 0]
 
         for i in range(5):
-
             ligne_widget = QWidget()
             ligne_layout = QHBoxLayout()
             ligne_widget.setLayout(ligne_layout)
@@ -238,9 +238,7 @@ class AmperePro(QMainWindow):
             barre_progression.setFixedWidth(140)
 
             bouton_niveau = ToolTipButton(descriptions[sujet][i + 1], "Niveau " + str(i + 1))
-            bouton_niveau.clicked.connect(
-                lambda checked=False, s=sujet, n=i + 1: self.ouvrir_niveau(s, n)
-            )
+            bouton_niveau.clicked.connect(lambda _, n=i + 1: self.ouvrir_niveau(sujet, n))
 
             label_difficulte = QLabel(difficultes[i])
             label_difficulte.setFixedWidth(80)
@@ -257,9 +255,8 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(retour_arriere)
 
     def ouvrir_niveau(self, sujet, niveau):
-        self.window_niveau = NiveauWindow(sujet, niveau, self.retour_sujets)
-        self.window_niveau.setModal(True)
-        self.window_niveau.open()
+        niveau_window = NiveauWindow(sujet, niveau, self.retour_sujets)
+        niveau_window.exec()
 
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)
