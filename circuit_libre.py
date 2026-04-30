@@ -1164,10 +1164,17 @@ class Circuit(QGraphicsScene):
         collision_gauche = self.verifier_collision_fil(QPointF(x - self.taille_grid, y))
         collision_haut = self.verifier_collision_fil(QPointF(x, y + self.taille_grid))
         collision_bas = self.verifier_collision_fil(QPointF(x, y - self.taille_grid))
+        collision_haut_droite = self.verifier_collision_fil(QPointF(x + self.taille_grid, y + self.taille_grid))
+        collision_haut_gauche = self.verifier_collision_fil(QPointF(x - self.taille_grid, y + self.taille_grid))
+        collision_bas_gauche = self.verifier_collision_fil(QPointF(x - self.taille_grid, y - self.taille_grid))
+        collision_bas_droite = self.verifier_collision_fil(QPointF(x + self.taille_grid, y - self.taille_grid))
 
         if collision_centre == 0 or verdict == False:
             # on ne peut pas mettre une composante dans le vide. si elle ne touche aucun fil (collision_centre = 0),
             # on ignore. La composante ne peut pas non plus toucher plus d'un fil, d'où les 4 autres conditions
+            self.accepter_positionnement = False
+
+        elif collision_haut_droite != 0 or collision_haut_gauche != 0 or collision_bas_droite != 0 or collision_bas_gauche != 0:
             self.accepter_positionnement = False
 
         else:

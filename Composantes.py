@@ -139,7 +139,7 @@ class Composante:
         pixmap_item.setZValue(1)
         self.item_instance = pixmap_item
 
-        # Retourner pour l'ajouter à la scène
+        # Retourner l'item pour l'ajouter à la scène
         return pixmap_item
 
     def clicked(self):

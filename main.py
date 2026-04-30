@@ -54,6 +54,13 @@ class AmperePro(QMainWindow):
         documentation_action.triggered.connect(self.ouvrir_documentation)
         self.menu_aide.addAction(documentation_action)
 
+        # ajout du guide au menu aide
+        #TODO: modifier image
+        guide_action = QAction("Guide Mode Libre", self)
+        guide_action.setIcon(QIcon("images/menubar/guide.png"))
+        guide_action.triggered.connect(self.telecharger_guide)
+        self.menu_aide.addAction(guide_action)
+
         self.menu_bar.addMenu(self.menu_aide)
 
         # Quitter
@@ -327,6 +334,10 @@ class AmperePro(QMainWindow):
         self.menu_bar.addMenu(self.menu_aide)
         self.menu_bar.addAction(self.quitter_action)
         self.toolbar.clear()
+
+    def telecharger_guide(self):
+        # TODO: je pense que le nom de la méthode est assez explicite
+        pass
 
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre
