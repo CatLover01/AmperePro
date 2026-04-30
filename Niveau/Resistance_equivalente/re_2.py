@@ -115,3 +115,4 @@ class NiveauRE2(QWidget):
     def retour(self):
         if self.retour_callback:
             self.retour_callback()
+
