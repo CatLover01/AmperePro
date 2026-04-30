@@ -1165,7 +1165,7 @@ class Circuit(QGraphicsScene):
         collision_haut = self.verifier_collision_fil(QPointF(x, y + self.taille_grid))
         collision_bas = self.verifier_collision_fil(QPointF(x, y - self.taille_grid))
 
-        if collision_centre == 0 or verdict == "refuser":
+        if collision_centre == 0 or verdict == False:
             # on ne peut pas mettre une composante dans le vide. si elle ne touche aucun fil (collision_centre = 0),
             # on ignore. La composante ne peut pas non plus toucher plus d'un fil, d'où les 4 autres conditions
             self.accepter_positionnement = False
@@ -1252,7 +1252,7 @@ class Circuit(QGraphicsScene):
             positions_refusees.append(QPointF(x_position, y_position + self.taille_grid))
             positions_refusees.append(QPointF(x_position, y_position - self.taille_grid))
 
-            # il ne peut pas y avoir 3 composantes "back à back" sur le même fil"
+            # il ne peut pas y avoir 2 composantes "back à back" sur le même fil"
             if self.sens_composante() == "droite" or self.sens_composante() == "gauche":
                 positions_refusees.append(QPointF(x_position + 2 * self.taille_grid, y_position))
                 positions_refusees.append(QPointF(x_position - 2 * self.taille_grid, y_position))
@@ -1261,9 +1261,9 @@ class Circuit(QGraphicsScene):
                 positions_refusees.append(QPointF(x_position, y_position + 2 * self.taille_grid))
                 positions_refusees.append(QPointF(x_position, y_position - 2 * self.taille_grid))
 
-        verdict = "accepter"
+        verdict = True
         if QPointF(position.x(), position.y()) in positions_refusees:
-            verdict = "refuser"
+            verdict = False
 
         return verdict
 

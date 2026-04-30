@@ -256,7 +256,7 @@ class InfosComposantes:
         sous_layout.addWidget(texte)
         # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes) avec une décimale de précision
         nombre = QDoubleSpinBox()
-        nombre.setRange(0, 999.9)
+        nombre.setRange(0, 9999.9)
         nombre.setDecimals(1)
         # on donne au line edit la valeur actuelle de tension (10v si aucune modification)
         valeur = infos_batterie[-1]
@@ -299,7 +299,7 @@ class InfosComposantes:
         sous_layout.addWidget(texte)
         # on veut que la résistance inscrite soit un nombre entre 0 et 10000 (résistances réalistes) avec une décimale de précision
         nombre = QDoubleSpinBox()
-        nombre.setRange(0, 9999.9)
+        nombre.setRange(0, 9999999.9)
         nombre.setDecimals(1)
         # on donne au line edit la valeur actuelle de tension (10v si aucune modification)
         valeur = infos_resistor[-1]

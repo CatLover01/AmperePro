@@ -15,8 +15,8 @@ class NiveauOhm5(QWidget):
 
         self.questions = [
             ("images/Niveau/ohm/5/Circuit 5-1.png", 4.67),
-            ("images/Niveau/ohm/5/Circuit 5-2.png", 2.75),
-            ("images/Niveau/ohm/5/Circuit 5-3.png", 4),
+            ("images/Niveau/ohm/5/Circuit 5-2.png", 4),
+            ("images/Niveau/ohm/5/Circuit 5-3.png", 2.75),
             ("images/Niveau/ohm/5/Circuit 5-4.png", 5),
             ("images/Niveau/ohm/5/Circuit 5-5.png", 4),
         ]
