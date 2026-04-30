@@ -2,53 +2,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QMessageBox, QScrollArea
+    QPushButton, QMessageBox, QScrollArea, QRadioButton, QButtonGroup
 )
 
-
-class ChoixCircuit(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.choix = None
-
-        layout = QHBoxLayout()
-        self.setLayout(layout)
-
-        self.btn_serie = QPushButton("+")
-        self.btn_parallele = QPushButton("-")
-        self.btn_mixte = QPushButton("Série + Parallèle")
-
-        self.btn_serie.clicked.connect(self.select_serie)
-        self.btn_parallele.clicked.connect(self.select_parallele)
-        self.btn_mixte.clicked.connect(self.select_mixte)
-
-        layout.addWidget(self.btn_serie)
-        layout.addWidget(self.btn_parallele)
-        layout.addWidget(self.btn_mixte)
-
-    def reset_styles(self):
-        self.btn_serie.setStyleSheet("")
-        self.btn_parallele.setStyleSheet("")
-        self.btn_mixte.setStyleSheet("")
-
-    def select_serie(self):
-        self.choix = "serie"
-        self.reset_styles()
-        self.btn_serie.setStyleSheet("border: 2px solid yellow;")
-
-    def select_parallele(self):
-        self.choix = "parallele"
-        self.reset_styles()
-        self.btn_parallele.setStyleSheet("border: 2px solid yellow;")
-
-    def select_mixte(self):
-        self.choix = "mixte"
-        self.reset_styles()
-        self.btn_mixte.setStyleSheet("border: 2px solid yellow;")
-
-    def get_choix(self):
-        return self.choix
+DOSSIER_IMAGES = "images/Niveau/kirchoff/2/"
 
 
 class NiveauKirchoff2(QWidget):
@@ -59,14 +16,62 @@ class NiveauKirchoff2(QWidget):
         self.questions_widgets = []
 
         self.questions = [
-            ("images/Resistance_equivalente/Niveau 1/RE-circuit1.png", "serie"),
-            ("images/Resistance_equivalente/Niveau 1/RE-circuit2.png", "serie"),
-            ("images/Resistance_equivalente/Niveau 1/RE-circuit3.png", "mixte"),
-            ("images/Resistance_equivalente/Niveau 1/RE-circuit4.png", "mixte"),
-            ("images/Resistance_equivalente/Niveau 1/RE-circuit5.png", "mixte"),
-            ("images/Resistance_equivalente/Niveau 1/RE-circuit6.png", "mixte"),
+            {
+                "image": DOSSIER_IMAGES + "circuitk_2.1.png",
+                "question": "15-12I\u2081-5I\u2082-7?=0",
+                "type": "lettre",
+                "reponse": "I₁",
+            },
+            {
+                "image": DOSSIER_IMAGES + "circuitk_2.2.png",
+                "question": "15-12I\u2081?5-7I\u2081=0",
+                "type": "symbole",
+                "reponse": "-",
+            },
+            {
+                "image": DOSSIER_IMAGES + "circuitk_2.3.png",
+                "question": "15-12I\u2081-2?-7I\u2082=0",
+                "type": "lettre",
+                "reponse": "I₃",
+            },
+            {
+                "image": DOSSIER_IMAGES + "circuitk_2.4.png",
+                "question": "À partir de la maille FEBAF\n"
+                            "?6I\u2082+12-5I\u2081=0",
+                "type": "symbole",
+                "reponse": "+",
+            },
+            {
+                "image": DOSSIER_IMAGES + "circuitk_2.4.png",
+                "question": "À partir de la maille DCBED\n"
+                            "-100I\u2083?12-6I\u2082=0",
+                "type": "symbole",
+                "reponse": "-",
+            }
+
         ]
 
+        main_layout = QVBoxLayout()
+
+        titre = QLabel("Loi de Kirchoff - Niveau 2 ")
+        titre.setAlignment(Qt.AlignCenter)
+        police = QFont()
+        police.setPointSize(28)
+        titre.setFont(police)
+        main_layout.addWidget(titre)
+
+        consigne = QLabel("Remplacer le symbole ? par la bonne réponse")
+        consigne.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(consigne)
+
+        for question in self.questions:
+            self.ajouter_question(
+                main_layout,
+                question["image"],
+                question["question"],
+                question["type"],
+                question["reponse"],
+            )
         layout_exterieur = QVBoxLayout()
         self.setLayout(layout_exterieur)
 
@@ -76,34 +81,7 @@ class NiveauKirchoff2(QWidget):
 
         contenu = QWidget()
         scroll.setWidget(contenu)
-
-        main_layout = QVBoxLayout()
         contenu.setLayout(main_layout)
-
-        titre = QLabel("loi de kirchoff - Niveau 2")
-        titre.setAlignment(Qt.AlignCenter)
-        police = QFont()
-        police.setPointSize(28)
-        titre.setFont(police)
-        main_layout.addWidget(titre)
-
-        consigne = QLabel("Identifie si chaque circuit est en série, en parallèle ou mixte.")
-        consigne.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(consigne)
-
-        rappel = QLabel(
-            "Série : Req = R1 + R2 + ...\n"
-            "Parallèle : 1/Req = 1/R1 + 1/R2 + ...\n"
-            "Mixte : combinaison série et parallèle"
-        )
-        rappel.setAlignment(Qt.AlignCenter)
-        police_rappel = QFont()
-        police_rappel.setPointSize(16)
-        rappel.setFont(police_rappel)
-        main_layout.addWidget(rappel)
-
-        for path, bonne_rep in self.questions:
-            self.ajouter_question(main_layout, path, bonne_rep)
 
         boutons = QHBoxLayout()
 
@@ -121,32 +99,81 @@ class NiveauKirchoff2(QWidget):
 
         main_layout.addLayout(boutons)
 
-    def ajouter_question(self, layout, image_path, bonne_reponse):
-        bloc = QVBoxLayout()
+    def ajouter_question(self, main_layout, image_path, texte_question, type_question, bonne_reponse):
+        bloc = QHBoxLayout()
+        bloc.setSpacing(20)
 
         image_label = QLabel()
         pixmap = QPixmap(image_path)
 
         if not pixmap.isNull():
-            image_label.setPixmap(pixmap.scaledToWidth(700))
+            image_label.setPixmap(
+                pixmap.scaledToWidth(400, Qt.TransformationMode.SmoothTransformation)
+            )
         else:
             image_label.setText("Image introuvable : " + image_path)
 
-        image_label.setAlignment(Qt.AlignCenter)
+            image_label.setAlignment(Qt.AlignCenter)
+
+        ligne_question = QVBoxLayout()
+
+        label_question = QLabel(texte_question)
+
+        label_question.setWordWrap(True)
+        font = QFont()
+        font.setPointSize(18)
+        font.setBold(True)
+        label_question.setFont(font)
+
+
+        ligne_question.addWidget(label_question)
+
+        if type_question == "symbole":
+            btn_plus = QRadioButton("+")
+            btn_moins = QRadioButton("-")
+
+            groupe = QButtonGroup(self)
+            groupe.addButton(btn_plus)
+            groupe.addButton(btn_moins)
+            groupe.setExclusive(True)
+
+            ligne_question.addWidget(btn_plus)
+            ligne_question.addWidget(btn_moins)
+
+        elif type_question == "lettre":
+            btn_i1 = QRadioButton("I₁")
+            btn_i2 = QRadioButton("I₂")
+            btn_i3 = QRadioButton("I₃")
+
+            groupe = QButtonGroup(self)
+            groupe.addButton(btn_i1)
+            groupe.addButton(btn_i2)
+            groupe.addButton(btn_i3)
+            groupe.setExclusive(True)
+
+            ligne_question.addWidget(btn_i1)
+            ligne_question.addWidget(btn_i2)
+            ligne_question.addWidget(btn_i3)
+
+        self.questions_widgets.append((groupe, bonne_reponse))
+
+        bloc.addLayout(ligne_question)
         bloc.addWidget(image_label)
 
-        choix_widget = ChoixCircuit()
-        bloc.addWidget(choix_widget)
 
-        layout.addLayout(bloc)
+        ligne_question.addStretch()
+        ligne_question.addSpacing(10)
+        ligne_question.addSpacing(5)
+        ligne_question.addStretch()
 
-        self.questions_widgets.append((choix_widget, bonne_reponse))
+        main_layout.addLayout(bloc)
 
     def valider(self):
         bonnes = 0
 
-        for widget, bonne_rep in self.questions_widgets:
-            if widget.get_choix() == bonne_rep:
+        for groupe, bonne_rep in self.questions_widgets:
+            btn = groupe.checkedButton()
+            if btn and btn.text() == bonne_rep:
                 bonnes += 1
 
         QMessageBox.information(

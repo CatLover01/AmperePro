@@ -1,6 +1,6 @@
 import random
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QFile, QTextStream
 from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, \
     QScrollArea, QCheckBox
@@ -9,6 +9,12 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 class NiveauKirchoff1(QWidget):
     def __init__(self, retour_callback=None):
         super().__init__()
+
+        style_niveau = QFile("StyleSheet/StyleMainWindow.qss")
+        if style_niveau.open(QFile.OpenModeFlag.ReadOnly):
+            stream = QTextStream(style_niveau)
+            self.setStyleSheet(stream.readAll())
+            style_niveau.close()
 
         self.retour_callback = retour_callback
         self.reponses = []
