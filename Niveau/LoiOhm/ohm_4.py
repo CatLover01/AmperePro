@@ -34,7 +34,7 @@ class NiveauOhm4(QWidget):
                 "bonne_position": 1,
             },
             {
-                "image": "images/Niveau/ohm/4/circuit4-3.png",
+                "image": "images/Niveau/ohm/4/circuit4-2.png",
                 "bonne_position": 2,
             },
             {

@@ -47,7 +47,7 @@ class NiveauKirchoff3(QWidget):
             {
                 "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
                 "texte": "Une des mailles dans le circuit en partant du point A",
-                "reponse": "'ABEFA',ABCDEFA",
+                "reponse": "'ABEFA',ABCDEFA, AFEBA, AFEDCBA",
 
             },
             {

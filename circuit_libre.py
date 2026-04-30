@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDial
 import math
 import numpy as np
 
+import sauvegarde
 from Button import ToolTipButton
 from Composantes import toolbar_composantes, InfosComposantes
 from sauvegarde import Sauvegarde
@@ -15,6 +16,30 @@ class Noeud:
         self.voltage = 0
         self.info_voisins = []
         self.pos = pos
+
+    @property
+    def voltage(self):
+        return self.voltage
+
+    @voltage.setter
+    def voltage(self, voltage):
+        self.voltage = voltage
+
+    @property
+    def voisins(self):
+        return self.info_voisins
+
+    @voisins.setter
+    def voisins(self, voisins):
+        self.info_voisins = voisins
+
+    @property
+    def position(self):
+        return self.pos
+
+    @position.setter
+    def position(self, position):
+        self.pos = position
 
     # Rajoute un fil lié et l'autre noeud qui touche au fil
     def ajouter_info(self, fil, noeud_voisin, scene):
@@ -76,6 +101,54 @@ class Fil:
 
         self.tension = 0
         self.resistance = 0
+
+    @property
+    def points(self):
+        return self.points
+
+    @points.setter
+    def points(self, points):
+        self.points = points
+
+    @property
+    def noeuds(self):
+        return self.noeuds
+
+    @noeuds.setter
+    def noeuds(self, noeuds):
+        self.noeuds = noeuds
+
+    @property
+    def lignes(self):
+        return self.lignes
+
+    @lignes.setter
+    def lignes(self, lignes):
+        self.lignes = lignes
+
+    @property
+    def composantes(self):
+        return self.composantes
+
+    @composantes.setter
+    def composantes(self, composantes):
+        self.composantes = composantes
+
+    @property
+    def tension(self):
+        return self.tension
+
+    @tension.setter
+    def tension(self, tension):
+        self.tension = tension
+
+    @property
+    def resistance(self):
+        return self.resistance
+
+    @ resistance.setter
+    def resistance(self, resistance):
+        self.resistance = resistance
 
     # Calcul la tension et la résistance relative dans le fil
     def calculs(self):
@@ -267,6 +340,262 @@ class Circuit(QGraphicsScene):
         quitter_action.setShortcut("Ctrl+Q")
         quitter_action.triggered.connect(self.main_window.close)
         self.menu_naviguer.addAction(quitter_action)
+
+    @property
+    def taille_grid(self):
+        return self.taille_grid
+
+    @taille_grid.setter
+    def taille_grid(self, taille_grid):
+        self.taille_grid = taille_grid
+
+    @property
+    def mat_i0(self):
+        return self.mat_i0
+
+    @mat_i0.setter
+    def mat_i0(self, mat_i0):
+        self.mat_i0 = mat_i0
+
+    @property
+    def mat_j0(self):
+        return self.mat_j0
+
+    @mat_j0.setter
+    def mat_j0(self, mat_j0):
+        self.mat_j0 = mat_j0
+
+    @property
+    def debut_matrice_i(self):
+        return self.debut_matrice_i
+
+    @debut_matrice_i.setter
+    def debut_matrice_i(self, debut_matrice_i):
+        self.debut_matrice_i = debut_matrice_i
+
+    @property
+    def debut_matrice_j(self):
+        return self.debut_matrice_j
+
+    @debut_matrice_j.setter
+    def debut_matrice_j(self, debut_matrice_j):
+        self.debut_matrice_j = debut_matrice_j
+
+    @property
+    def dessine(self):
+        return self.dessine
+
+    @dessine.setter
+    def dessine(self, dessine):
+        self.dessine = dessine
+
+    @property
+    def dernier_point(self):
+        return self.dernier_point
+
+    @dernier_point.setter
+    def dernier_point(self, dernier_point):
+        self.dernier_point = dernier_point
+
+    @property
+    def lignes(self):
+        return self.lignes
+
+    @lignes.setter
+    def lignes(self, lignes):
+        self.lignes = lignes
+
+    @property
+    def noeuds(self):
+        return self.noeuds
+
+    @noeuds.setter
+    def noeuds(self, noeuds):
+        self.noeuds = noeuds
+
+    @property
+    def points_avant_pivot(self):
+        return self.points_avant_pivot
+
+    @points_avant_pivot.setter
+    def points_avant_pivot(self, points_avant_pivot):
+        self.points_avant_pivot = points_avant_pivot
+
+    @property
+    def fil_complet(self):
+        return self.fil_complet
+
+    @fil_complet.setter
+    def fil_complet(self, fil_complet):
+        self.fil_complet = fil_complet
+
+    @property
+    def nouveau_fil(self):
+        return self.nouveau_fil
+
+    @nouveau_fil.setter
+    def nouveau_fil(self, nouveau_fil):
+        self.nouveau_fil = nouveau_fil
+
+    @property
+    def fils(self):
+        return self.fils
+
+    @fils.setter
+    def fils(self, fils):
+        self.fils = fils
+
+    @property
+    def sauvegarde(self):
+        return self.sauvegarde
+
+    @sauvegarde.setter
+    def sauvegarde(self, sauvegarder):
+        self.sauvegarde = sauvegarder
+
+    @property
+    def id(self):
+        return self.id
+
+    @id.setter
+    def id(self, id_id):
+        self.id = id_id
+
+    @property
+    def ajouts(self):
+        return self.ajouts
+
+    @ajouts.setter
+    def ajouts(self, ajouts):
+        self.ajouts = ajouts
+
+    @property
+    def composantes_jetes(self):
+        return self.composantes_jetes
+
+    @composantes_jetes.setter
+    def composantes_jetes(self, composantes_jetes):
+        self.composantes_jetes = composantes_jetes
+
+    @property
+    def fils_jetes(self):
+        return self.fils_jetes
+
+    @fils_jetes.setter
+    def fils_jetes(self, fils_jetes):
+        self.fils_jetes = fils_jetes
+
+    @property
+    def dernier_jetes(self):
+        return self.dernier_jetes
+
+    @dernier_jetes.setter
+    def dernier_jetes(self, dernier_jetes):
+        self.dernier_jetes = dernier_jetes
+
+    @property
+    def modifications(self):
+        return self.modifications
+
+    @modifications.setter
+    def modifications(self, modifications):
+        self.modifications = modifications
+
+    @property
+    def operations(self):
+        return self.operations
+
+    @operations.setter
+    def operations(self, operations):
+        self.operations = operations
+
+    @property
+    def selection(self):
+        return self.selection
+
+    @selection.setter
+    def selection(self, selection):
+        self.selection = selection
+
+    @property
+    def composante_selectionnee(self):
+        return self.composante_selectionnee
+
+    @composante_selectionnee.setter
+    def composante_selectionnee(self, composante_selectionnee):
+        self.composante_selectionnee = composante_selectionnee
+
+    @property
+    def image_composante(self):
+        return self.image_composante
+
+    @image_composante.setter
+    def image_composante(self, image_composante):
+        self.image_composante = image_composante
+
+    @property
+    def accepter_modification(self):
+        return self.accepter_modification
+
+    @accepter_modification.setter
+    def accepter_modification(self, accepter_modification):
+        self.accepter_modification = accepter_modification
+
+    @property
+    def accepter_positionnement(self):
+        return self.accepter_positionnement
+
+    @accepter_positionnement.setter
+    def accepter_positionnement(self, accepter_positionnement):
+        self.accepter_positionnement = accepter_positionnement
+
+    @property
+    def zones_surbrillance(self):
+        return self.zones_surbrillance
+
+    @zones_surbrillance.setter
+    def zones_surbrillance(self, zones_surbrillance):
+        self.zones_surbrillance = zones_surbrillance
+
+    @property
+    def zones_blanches(self):
+        return self.zones_blanches
+
+    @zones_blanches.setter
+    def zones_blanches(self, zones_blanches):
+        self.zones_blanches = zones_blanches
+
+    @property
+    def grid_par_dessus(self):
+        return self.grid_par_dessus
+
+    @grid_par_dessus.setter
+    def grid_par_dessus(self, grid_par_dessus):
+        self.grid_par_dessus = grid_par_dessus
+
+    @property
+    def composantes(self):
+        return self.composantes
+
+    @composantes.setter
+    def composantes(self, composantes):
+        self.composantes = composantes
+
+    @property
+    def nombre_de_rotations(self):
+        return self.nombre_de_rotations
+
+    @nombre_de_rotations.setter
+    def nombre_de_rotations(self, nombre_de_rotations):
+        self.nombre_de_rotations = nombre_de_rotations
+
+    @property
+    def infos_composantes(self):
+        return self.infos_composantes
+
+    @infos_composantes.setter
+    def infos_composantes(self, infos_composantes):
+        self.infos_composantes = infos_composantes
 
     def sauvegarder_triggered(self):
         # Si l'id est None, on demande un nom pour le circuit + on le créé

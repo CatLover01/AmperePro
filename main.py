@@ -176,16 +176,6 @@ class AmperePro(QMainWindow):
 
             main_layout.addWidget(circuit_button)
 
-        gif_electricite = QMovie("images/interface/mode_libre.gif")
-
-        label = QLabel()
-        label.setMovie(gif_electricite)
-        label.setScaledContents(True)
-        label.resize(200, 500)
-        gif_electricite.start()
-
-        main_layout.addWidget(label)
-
         # Nouvelle Section Mode libre
         add_circuit_button = QPushButton()
         add_circuit_button.setText("Créer un nouveau circuit")
