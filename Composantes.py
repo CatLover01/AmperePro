@@ -205,7 +205,7 @@ class InfosComposantes:
     def infos_amperemetre(sens):
         nom = "Ampèremètre"
         affichage = 0
-        return [nom,affichage]
+        return [nom, affichage]
 
     @staticmethod
     def infos_voltmetre(sens):
@@ -275,14 +275,13 @@ class InfosComposantes:
         verifier_return = fenetre.exec()
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
-        if verifier_return == QDialog.Accepted:
-            if verifier_return == QDialog.Accepted:
-                if valeur != nombre.value():
-                    infos_batterie = infos_batterie[0:2]
-                    infos_batterie.append(nombre.value())
-                    return infos_batterie, valeur
-                else:
-                    return None, None
+        if verifier_return == QDialog.DialogCode.Accepted:
+            if valeur != nombre.value():
+                infos_batterie = infos_batterie[0:2]
+                infos_batterie.append(nombre.value())
+                return infos_batterie, valeur
+            else:
+                return None, None
         else:
             return None, None
 
@@ -318,7 +317,7 @@ class InfosComposantes:
         verifier_return = fenetre.exec()
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
-        if verifier_return == QDialog.Accepted:
+        if verifier_return == QDialog.DialogCode.Accepted:
             if valeur != nombre.value():
                 infos_resistor = infos_resistor[0:2]
                 infos_resistor.append(nombre.value())
@@ -333,7 +332,7 @@ class InfosComposantes:
     def retourner_image(liste):
         nom_composante = liste[0]
         sens = liste[1]
-        classe = composantes.get(nom_composante)
+        classe = toolbar_composantes.get(nom_composante)
         image = classe.image_circuit
         nouveau_sens = ""
         if sens == "haut":
@@ -356,11 +355,3 @@ toolbar_composantes = {
     Type.Interrupteur: Interrupteur(),
     Type.Voltmetre: Voltmetre(),
     Type.Amperemetre: Amperemetre()}
-
-composantes = {"Batterie": Batterie(),
-               "LED": LED(),
-               "Résistor": Resistor(),
-               "Diode": Diode(),
-               "Interrupteur": Interrupteur(),
-               "Voltmètre": Voltmetre(),
-               "Ampèremètre": Amperemetre()}
