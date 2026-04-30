@@ -5,6 +5,8 @@ from PySide6.QtWidgets import (
     QPushButton, QMessageBox, QScrollArea
 )
 
+from Niveau.definitions import Sujet
+
 
 class CaseNumero(QPushButton):
     def __init__(self, index_case, parent_niveau):
@@ -19,9 +21,10 @@ class CaseNumero(QPushButton):
 
 
 class NiveauOhm4(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.numero_selectionne = None
         self.cases = []
@@ -215,20 +218,22 @@ class NiveauOhm4(QWidget):
                 QMessageBox.warning(self, "Résultat", "Il manque des numéros à placer.")
                 return
 
-        bonnes = 0
+        bonne_reponses = 0
+
 
         for i, circuit in enumerate(self.circuits):
             numero_place = int(self.cases[i].text())
             if numero_place == circuit["bonne_position"]:
-                bonnes += 1
+                bonne_reponses += 1
 
-        if bonnes == len(self.circuits):
+        self.update_niveau(Sujet.Ohm, 4, bonne_reponses)
+        if bonne_reponses == len(self.circuits):
             QMessageBox.information(self, "Résultat", "Bravo ! L'ordre est correct.")
         else:
             QMessageBox.warning(
                 self,
                 "Résultat",
-                f"Tu as {bonnes} bonne(s) position(s) sur {len(self.circuits)}."
+                f"Tu as {bonne_reponses} bonne(s) position(s) sur {len(self.circuits)}."
             )
 
     def retour(self):

@@ -5,6 +5,8 @@ from PySide6.QtWidgets import (
     QPushButton, QMessageBox, QScrollArea, QRadioButton, QButtonGroup
 )
 
+from Niveau.definitions import Sujet
+
 
 class ChoixCircuit(QWidget):
     def __init__(self):
@@ -14,7 +16,7 @@ class ChoixCircuit(QWidget):
 
         layout = QHBoxLayout()
         layout.setSpacing(25)
-        layout.setAlignment(Qt.AlignCenter)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setLayout(layout)
 
         self.btn_serie = QRadioButton("Série")
@@ -54,9 +56,10 @@ class ChoixCircuit(QWidget):
 
 
 class NiveauRE1(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.questions_widgets = []
         self.fenetre_doc = None
@@ -94,14 +97,14 @@ class NiveauRE1(QWidget):
         contenu.setLayout(main_layout)
 
         titre = QLabel("Résistance équivalente - Niveau 1")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
         police.setPointSize(28)
         titre.setFont(police)
         main_layout.addWidget(titre)
 
         consigne = QLabel("Identifie si chaque circuit est en série, en parallèle ou mixte.")
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
         for path, bonne_rep in self.questions:
@@ -134,7 +137,7 @@ class NiveauRE1(QWidget):
         else:
             image_label.setText("Image introuvable : " + image_path)
 
-        image_label.setAlignment(Qt.AlignCenter)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         bloc.addWidget(image_label)
 
         choix_widget = ChoixCircuit()
@@ -151,7 +154,7 @@ class NiveauRE1(QWidget):
         parent_window = self.window()
 
         self.fenetre_doc = DocumentationWindow(parent_window)
-        self.fenetre_doc.setWindowModality(Qt.NonModal)
+        self.fenetre_doc.setWindowModality(Qt.WindowModality.NonModal)
 
         style_docu = QFile("StyleSheet/StyleDocumentation.qss")
         if style_docu.open(QFile.OpenModeFlag.ReadOnly):
@@ -164,16 +167,17 @@ class NiveauRE1(QWidget):
         self.fenetre_doc.activateWindow()
 
     def valider(self):
-        bonnes = 0
+        bonne_reponses = 0
 
         for widget, bonne_rep in self.questions_widgets:
             if widget.get_choix() == bonne_rep:
-                bonnes += 1
+                bonne_reponses += 1
 
+        self.update_niveau(Sujet.Resistance, 1, bonne_reponses)
         QMessageBox.information(
             self,
             "Résultat",
-            f"{bonnes} bonnes réponses sur {len(self.questions_widgets)}"
+            f"{bonne_reponses} bonnes réponses sur {len(self.questions_widgets)}"
         )
 
     def retour(self):
