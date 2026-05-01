@@ -5,6 +5,8 @@ from dataclasses import dataclass, asdict
 from dacite import from_dict
 import uuid
 
+from Niveau.definitions import Sujet
+
 
 @dataclass
 class CircuitLibre:
@@ -18,19 +20,36 @@ class Sauvegarde:
     def __init__(self):
         try:
             # Données utilisateur: Niveau atteint, circuits personnalisés
-            # Format attendu: {"Niveau": int, "circuits_libre": list}
             self.data = read("data.json")
         except (FileNotFoundError, JSONDecodeError):
             # Création d'un état par défaut si la sauvegarde n'existe pas ou malformé
             self.initialize_defaults()
 
     def initialize_defaults(self):
-        default_data = {"circuits-libre": []}
+        default_data = {"circuits-libre": [], "niveau": {
+            Sujet.Ohm.value: [0, 0, 0, 0, 0],
+            Sujet.Kirchoff.value: [0, 0, 0, 0, 0],
+            Sujet.Resistance.value: [0, 0, 0, 0, 0]
+        }}
         write("data.json", default_data)
         self.data = default_data
 
+    def progression_niveaux(self, sujet: Sujet) -> list[int]:
+        try:
+            return self.data["niveau"][sujet.value]
+        except:
+            # Data malformé
+            self.initialize_defaults()
+            return [0, 0, 0, 0, 0]
+
+    def update_niveau(self, sujet: Sujet, niveau: int, point: int):
+        current_points = self.data["niveau"][sujet.value][niveau - 1]
+        if current_points < point:
+            self.data["niveau"][sujet.value][niveau - 1] = point
+            write("data.json", self.data)
+
     def delete_circuit(self, id: str):
-        for circuit in self.data["circuits-libre"] :
+        for circuit in self.data["circuits-libre"]:
             if circuit["id"] == id:
                 self.data["circuits-libre"].remove(circuit)
                 write("data.json", self.data)

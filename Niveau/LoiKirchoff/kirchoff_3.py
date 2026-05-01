@@ -1,23 +1,20 @@
-from PySide6.QtCore import Qt, QRegularExpression, QFile, QTextStream
+from PySide6.QtCore import Qt, QRegularExpression
 from PySide6.QtGui import QFont, QPixmap, QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QMessageBox, QScrollArea
 )
 
+from Niveau.definitions import Sujet
+
 DOSSIER_IMAGES = "images/Niveau/kirchoff/3/"
 
 
 class NiveauKirchoff3(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
-        style_niveau = QFile("StyleSheet/StyleNiveau.qss")
-        if style_niveau.open(QFile.OpenModeFlag.ReadOnly):
-            stream = QTextStream(style_niveau)
-            self.setStyleSheet(stream.readAll())
-            style_niveau.close()
-
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
 
@@ -53,17 +50,17 @@ class NiveauKirchoff3(QWidget):
             {
                 "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
                 "texte": "Une des mailles dans le circuit en partant du point A",
-                "reponse": "ABEFA,ABCDEFA",
+                "reponse": "'ABEFA',ABCDEFA, AFEBA, AFEDCBA",
 
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
                 "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
                 "reponse": "12-4I2-6I3=0",
 
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
                 "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
                 "reponse": "-6+6I2+6-3I1",
 
@@ -153,7 +150,7 @@ class NiveauKirchoff3(QWidget):
         return f"{gauche}-{droite}"
 
     def valider_reponses(self):
-        bonnes = 0
+        bonne_reponses = 0
         total = len(self.reponses)
 
         for champ, bonne_reponse in self.reponses:
@@ -167,17 +164,18 @@ class NiveauKirchoff3(QWidget):
                 eq_correcte = self.normaliser_equation(bonne_reponse)
 
                 if eq_reponse == eq_correcte:
-                    bonnes += 1
+                    bonne_reponses += 1
             except ValueError:
                 pass
 
-        if bonnes == total:
+        self.update_niveau(Sujet.Kirchoff, 3, bonne_reponses)
+        if bonne_reponses == total:
             QMessageBox.information(self, "Résultat", "Bravo ! Toutes les réponses sont bonnes.")
         else:
             QMessageBox.warning(
                 self,
                 "Résultat",
-                "Tu as " + str(bonnes) + " bonne(s) réponse(s) sur " + str(total) + "."
+                "Tu as " + str(bonne_reponses) + " bonne(s) réponse(s) sur " + str(total) + "."
             )
 
     def retour(self):

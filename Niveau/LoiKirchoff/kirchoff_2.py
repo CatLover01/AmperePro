@@ -5,13 +5,16 @@ from PySide6.QtWidgets import (
     QPushButton, QMessageBox, QScrollArea, QRadioButton, QButtonGroup
 )
 
+from Niveau.definitions import Sujet
+
 DOSSIER_IMAGES = "images/Niveau/kirchoff/2/"
 
 
 class NiveauKirchoff2(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.questions_widgets = []
 
@@ -54,14 +57,14 @@ class NiveauKirchoff2(QWidget):
         main_layout = QVBoxLayout()
 
         titre = QLabel("Loi de Kirchoff - Niveau 2 ")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
         police.setPointSize(28)
         titre.setFont(police)
         main_layout.addWidget(titre)
 
         consigne = QLabel("Remplacer le symbole ? par la bonne réponse")
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
         for question in self.questions:
@@ -113,7 +116,7 @@ class NiveauKirchoff2(QWidget):
         else:
             image_label.setText("Image introuvable : " + image_path)
 
-            image_label.setAlignment(Qt.AlignCenter)
+            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         ligne_question = QVBoxLayout()
 
@@ -128,6 +131,7 @@ class NiveauKirchoff2(QWidget):
 
         ligne_question.addWidget(label_question)
 
+        groupe = None
         if type_question == "symbole":
             btn_plus = QRadioButton("+")
             btn_moins = QRadioButton("-")
@@ -169,17 +173,18 @@ class NiveauKirchoff2(QWidget):
         main_layout.addLayout(bloc)
 
     def valider(self):
-        bonnes = 0
+        bonne_reponses = 0
 
         for groupe, bonne_rep in self.questions_widgets:
             btn = groupe.checkedButton()
             if btn and btn.text() == bonne_rep:
-                bonnes += 1
+                bonne_reponses += 1
 
+        self.update_niveau(Sujet.Kirchoff, 2, bonne_reponses)
         QMessageBox.information(
             self,
             "Résultat",
-            f"{bonnes} bonnes réponses sur {len(self.questions_widgets)}"
+            f"{bonne_reponses} bonnes réponses sur {len(self.questions_widgets)}"
         )
 
     def retour(self):
