@@ -2,6 +2,7 @@ from enum import Enum
 
 from PySide6.QtWidgets import QVBoxLayout, QDialog
 
+from Niveau.LoiKirchoff.Kirchoff_4 import NiveauKirchoff4
 from Niveau.LoiOhm.ohm_1 import NiveauOhm1
 from Niveau.LoiOhm.ohm_2 import NiveauOhm2
 from Niveau.LoiOhm.ohm_3 import NiveauOhm3
@@ -10,6 +11,7 @@ from Niveau.LoiOhm.ohm_5 import NiveauOhm5
 from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
 from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
 from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
+#from Niveau.LoiKirchoff.kirchoff_4 import NiveauKirchoff4
 from Niveau.Resistance_equivalente.re_1 import NiveauRE1
 
 
@@ -28,7 +30,7 @@ descriptions = {
         5: "..."
     },
     Sujet.Kirchoff: {
-        1: "...",
+        1: "Identification des ",
         2: "...",
         3: "...",
         4: "...",
@@ -72,6 +74,8 @@ class NiveauWindow(QDialog):
             widget = NiveauKirchoff2(self.quitter)
         elif sujet == Sujet.Kirchoff and niveau == 3:
             widget = NiveauKirchoff3(self.quitter)
+        elif sujet == Sujet.Kirchoff and niveau == 4:
+            widget = NiveauKirchoff4(self.quitter)
 
         elif sujet == Sujet.Resistance and niveau == 1:
             widget = NiveauRE1(self.quitter)

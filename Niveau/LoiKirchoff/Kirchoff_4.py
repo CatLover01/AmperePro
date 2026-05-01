@@ -1,0 +1,229 @@
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QMessageBox, QScrollArea, QRadioButton, QButtonGroup, QComboBox, QLineEdit
+)
+
+
+class NiveauKirchoff4(QWidget):
+    def __init__(self, retour_callback=None):
+        super().__init__()
+
+        self.retour_callback = retour_callback
+        self.questions_widgets = []
+
+        self.questions = [
+            {
+                "question": "Coche un noeud valide",
+                "type": "noeud",
+                "reponse": "B",
+            },
+            {
+                "question": "Coche deux mailles valide",
+                "type": "mailles",
+                "reponse": ["AFEBA", "EDCBAFE"]
+            },
+            {
+                "question": "A partir dès mailles trouvées au numero précédent\n écrit les équations",
+                "type": "equation",
+                "reponse": ["-3I1+6I2=0", "-8I3-3I1-11=0"]
+            },
+            {
+                "question": "À partir de la maille trouvée au numero précédent\n"
+                            " isoler I\u2083 et I\u2081",
+                "type": "isoler",
+                "reponse": ["I\u2083 = -0,375*I\u2081 - 1,375", "I\u2081 = 2I\u2082"]
+            },
+            {
+                "question": "À partir de la loi des noeuds Isole I\u2082\n"
+                            " indice utilise les équation trouvées au numéros précédents",
+                "type": "isolerNoeud",
+                "reponse": "I\u2082 = 1,375*I\u2081+ 1,375",
+            },
+            {
+                "question": "Déterminer I\u2082 ",
+                "type": "reponse",
+                "reponse": "-0,5"
+            }
+        ]
+
+        main_layout = QVBoxLayout()
+
+        titre = QLabel("Loi de Kirchoff - Niveau 4 ")
+        titre.setAlignment(Qt.AlignCenter)
+        police = QFont()
+        police.setPointSize(28)
+        titre.setFont(police)
+        main_layout.addWidget(titre)
+
+        consigne = QLabel("Déterminez le courant circulant dans chaque branche du circuit.")
+        consigne.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(consigne)
+
+        image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/4/circuit_k_4.1"))
+        image_circuit.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        main_layout.addWidget(image_circuit)
+
+        for question in self.questions:
+            self.ajouter_question(
+                main_layout,
+                question["question"],
+                question["type"],
+                question["reponse"],
+            )
+        layout_exterieur = QVBoxLayout()
+        self.setLayout(layout_exterieur)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        layout_exterieur.addWidget(scroll)
+
+        contenu = QWidget()
+        scroll.setWidget(contenu)
+        contenu.setLayout(main_layout)
+
+        boutons = QHBoxLayout()
+
+        valider = QPushButton("Valider")
+        valider.clicked.connect(self.valider)
+
+        retour = QPushButton("Retour")
+        retour.clicked.connect(self.retour)
+
+        boutons.addStretch()
+        boutons.addWidget(valider)
+        boutons.addSpacing(20)
+        boutons.addWidget(retour)
+        boutons.addStretch()
+
+        main_layout.addLayout(boutons)
+
+    def ajouter_question(self, main_layout, image_path, texte_question, type_question, bonne_reponse):
+        bloc = QHBoxLayout()
+        bloc.setSpacing(20)
+
+        image_label = QLabel()
+        pixmap = QPixmap(image_path)
+
+        if not pixmap.isNull():
+            image_label.setPixmap(
+                pixmap.scaledToWidth(400, Qt.TransformationMode.SmoothTransformation)
+            )
+        else:
+            image_label.setText("Image introuvable : " + image_path)
+
+            image_label.setAlignment(Qt.AlignCenter)
+
+        ligne_question = QVBoxLayout()
+
+        label_question = QLabel(texte_question)
+
+        label_question.setWordWrap(True)
+        font = QFont()
+        font.setPointSize(18)
+        font.setBold(True)
+        label_question.setFont(font)
+
+        ligne_question.addWidget(label_question)
+
+        if type_question == "noeud":
+            btn_A = QRadioButton("A")
+            btn_B = QRadioButton("B")
+            btn_C = QRadioButton("C")
+
+            groupe = QButtonGroup(self)
+            groupe.addButton(btn_A)
+            groupe.addButton(btn_B)
+            groupe.addButton(btn_C)
+
+            groupe.setExclusive(True)
+
+            ligne_question.addWidget(btn_A)
+            ligne_question.addWidget(btn_B)
+            ligne_question.addWidget(btn_C)
+
+        elif type_question == "mailles":
+
+            choix1 = ["ABEF", "ABC", "AFEBA", "FEDF"]
+            choix2 = ["EDCBAFE", "FEBC", "AFDC", "FEDF"]
+
+            combo = QComboBox()
+            combo2 = QComboBox()
+
+            for i in choix1:
+                combo.addItem(i)
+            for i in choix2:
+                combo2.addItem(i)
+
+            ligne_question.addWidget(combo)
+            ligne_question.addWidget(combo2)
+
+        elif type_question == "equation":
+            champ_reponse1 = QLineEdit()
+            champ_reponse2 = QLineEdit()
+
+            champ_reponse1.setInputMask("-9\I\u2081+9\I\u2083=0;_")
+            champ_reponse2.setInputMask("XXI\u2083XXI\u2081XXX=0;_")
+
+            ligne_question.addWidget(champ_reponse1)
+            ligne_question.addWidget(champ_reponse2)
+
+        elif type_question == "isoler":
+
+            choix1 = ["I\u2083 = -0,375*I\u2081 - 1,375", "I\u2083 = +0,375*I\u2081 + 1,375"]
+            choix2 = ["I\u2081 = 0,5I\u2082", "I\u2081 = -2I\u2082", "I\u2081 = 2I\u2082"]
+
+            combo1 = QComboBox()
+            combo2 = QComboBox()
+
+            for i in choix1:
+                combo1.addItem(i)
+            for i in choix2:
+                combo2.addItem(i)
+
+            ligne_question.addWidget(combo1)
+            ligne_question.addWidget(combo2)
+
+        elif type_question == "isolerNoeud":
+            choix = ["I\u2082 = 1,375*I\u2081+ 1,375","I\u2082 = -1,375*I\u2081- 1,375","I\u2082 = -0,375*I\u2081+ 1,375"]
+
+            combo = QComboBox()
+
+            for i in choix:
+                combo.addItem(i)
+
+            ligne_question.addWidget(combo)
+        elif type_question == "reponse":
+            champ_reponse1 = QLineEdit()
+            ligne_question.addWidget(champ_reponse1)
+
+        self.questions_widgets.append((groupe, bonne_reponse))
+
+        bloc.addLayout(ligne_question)
+        bloc.addWidget(image_label)
+
+        ligne_question.addStretch()
+        ligne_question.addSpacing(10)
+        ligne_question.addSpacing(5)
+        ligne_question.addStretch()
+
+        main_layout.addLayout(bloc)
+
+    def valider(self):
+        bonnes = 0
+
+        for groupe, bonne_rep in self.questions_widgets:
+            btn = groupe.checkedButton()
+            if btn and btn.text() == bonne_rep:
+                bonnes += 1
+
+        QMessageBox.information(
+            self,
+            "Résultat",
+            f"{bonnes} bonnes réponses sur {len(self.questions_widgets)}"
+        )
+
+    def retour(self):
+        if self.retour_callback:
+            self.retour_callback()

@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QRegularExpression
+from PySide6.QtCore import Qt, QRegularExpression, QFile, QTextStream
 from PySide6.QtGui import QFont, QPixmap, QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
@@ -11,6 +11,12 @@ DOSSIER_IMAGES = "images/Niveau/kirchoff/3/"
 class NiveauKirchoff3(QWidget):
     def __init__(self, retour_callback=None):
         super().__init__()
+
+        style_niveau = QFile("StyleSheet/StyleNiveau.qss")
+        if style_niveau.open(QFile.OpenModeFlag.ReadOnly):
+            stream = QTextStream(style_niveau)
+            self.setStyleSheet(stream.readAll())
+            style_niveau.close()
 
         self.retour_callback = retour_callback
         self.reponses = []
@@ -47,17 +53,17 @@ class NiveauKirchoff3(QWidget):
             {
                 "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
                 "texte": "Une des mailles dans le circuit en partant du point A",
-                "reponse": "'ABEFA',ABCDEFA",
+                "reponse": "ABEFA,ABCDEFA",
 
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
                 "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
                 "reponse": "12-4I2-6I3=0",
 
             },
             {
-                "image": DOSSIER_IMAGES + "circuit_k_3.3.png",
+                "image": DOSSIER_IMAGES + "circuit_k_3.1.png",
                 "texte": "Trouve l'Équation pour la maille FEBAF\n ne pas mettre les indices exemple: I\u2082=I2",
                 "reponse": "-6+6I2+6-3I1",
 

@@ -121,7 +121,7 @@ class NiveauOhm1(QWidget):
         titre_section = QLabel(lettre + " :")
         police = QFont()
         police.setPointSize(16)
-        police.setBold(True)  # optionnel mais joli
+        police.setBold(True)
         titre_section.setFont(police)
 
         titre_section.setAlignment(Qt.AlignmentFlag.AlignLeft)
