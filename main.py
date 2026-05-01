@@ -1,5 +1,5 @@
 from PySide6.QtCore import QFile, QTextStream
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
@@ -342,12 +342,12 @@ class AmperePro(QMainWindow):
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre
         if isinstance(self.centralWidget(), GraphicsView):
-            resultat = self.nouveau_circuit.quitter_triggered()
-            if resultat == "oui":
+            success = self.nouveau_circuit.quitter_triggered()
+            if success:
                 event.accept()
             else:
                 event.ignore()
-                self.nouveau_circuit.allouer_fermeture = "oui"
+                self.nouveau_circuit.allouer_fermeture = True
         else:
             event.accept()
 

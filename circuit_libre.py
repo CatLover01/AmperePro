@@ -5,7 +5,6 @@ from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDial
 import math
 import numpy as np
 
-import sauvegarde
 from Button import ToolTipButton
 from Composantes import toolbar_composantes, InfosComposantes
 from sauvegarde import Sauvegarde
@@ -318,7 +317,7 @@ class Circuit(QGraphicsScene):
         self.barre_menu = self.main_window.menuBar()
         self.menu_options = self.barre_menu.addMenu("Options")
         self.menu_naviguer = self.barre_menu.addMenu("Naviguer")
-        self.allouer_fermeture = "oui"
+        self.allouer_fermeture = True
 
         # sauvegarder
         sauvegarder_action = QAction("Sauvegarder", self)
@@ -801,7 +800,7 @@ class Circuit(QGraphicsScene):
         self.main_window.close()
 
     def refuser_fermeture(self):
-        self.allouer_fermeture = "non"
+        self.allouer_fermeture = False
 
     # première méthode non liée au menu à propos
     # Dessine le fond et le grid
