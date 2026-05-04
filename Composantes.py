@@ -329,12 +329,19 @@ class InfosComposantes:
             return None, None
 
     @staticmethod
+    def fenetre_voltmetre(infos_voltmetre):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Voltmètre")
+        fenetre.setFixedSize(150,400)
+        fenetre.exec()
+
+
+    @staticmethod
     def retourner_image(liste):
         nom_composante = liste[0]
         sens = liste[1]
         classe = toolbar_composantes.get(nom_composante)
         image = classe.image_circuit
-        nouveau_sens = ""
         if sens == "haut":
             nouveau_sens = "bas"
         elif sens == "bas":
