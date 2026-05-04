@@ -1765,7 +1765,9 @@ class Circuit(QGraphicsScene):
 
         elif decision == "Voltmètre":
             self.infos_composantes.fenetre_voltmetre(element)
-            print("Allo")
+
+        else:
+            self.infos_composantes.fenetre_amperemetre(element)
 
 
     def ouvrir_ferme_interrupteur(self, nouvelle_image, ancienne_image, element, index):
