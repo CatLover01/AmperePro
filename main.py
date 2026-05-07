@@ -1,11 +1,12 @@
 from PySide6.QtCore import QFile, QTextStream
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QMovie
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
 from Button import RightClickButton, ToolTipButton
-from Niveau.niveau import Sujet, descriptions, NiveauWindow
+from Niveau.window import NiveauWindow
+from Niveau.definitions import Sujet, DetailNiveau, INFO_NIVEAUX
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
@@ -176,16 +177,6 @@ class AmperePro(QMainWindow):
 
             main_layout.addWidget(circuit_button)
 
-        gif_electricite = QMovie("images/interface/mode_libre.gif")
-
-        label = QLabel()
-        label.setMovie(gif_electricite)
-        label.setScaledContents(True)
-        label.resize(200, 500)
-        gif_electricite.start()
-
-        main_layout.addWidget(label)
-
         # Nouvelle Section Mode libre
         add_circuit_button = QPushButton()
         add_circuit_button.setText("Créer un nouveau circuit")
@@ -230,21 +221,27 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(subtitle)
 
         difficultes = ["★☆☆☆☆", "★★☆☆☆", "★★★☆☆", "★★★★☆", "★★★★★"]
-        progressions = [0, 0, 0, 0, 0]
+        progressions = self.sauvegarde.progression_niveaux(sujet)
 
         for i in range(5):
             ligne_widget = QWidget()
             ligne_layout = QHBoxLayout()
             ligne_widget.setLayout(ligne_layout)
 
-            barre_progression = QProgressBar()
-            barre_progression.setMinimum(0)
-            barre_progression.setMaximum(100)
-            barre_progression.setValue(progressions[i])
-            barre_progression.setFormat(str(progressions[i]) + "%")
-            barre_progression.setFixedWidth(140)
+            niveau = INFO_NIVEAUX[sujet][i + 1]
+            total_points = niveau[DetailNiveau.PointTotal]
+            description = niveau[DetailNiveau.Description]
 
-            bouton_niveau = ToolTipButton(descriptions[sujet][i + 1], "Niveau " + str(i + 1))
+            barre_progression = QProgressBar()
+            barre_progression.setFixedWidth(175)
+            if total_points is not None:
+                barre_progression.setMaximum(total_points)
+                barre_progression.setValue(progressions[i])
+                # Conversion en int pour éviter de garder les décimals pour la beauté
+                barre_progression.setFormat(str(int(progressions[i]/total_points * 100)) + " %")
+
+            # TODO: blocker l'utilisateur si il a en bas de 60% au niveau précédent?
+            bouton_niveau = ToolTipButton(description, "Niveau " + str(i + 1))
             bouton_niveau.clicked.connect(lambda _, n=i + 1: self.ouvrir_niveau(sujet, n))
 
             label_difficulte = QLabel(difficultes[i])
@@ -262,8 +259,11 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(retour_arriere)
 
     def ouvrir_niveau(self, sujet, niveau):
-        niveau_window = NiveauWindow(sujet, niveau, self.retour_sujets)
+        niveau_window = NiveauWindow(sujet, niveau, self.sauvegarde.update_niveau)
         niveau_window.exec()
+
+        # Lors de la fermeture de la fenêtre, on reload la fenêtre avec la nouvelle progression
+        self.afficher_niveaux_sujet(sujet)
 
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)
@@ -342,12 +342,12 @@ class AmperePro(QMainWindow):
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre
         if isinstance(self.centralWidget(), GraphicsView):
-            resultat = self.nouveau_circuit.quitter_triggered()
-            if resultat == "oui":
+            success = self.nouveau_circuit.quitter_triggered()
+            if success:
                 event.accept()
             else:
                 event.ignore()
-                self.nouveau_circuit.allouer_fermeture = "oui"
+                self.nouveau_circuit.allouer_fermeture = True
         else:
             event.accept()
 

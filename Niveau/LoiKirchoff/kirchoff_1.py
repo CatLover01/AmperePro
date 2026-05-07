@@ -5,9 +5,11 @@ from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, \
     QScrollArea, QCheckBox
 
+from Niveau.definitions import Sujet
+
 
 class NiveauKirchoff1(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
         style_niveau = QFile("StyleSheet/StyleMainWindow.qss")
@@ -16,6 +18,7 @@ class NiveauKirchoff1(QWidget):
             self.setStyleSheet(stream.readAll())
             style_niveau.close()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
 
@@ -111,20 +114,21 @@ class NiveauKirchoff1(QWidget):
         main_layout.addLayout(boutons_layout)
 
     def valider_reponses(self):
-        bonnes = 0
+        bonne_reponses = 0
         total = len(self.reponses)
 
         for checkbox, bonne_reponse in self.reponses:
             if checkbox.isChecked() == bonne_reponse:
-                bonnes += 1
+                bonne_reponses += 1
 
-        if bonnes == total:
+        self.update_niveau(Sujet.Kirchoff, 1, bonne_reponses)
+        if bonne_reponses == total:
             QMessageBox.information(self, "Résultat", "Bravo ! Toutes les réponses sont bonnes.")
         else:
             QMessageBox.warning(
                 self,
                 "Résultat",
-                "Tu as " + str(bonnes) + " bonne(s) réponse(s) sur " + str(total) + "."
+                "Tu as " + str(bonne_reponses) + " bonne(s) réponse(s) sur " + str(total) + "."
             )
 
     def retour(self):

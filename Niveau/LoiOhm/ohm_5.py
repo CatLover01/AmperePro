@@ -5,11 +5,14 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QMessageBox, QScrollArea
 )
 
+from Niveau.definitions import Sujet
+
 
 class NiveauOhm5(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
 
@@ -107,20 +110,21 @@ class NiveauOhm5(QWidget):
         self.reponses.append((champ, bonne_reponse))
 
     def valider_reponses(self):
-        bonnes = 0
+        bonne_reponses = 0
 
         for champ, bonne_reponse in self.reponses:
             try:
                 valeur = float(champ.text().replace(",", "."))
                 if abs(valeur - bonne_reponse) < 0.05:
-                    bonnes += 1
+                    bonne_reponses += 1
             except ValueError:
                 pass
 
+        self.update_niveau(Sujet.Ohm, 5, bonne_reponses)
         QMessageBox.information(
             self,
             "Résultat",
-            f"{bonnes} bonnes réponses sur {len(self.reponses)}"
+            f"{bonne_reponses} bonnes réponses sur {len(self.reponses)}"
         )
 
     def retour(self):

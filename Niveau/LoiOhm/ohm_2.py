@@ -4,11 +4,14 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, QScrollArea
 
+from Niveau.definitions import Sujet
+
 
 class NiveauOhm2(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
 
@@ -170,7 +173,7 @@ class NiveauOhm2(QWidget):
         main_layout.addSpacing(15)
 
     def valider_reponses(self):
-        bonnes = 0
+        bonne_reponses = 0
         total = len(self.reponses)
 
         for champ, bonne_reponse in self.reponses:
@@ -179,17 +182,18 @@ class NiveauOhm2(QWidget):
             try:
                 valeur = float(texte)
                 if valeur == bonne_reponse:
-                    bonnes += 1
+                    bonne_reponses += 1
             except ValueError:
                 pass
 
-        if bonnes == total:
-            QMessageBox.information(self, "Résultat", "Bravo ! Toutes les réponses sont bonnes.")
+        self.update_niveau(Sujet.Ohm, 2, bonne_reponses)
+        if bonne_reponses == total:
+            QMessageBox.information(self, "Résultat", "Bravo ! Toutes les réponses sont bonne_reponses.")
         else:
             QMessageBox.warning(
                 self,
                 "Résultat",
-                "Tu as " + str(bonnes) + " bonne(s) réponse(s) sur " + str(total) + "."
+                "Tu as " + str(bonne_reponses) + " bonne(s) réponse(s) sur " + str(total) + "."
             )
 
     def retour(self):

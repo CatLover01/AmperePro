@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from enum import Enum
 
+from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QPixmap, Qt, QTransform
 from PySide6.QtWidgets import QGraphicsPixmapItem, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
@@ -202,13 +203,13 @@ class InfosComposantes:
         return [nom, direction, etat]
 
     @staticmethod
-    def infos_amperemetre(sens):
+    def infos_amperemetre():
         nom = "Ampèremètre"
         affichage = 0
         return [nom, affichage]
 
     @staticmethod
-    def infos_voltmetre(sens):
+    def infos_voltmetre():
         nom = "Voltmètre"
         affichage = 0
         return [nom, affichage]
@@ -227,9 +228,9 @@ class InfosComposantes:
         elif nom == "Interrupteur":
             retourne = self.infos_interrupteur(sens)
         elif nom == "Ampèremètre":
-            retourne = self.infos_amperemetre(sens)
+            retourne = self.infos_amperemetre()
         elif nom == "Voltmètre":
-            retourne = self.infos_voltmetre(sens)
+            retourne = self.infos_voltmetre()
 
         return retourne
 
@@ -329,12 +330,72 @@ class InfosComposantes:
             return None, None
 
     @staticmethod
+    def fenetre_voltmetre(infos_voltmetre):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Voltmètre")
+        fenetre.setFixedSize(240,350)
+
+        # image qui simule le voltmètre
+        image = QLabel(parent = fenetre)
+        pixmap = QPixmap("images/interface/voltmetre.png")
+        image.setPixmap(pixmap)
+        image.setScaledContents(True)
+        image.setGeometry(QRect(0, 110, 240, 270))
+
+        # on simule l'affichage du voltmètre
+        fond = QLabel(parent = fenetre)
+        fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
+        fond.setGeometry(4,0,232,110)
+        voltage = str(infos_voltmetre[-1])
+        texte = QLabel(voltage, parent = fenetre)
+        texte.setStyleSheet("font-size: 50pt; color: #000000")
+        texte.setGeometry(4,0,232,110)
+        texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        """texte_volt = QLabel("V", parent = fenetre)
+        texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
+        texte_volt.setGeometry(4, 0, 232, 110)
+        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )"""
+
+        texte.raise_()
+        fenetre.exec()
+
+    @staticmethod
+    def fenetre_amperemetre(infos_amperemetre):
+            fenetre = QDialog()
+            fenetre.setWindowTitle("Ampèremètre")
+            fenetre.setFixedSize(240, 350)
+
+            # image qui simule l'ampèremètre
+            image = QLabel(parent=fenetre)
+            pixmap = QPixmap("images/interface/amperemetre.png")
+            image.setPixmap(pixmap)
+            image.setScaledContents(True)
+            image.setGeometry(QRect(0, 110, 240, 270))
+
+            # on simule l'affichage du voltmètre
+            fond = QLabel(parent=fenetre)
+            fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
+            fond.setGeometry(4, 0, 232, 110)
+            amperage = str(infos_amperemetre[-1])
+            texte = QLabel(amperage, parent=fenetre)
+            texte.setStyleSheet("font-size: 50pt; color: #000000")
+            texte.setGeometry(4, 0, 232, 110)
+            texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            """texte_volt = QLabel("V", parent = fenetre)
+            texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
+            texte_volt.setGeometry(4, 0, 232, 110)
+            texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )"""
+
+            texte.raise_()
+            fenetre.exec()
+
+
+    @staticmethod
     def retourner_image(liste):
         nom_composante = liste[0]
         sens = liste[1]
         classe = toolbar_composantes.get(nom_composante)
         image = classe.image_circuit
-        nouveau_sens = ""
         if sens == "haut":
             nouveau_sens = "bas"
         elif sens == "bas":

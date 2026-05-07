@@ -2,6 +2,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QAction
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMenu, QMessageBox, QScrollArea
 
+from Niveau.definitions import Sujet
+
 
 class TrouButton(QPushButton):
     def __init__(self, options):
@@ -27,9 +29,10 @@ class TrouButton(QPushButton):
 
 
 class NiveauOhm1(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.bonnes_reponses = {}
 
@@ -162,16 +165,17 @@ class NiveauOhm1(QWidget):
 
     def valider_reponses(self):
         total = len(self.bonnes_reponses)
-        bonnes = 0
+        bonne_reponses = 0
 
         for bouton, bonne_reponse in self.bonnes_reponses.items():
             if bouton.reponse_choisie == bonne_reponse:
-                bonnes += 1
+                bonne_reponses += 1
 
-        if bonnes == total:
+        self.update_niveau(Sujet.Ohm, 1, bonne_reponses)
+        if bonne_reponses == total:
             QMessageBox.information(self, "Résultat", "Bravo ! Toutes les réponses sont bonnes.")
         else:
-            QMessageBox.warning(self, "Résultat", f"Tu as {bonnes} bonne(s) réponse(s) sur {total}.")
+            QMessageBox.warning(self, "Résultat", f"Tu as {bonne_reponses} bonne(s) réponse(s) sur {total}.")
 
     def retour(self):
         if self.retour_callback is not None:
