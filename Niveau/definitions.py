@@ -64,11 +64,11 @@ INFO_NIVEAUX = {
         },
         2: {
             DetailNiveau.Description: "...",
-            DetailNiveau.PointTotal: None,
+            DetailNiveau.PointTotal: 5,
         },
         3: {
             DetailNiveau.Description: "...",
-            DetailNiveau.PointTotal: None,
+            DetailNiveau.PointTotal: 2,
         },
         4: {
             DetailNiveau.Description: "...",
