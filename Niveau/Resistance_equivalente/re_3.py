@@ -1,34 +1,24 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QMessageBox, QScrollArea, QLineEdit
 )
 
 
-class NiveauRE2(QWidget):
+class NiveauRE3(QWidget):
     def __init__(self, retour_callback=None, update_niveau=None):
         super().__init__()
 
         self.retour_callback = retour_callback
+        self.update_niveau = update_niveau
+
         self.questions_widgets = []
 
-        # (question, réponse)
+        # image + réponse
         self.questions = [
-            # Série
-            ("Circuit en série :\nReq = 15 Ω\nR1 = 5 Ω\nR2 = 4 Ω\nR3 = ?", 6),
-
-            # Parallèle
-            ("Circuit en parallèle à 3 branches :\nReq = 2 Ω\nR1 = 6 Ω\nR2 = 3 Ω\nR3 = ?", 6),
-
-            # Parallèle
-            ("Circuit en parallèle à 4 branches :\nReq = 1 Ω\nR1 = 2 Ω\nR2 = 2 Ω\nR3 = 2 Ω\nR4 = ?", 2),
-
-            # Série
-            ("Circuit en série :\nReq = 20 Ω\nR1 = 8 Ω\nR2 = ?\nR3 = 5 Ω", 7),
-
-            # Parallèle
-            ("Circuit en parallèle à 3 branches :\nReq = 3 Ω\nR1 = 6 Ω\nR2 = ?\nR3 = 6 Ω", 6),
+            ("images/niveau/Résistance équivalente/3/RE3-circuit1.png", 2),
+            ("images/niveau/Résistance équivalente/3/RE3-circuit2.png", 2),
         ]
 
         layout_exterieur = QVBoxLayout()
@@ -45,21 +35,28 @@ class NiveauRE2(QWidget):
         contenu.setLayout(main_layout)
 
         # Titre
-        titre = QLabel("Résistance équivalente - Niveau 2")
+        titre = QLabel("Résistance équivalente - Niveau 3")
         titre.setAlignment(Qt.AlignCenter)
+
         police = QFont()
         police.setPointSize(28)
+
         titre.setFont(police)
+
         main_layout.addWidget(titre)
 
         # Consigne
-        consigne = QLabel("Trouve la résistance inconnue dans chaque circuit.")
+        consigne = QLabel(
+            "Calcule la résistance équivalente de chaque circuit."
+        )
+
         consigne.setAlignment(Qt.AlignCenter)
+
         main_layout.addWidget(consigne)
 
         # Questions
-        for texte, reponse in self.questions:
-            self.ajouter_question(main_layout, texte, reponse)
+        for image_path, reponse in self.questions:
+            self.ajouter_question(main_layout, image_path, reponse)
 
         # Boutons
         boutons = QHBoxLayout()
@@ -78,31 +75,75 @@ class NiveauRE2(QWidget):
 
         main_layout.addLayout(boutons)
 
-    def ajouter_question(self, layout, texte, bonne_reponse):
+    def ajouter_question(self, layout, image_path, bonne_reponse):
+
         bloc = QVBoxLayout()
 
-        label = QLabel(texte)
-        label.setAlignment(Qt.AlignCenter)
-        label.setFont(QFont("", 14))
-        bloc.addWidget(label)
+        # Image
+        image_label = QLabel()
 
+        pixmap = QPixmap(image_path)
+
+        if not pixmap.isNull():
+            image_label.setPixmap(
+                pixmap.scaledToWidth(
+                    900
+                )
+            )
+        else:
+            image_label.setText(
+                "Image introuvable : " + image_path
+            )
+
+        image_label.setAlignment(Qt.AlignCenter)
+
+        bloc.addWidget(image_label)
+
+        # Question
+        question = QLabel(
+            "Quelle est la résistance équivalente dans ce circuit ?"
+        )
+
+        question.setAlignment(Qt.AlignCenter)
+
+        question.setFont(QFont("", 14))
+
+        bloc.addWidget(question)
+
+        # Input
         input_field = QLineEdit()
-        input_field.setPlaceholderText("Réponse en Ω")
+
+        input_field.setPlaceholderText(
+            "Réponse en Ω"
+        )
+
         input_field.setFixedWidth(200)
-        bloc.addWidget(input_field, alignment=Qt.AlignCenter)
+
+        bloc.addWidget(
+            input_field,
+            alignment=Qt.AlignCenter
+        )
 
         layout.addLayout(bloc)
 
-        self.questions_widgets.append((input_field, bonne_reponse))
+        self.questions_widgets.append(
+            (input_field, bonne_reponse)
+        )
 
     def valider(self):
+
         bonnes = 0
 
         for input_field, bonne_rep in self.questions_widgets:
+
             try:
-                valeur = float(input_field.text())
+                valeur = float(
+                    input_field.text().replace(",", ".")
+                )
+
                 if valeur == bonne_rep:
                     bonnes += 1
+
             except:
                 pass
 
@@ -113,6 +154,6 @@ class NiveauRE2(QWidget):
         )
 
     def retour(self):
+
         if self.retour_callback:
             self.retour_callback()
-
