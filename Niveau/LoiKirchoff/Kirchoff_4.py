@@ -52,14 +52,14 @@ class NiveauKirchoff4(QWidget):
         main_layout = QVBoxLayout()
 
         titre = QLabel("Loi de Kirchoff - Niveau 4 ")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
         police.setPointSize(28)
         titre.setFont(police)
         main_layout.addWidget(titre)
 
         consigne = QLabel("Déterminez le courant circulant dans chaque branche du circuit.")
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
         image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/4/circuit_k_4.1.png"))
@@ -114,7 +114,7 @@ class NiveauKirchoff4(QWidget):
         else:
             image_label.setText("Image introuvable : " + image_path)
 
-            image_label.setAlignment(Qt.AlignCenter)
+            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         ligne_question = QVBoxLayout()
 

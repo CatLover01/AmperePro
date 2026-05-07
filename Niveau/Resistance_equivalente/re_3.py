@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 
 
 class NiveauRE3(QWidget):
-    def __init__(self, retour_callback=None, update_niveau=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
         self.retour_callback = retour_callback
@@ -36,7 +36,7 @@ class NiveauRE3(QWidget):
 
         # Titre
         titre = QLabel("Résistance équivalente - Niveau 3")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         police = QFont()
         police.setPointSize(28)
@@ -50,7 +50,7 @@ class NiveauRE3(QWidget):
             "Calcule la résistance équivalente de chaque circuit."
         )
 
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         main_layout.addWidget(consigne)
 
@@ -95,7 +95,7 @@ class NiveauRE3(QWidget):
                 "Image introuvable : " + image_path
             )
 
-        image_label.setAlignment(Qt.AlignCenter)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         bloc.addWidget(image_label)
 
@@ -104,7 +104,7 @@ class NiveauRE3(QWidget):
             "Quelle est la résistance équivalente dans ce circuit ?"
         )
 
-        question.setAlignment(Qt.AlignCenter)
+        question.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         question.setFont(QFont("", 14))
 

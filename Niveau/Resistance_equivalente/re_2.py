@@ -46,7 +46,7 @@ class NiveauRE2(QWidget):
 
         # Titre
         titre = QLabel("Résistance équivalente - Niveau 2")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
         police.setPointSize(28)
         titre.setFont(police)
@@ -54,7 +54,7 @@ class NiveauRE2(QWidget):
 
         # Consigne
         consigne = QLabel("Trouve la résistance inconnue dans chaque circuit.")
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
         # Questions
@@ -82,14 +82,14 @@ class NiveauRE2(QWidget):
         bloc = QVBoxLayout()
 
         label = QLabel(texte)
-        label.setAlignment(Qt.AlignCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label.setFont(QFont("", 14))
         bloc.addWidget(label)
 
         input_field = QLineEdit()
         input_field.setPlaceholderText("Réponse en Ω")
         input_field.setFixedWidth(200)
-        bloc.addWidget(input_field, alignment=Qt.AlignCenter)
+        bloc.addWidget(input_field, alignment=Qt.AlignmentFlag.AlignCenter)
 
         layout.addLayout(bloc)
 
