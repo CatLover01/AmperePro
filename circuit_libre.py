@@ -141,14 +141,6 @@ class Fil:
         self._lignes = lignes
 
     @property
-    def composantes(self):
-        return self._composantes
-
-    @composantes.setter
-    def composantes(self, composantes):
-        self._composantes = composantes
-
-    @property
     def tension(self):
         return self._tension
 
@@ -359,7 +351,6 @@ class Circuit(QGraphicsScene):
         self.zones_surbrillance = []
         self.zones_blanches = []
         self.grid_par_dessus = []
-        self.composantes = []
         self.infos_composantes = InfosComposantes()
 
         # Menubar
@@ -675,16 +666,7 @@ class Circuit(QGraphicsScene):
                 # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
             else:
                 # enlever la dernière composante du dessin (donc les 3 dernières infos ajoutées)
-                longueur = len(self.composantes)
-                # on retire tout ce qui est lié à ce qui est enlevé de self.composantes
-                position = self.composantes.pop()
-                image_composante_supprimee = self.composantes.pop()
-                self.composantes.pop()
-
-                # on retire de la scène l'image de la composante, son carré blanc et son grid par dessus
-                self.removeItem(image_composante_supprimee)
-                self.retirer_carre_blanc(position)
-                self.supprimer_lignes_supplementaires(position)
+                pass
 
             self.ajouts.pop()
 
@@ -699,13 +681,6 @@ class Circuit(QGraphicsScene):
                 position = self.composantes_jetes.pop()
                 image = self.composantes_jetes.pop()
                 composante = self.composantes_jetes.pop()
-
-                apres = self.composantes[index*3:]
-                self.composantes = self.composantes[:index*3]
-                self.composantes.append(composante)
-                self.composantes.append(image)
-                self.composantes.append(position)
-                self.composantes.extend(apres)
 
                 # on réajoute au fil la composante "réapparue"
                 # fil = self.verifier_collision_fil(position)
@@ -768,47 +743,16 @@ class Circuit(QGraphicsScene):
                 self.tourner_image_operation(dernier_element[1])
 
             elif operation == "Batterie":
-                    index = dernier_element[1]
-                    volt_avant = dernier_element[2]
-                    element = self.composantes[index-2]
-                    element = element[0:2]
-                    element.append(volt_avant)
-                    apres = self.composantes[index - 1:]
-                    self.composantes = self.composantes[0:index - 2]
-                    self.composantes.append(element)
-                    self.composantes.extend(apres)
+                   #TODO: remttre voltage batterie précédent
+                   pass
 
             elif operation == "Résistor":
-                    index = dernier_element[1]
-                    volt_avant = dernier_element[2]
-                    element = self.composantes[index - 2]
-                    element = element[0:2]
-                    element.append(volt_avant)
-                    apres = self.composantes[index - 1:]
-                    self.composantes = self.composantes[0:index - 2]
-                    self.composantes.append(element)
-                    self.composantes.extend(apres)
+                    #Todo: remettre dernière résistance
+                    pass
 
             elif operation == "Interrupteur":
-                index = dernier_element[2]
-                ancienne_image = self.composantes[index - 1]
-                element = self.composantes[index - 2]
-                self.removeItem(ancienne_image)
-
-                if dernier_element[1] == "ouvert":
-                    # on met l'image de l'interrupteur fermé
-                    nouvelle_image = QPixmap("images/circuit/interrupteur_ferme.png")
-                    # on modifie les données
-                    element = element[0:2]
-                    element.append("fermé")
-                else:
-                    # on met l'image de l'interrupteur ouvert
-                    nouvelle_image = QPixmap("images/circuit/interrupteur_ouvert.png")
-                    # on modifie les données
-                    element = element[0:2]
-                    element.append("ouvert")
-
-                self.ouvrir_ferme_interrupteur(nouvelle_image, ancienne_image, element, index)
+                #Todo: ouvrir ou fermer interrupteur
+                pass
 
         self.operations.pop()
         self.rollback_possible()
@@ -1383,19 +1327,18 @@ class Circuit(QGraphicsScene):
     def poubelle_click(self):
         self.selection = "poubelle"
 
-        emplacements_composantes = self.composantes[2::3]
-        # on indique "l'aire" de chaques composantes
-        for emplacement in emplacements_composantes:
-            # on doit passer du point central au coin supérieur gauche
-            coin_sup_gauche_x = emplacement.x() - self.taille_grid
-            coin_sup_gauche_y = emplacement.y() - self.taille_grid
-            zone_surbrillance = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
+        # TODO: faire en sorte que composante devant souris devienne rouge
+        pass
+        """# on doit passer du point central au coin supérieur gauche
+        coin_sup_gauche_x = emplacement.x() - self.taille_grid
+        coin_sup_gauche_y = emplacement.y() - self.taille_grid
+        zone_surbrillance = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
                                                   self.taille_grid * 2)
-            zone_surbrillance.setOpacity(0.3)
-            zone_surbrillance.setZValue(2)
-            zone_surbrillance.setBrush(QColor(218, 44, 44))
-            self.addItem(zone_surbrillance)
-            self.zones_surbrillance.append(zone_surbrillance)
+        zone_surbrillance.setOpacity(0.3)
+        zone_surbrillance.setZValue(2)
+        zone_surbrillance.setBrush(QColor(218, 44, 44))
+        self.addItem(zone_surbrillance)"""
+
 
     def composante_toolbar_clicked(self, composante):
 
@@ -1484,13 +1427,6 @@ class Circuit(QGraphicsScene):
 
             fil.ajouter_composante(composante)
 
-            # on ajoute les infos de la composante, son image sur la scène et sa position à self.composantes
-            """
-            infos = self.infos_composantes.liste_a_ajouter(composante)
-            self.composantes.append(infos)
-            self.composantes.append(self.image_composante)
-            self.composantes.append(point_milieu)
-            """
             # on reset les variables liées à l'ajout de composantes
             self.accepter_modification = False
             self.image_composante = None
