@@ -394,8 +394,8 @@ class InfosComposantes:
     def retourner_image(liste):
         nom_composante = liste[0]
         sens = liste[1]
-        classe = toolbar_composantes.get(nom_composante)
-        image = classe.image_circuit
+        composante = get_composante_from_name(nom_composante)
+        image = composante.image_circuit
         if sens == "haut":
             nouveau_sens = "bas"
         elif sens == "bas":
@@ -406,6 +406,13 @@ class InfosComposantes:
             nouveau_sens = "droite"
 
         return image, sens, nouveau_sens
+
+def get_composante_from_name(nom: str) -> ComposanteBase | None:
+    for composante in toolbar_composantes.values():
+        if nom == composante.nom:
+            return composante
+
+    return None
 
 
 toolbar_composantes = {
