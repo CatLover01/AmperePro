@@ -7,9 +7,10 @@ from PySide6.QtWidgets import (
 
 
 class NiveauKirchoff4(QWidget):
-    def __init__(self, retour_callback=None):
+    def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
+        self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.questions_widgets = []
 
@@ -61,7 +62,7 @@ class NiveauKirchoff4(QWidget):
         consigne.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(consigne)
 
-        image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/4/circuit_k_4.1"))
+        image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/4/circuit_k_4.1.png"))
         image_circuit.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(image_circuit)
 
@@ -128,20 +129,20 @@ class NiveauKirchoff4(QWidget):
         ligne_question.addWidget(label_question)
 
         if type_question == "noeud":
-            btn_A = QRadioButton("A")
-            btn_B = QRadioButton("B")
-            btn_C = QRadioButton("C")
+            btn_a = QRadioButton("A")
+            btn_b = QRadioButton("B")
+            btn_c = QRadioButton("C")
 
             groupe = QButtonGroup(self)
-            groupe.addButton(btn_A)
-            groupe.addButton(btn_B)
-            groupe.addButton(btn_C)
+            groupe.addButton(btn_a)
+            groupe.addButton(btn_b)
+            groupe.addButton(btn_c)
 
             groupe.setExclusive(True)
 
-            ligne_question.addWidget(btn_A)
-            ligne_question.addWidget(btn_B)
-            ligne_question.addWidget(btn_C)
+            ligne_question.addWidget(btn_a)
+            ligne_question.addWidget(btn_b)
+            ligne_question.addWidget(btn_c)
 
         elif type_question == "mailles":
 
@@ -163,7 +164,7 @@ class NiveauKirchoff4(QWidget):
             champ_reponse1 = QLineEdit()
             champ_reponse2 = QLineEdit()
 
-            champ_reponse1.setInputMask("-9\I\u2081+9\I\u2083=0;_")
+#            champ_reponse1.setInputMask("-9\I\u2081+9\I\u2083=0;_")
             champ_reponse2.setInputMask("XXI\u2083XXI\u2081XXX=0;_")
 
             ligne_question.addWidget(champ_reponse1)
@@ -186,7 +187,8 @@ class NiveauKirchoff4(QWidget):
             ligne_question.addWidget(combo2)
 
         elif type_question == "isolerNoeud":
-            choix = ["I\u2082 = 1,375*I\u2081+ 1,375","I\u2082 = -1,375*I\u2081- 1,375","I\u2082 = -0,375*I\u2081+ 1,375"]
+            choix = ["I\u2082 = 1,375*I\u2081+ 1,375", "I\u2082 = -1,375*I\u2081- 1,375",
+                     "I\u2082 = -0,375*I\u2081+ 1,375"]
 
             combo = QComboBox()
 

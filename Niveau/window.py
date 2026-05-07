@@ -1,5 +1,7 @@
 from PySide6.QtWidgets import QVBoxLayout, QDialog
 
+from Niveau.LoiKirchoff.Kirchoff_4 import NiveauKirchoff4
+from Niveau.LoiKirchoff.kirchoff_5 import NiveauKirchoff5
 from Niveau.LoiOhm.ohm_1 import NiveauOhm1
 from Niveau.LoiOhm.ohm_2 import NiveauOhm2
 from Niveau.LoiOhm.ohm_3 import NiveauOhm3
@@ -42,6 +44,10 @@ class NiveauWindow(QDialog):
             widget = NiveauKirchoff2(self.quitter, update_niveau)
         elif sujet == Sujet.Kirchoff and niveau == 3:
             widget = NiveauKirchoff3(self.quitter, update_niveau)
+        elif sujet == Sujet.Kirchoff and niveau == 4:
+            widget = NiveauKirchoff4(self.quitter, update_niveau)
+        elif sujet == Sujet.Kirchoff and niveau == 5:
+            widget = NiveauKirchoff5(self.quitter, update_niveau)
 
         elif sujet == Sujet.Resistance and niveau == 1:
             widget = NiveauRE1(self.quitter, update_niveau)
