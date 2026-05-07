@@ -110,11 +110,11 @@ class Batterie(ComposanteBase):
         self.points_fil = []
         self.poins_cote = []
         self.items = []
+        self.image_item = None
         self.tension = 10
 
     # Ouvre une fenetre pour changer la tension
     def clique(self):
-
         fenetre = QDialog()
         fenetre.setWindowTitle("Batterie")
         layout_principal = QVBoxLayout()
@@ -166,6 +166,11 @@ class LED(ComposanteBase):
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+
 
 class Resistor(ComposanteBase):
     def __init__(self):
@@ -181,6 +186,7 @@ class Resistor(ComposanteBase):
         self.points_fil = []
         self.poins_cote = []
         self.items = []
+        self.image_item = None
         self.resistance = 1000
 
     # ouvre un dialog pour changer la resistance
@@ -194,7 +200,8 @@ class Resistor(ComposanteBase):
 
         texte = QLabel("Résistance (V): ")
         sous_layout.addWidget(texte)
-        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes) avec une décimale de précision
+        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes)
+        # avec une décimale de précision
         nombre = QDoubleSpinBox()
         nombre.setRange(0, 9999999.9)
         nombre.setDecimals(1)
@@ -236,6 +243,11 @@ class Diode(ComposanteBase):
                          "- Utile pour bloquer le retour de courant ou redresser un signal "
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+
 
 class Interrupteur(ComposanteBase):
     def __init__(self):
@@ -245,6 +257,16 @@ class Interrupteur(ComposanteBase):
                          "- Ouvert : le courant ne passe pas. <br>"
                          "- Fermé : le courant peut passer ( si le circuit est complet )."
                          )
+
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.ferme = False
+
+    def clique(self):
+        # TODO mettre image ouvert/ferme
+        pass
 
 
 class Voltmetre(ComposanteBase):
@@ -257,6 +279,42 @@ class Voltmetre(ComposanteBase):
                          "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit."
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.voltage = 0
+
+    def clique(self):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Voltmètre")
+        fenetre.setFixedSize(240, 350)
+
+        # image qui simule le voltmètre
+        image = QLabel(parent=fenetre)
+        pixmap = QPixmap("images/interface/voltmetre.png")
+        image.setPixmap(pixmap)
+        image.setScaledContents(True)
+        image.setGeometry(QRect(0, 110, 240, 270))
+
+        # on simule l'affichage du voltmètre
+        fond = QLabel(parent=fenetre)
+        fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
+        fond.setGeometry(4, 0, 232, 110)
+        voltage = str(self.voltage)
+        texte = QLabel(voltage, parent=fenetre)
+        texte.setStyleSheet("font-size: 50pt; color: #000000")
+        texte.setGeometry(4, 0, 232, 110)
+        texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        """ Affiche un V dans le voltmetre (a mettre a lamperemetre aussi)
+        texte_volt = QLabel("V", parent=fenetre)
+        texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
+        texte_volt.setGeometry(4, 0, 232, 110)
+        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        """
+        texte.raise_()
+        fenetre.exec()
+
 
 class Amperemetre(ComposanteBase):
     def __init__(self):
@@ -267,6 +325,37 @@ class Amperemetre(ComposanteBase):
                          "- Se branche en série dans la branche où on veut mesurer le courant <br>"
                          "- Idéalement, la résistance dans l'ampèremètre est très faible."
                          )
+
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.amperage = 0
+
+    def clique(self):
+            fenetre = QDialog()
+            fenetre.setWindowTitle("Ampèremètre")
+            fenetre.setFixedSize(240, 350)
+
+            # image qui simule l'ampèremètre
+            image = QLabel(parent=fenetre)
+            pixmap = QPixmap("images/interface/amperemetre.png")
+            image.setPixmap(pixmap)
+            image.setScaledContents(True)
+            image.setGeometry(QRect(0, 110, 240, 270))
+
+            # on simule l'affichage du voltmètre
+            fond = QLabel(parent=fenetre)
+            fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
+            fond.setGeometry(4, 0, 232, 110)
+            amperage = str(self.amperage)
+            texte = QLabel(amperage, parent=fenetre)
+            texte.setStyleSheet("font-size: 50pt; color: #000000")
+            texte.setGeometry(4, 0, 232, 110)
+            texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            texte.raise_()
+            fenetre.exec()
 
 
 # Classe des item_instance des composantes
@@ -325,247 +414,6 @@ class Composante:
                 pixmap = QPixmap(image)
                 pixmap_scaled = pixmap.scaled(self.base.scale, self.base.scale, Qt.AspectRatioMode.KeepAspectRatio)
                 self.item_instance.setPixmap(pixmap_scaled)
-
-
-class InfosComposantes:
-    """
-    @staticmethod
-    def infos_batterie(sens):
-        nom = "Batterie"
-        direction = sens
-        voltage = 10
-        return [nom, direction, voltage]
-
-    @staticmethod
-    def infos_led(sens):
-        nom = "LED"
-        direction = sens
-        return [nom, direction]
-
-    @staticmethod
-    def infos_resistor(sens):
-        nom = "Résistor"
-        direction = sens
-        resistance = 1000
-        return [nom, direction, resistance]
-
-    @staticmethod
-    def infos_diode(sens):
-        nom = "Diode"
-        direction = sens
-        return [nom, direction]
-
-    @staticmethod
-    def infos_interrupteur(sens):
-        nom = "Interrupteur"
-        direction = sens
-        etat = "ouvert"
-        return [nom, direction, etat]
-
-    @staticmethod
-    def infos_amperemetre():
-        nom = "Ampèremètre"
-        affichage = 0
-        return [nom, affichage]
-
-    @staticmethod
-    def infos_voltmetre():
-        nom = "Voltmètre"
-        affichage = 0
-        return [nom, affichage]
-
-    def liste_a_ajouter(self, composante, sens):
-        nom = composante.nom
-        retourne = []
-        if nom == "Batterie":
-            retourne = self.infos_batterie(sens)
-        elif nom == "LED":
-            retourne = self.infos_led(sens)
-        elif nom == "Résistor":
-            retourne = self.infos_resistor(sens)
-        elif nom == "Diode":
-            retourne = self.infos_diode(sens)
-        elif nom == "Interrupteur":
-            retourne = self.infos_interrupteur(sens)
-        elif nom == "Ampèremètre":
-            retourne = self.infos_amperemetre()
-        elif nom == "Voltmètre":
-            retourne = self.infos_voltmetre()
-
-        return retourne
-
-    @staticmethod
-    def verifier_composante_modifiee(element):
-        nom = element[0]
-        # on ne peut pas modifier une led et une diode
-        if nom == "LED" or nom == "Diode":
-            return "ignorer"
-        # sinon on veut savoir le nom de la composante pour l'étape à suivre.
-        else:
-            return nom
-
-    @staticmethod
-    def fenetre_batterie(infos_batterie):
-        fenetre = QDialog()
-        fenetre.setWindowTitle("Batterie")
-        layout_principal = QVBoxLayout()
-        fenetre.setLayout(layout_principal)
-        sous_layout = QHBoxLayout()
-        layout_principal.addLayout(sous_layout)
-
-        texte = QLabel("Tension (V): ")
-        sous_layout.addWidget(texte)
-        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes) avec une décimale de précision
-        nombre = QDoubleSpinBox()
-        nombre.setRange(0, 9999.9)
-        nombre.setDecimals(1)
-        # on donne au line edit la valeur actuelle de tension (10v si aucune modification)
-        valeur = infos_batterie[-1]
-        nombre.setValue(valeur)
-        sous_layout.addWidget(nombre)
-
-        # boutons ok et annuler
-        sous_layout_deux = QHBoxLayout()
-        layout_principal.addLayout(sous_layout_deux)
-        bouton_ok = QPushButton("OK")
-        bouton_ok.clicked.connect(fenetre.accept)
-        sous_layout_deux.addWidget(bouton_ok)
-        bouton_annuler = QPushButton("Annuler")
-        bouton_annuler.clicked.connect(fenetre.reject)
-        sous_layout_deux.addWidget(bouton_annuler)
-        verifier_return = fenetre.exec()
-
-        # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
-        if verifier_return == QDialog.DialogCode.Accepted:
-            if valeur != nombre.value():
-                infos_batterie = infos_batterie[0:2]
-                infos_batterie.append(nombre.value())
-                return infos_batterie, valeur
-            else:
-                return None, None
-        else:
-            return None, None
-
-    @staticmethod
-    def fenetre_resistor(infos_resistor):
-        fenetre = QDialog()
-        fenetre.setWindowTitle("Résistor")
-        layout_principal = QVBoxLayout()
-        fenetre.setLayout(layout_principal)
-        sous_layout = QHBoxLayout()
-        layout_principal.addLayout(sous_layout)
-
-        texte = QLabel("Résistance (Ω): ")
-        sous_layout.addWidget(texte)
-        # on veut que la résistance inscrite soit un nombre entre 0 et 10000 (résistances réalistes) avec une décimale de précision
-        nombre = QDoubleSpinBox()
-        nombre.setRange(0, 9999999.9)
-        nombre.setDecimals(1)
-        # on donne au line edit la valeur actuelle de tension (10v si aucune modification)
-        valeur = infos_resistor[-1]
-        nombre.setValue(valeur)
-        sous_layout.addWidget(nombre)
-
-        # boutons ok et annuler
-        sous_layout_deux = QHBoxLayout()
-        layout_principal.addLayout(sous_layout_deux)
-        bouton_ok = QPushButton("OK")
-        bouton_ok.clicked.connect(fenetre.accept)
-        sous_layout_deux.addWidget(bouton_ok)
-        bouton_annuler = QPushButton("Annuler")
-        bouton_annuler.clicked.connect(fenetre.reject)
-        sous_layout_deux.addWidget(bouton_annuler)
-        verifier_return = fenetre.exec()
-
-        # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
-        if verifier_return == QDialog.DialogCode.Accepted:
-            if valeur != nombre.value():
-                infos_resistor = infos_resistor[0:2]
-                infos_resistor.append(nombre.value())
-                return infos_resistor, valeur
-            else:
-                return None, None
-
-        else:
-            return None, None
-
-    @staticmethod
-    def fenetre_voltmetre(infos_voltmetre):
-        fenetre = QDialog()
-        fenetre.setWindowTitle("Voltmètre")
-        fenetre.setFixedSize(240,350)
-
-        # image qui simule le voltmètre
-        image = QLabel(parent = fenetre)
-        pixmap = QPixmap("images/interface/voltmetre.png")
-        image.setPixmap(pixmap)
-        image.setScaledContents(True)
-        image.setGeometry(QRect(0, 110, 240, 270))
-
-        # on simule l'affichage du voltmètre
-        fond = QLabel(parent = fenetre)
-        fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
-        fond.setGeometry(4,0,232,110)
-        voltage = str(infos_voltmetre[-1])
-        texte = QLabel(voltage, parent = fenetre)
-        texte.setStyleSheet("font-size: 50pt; color: #000000")
-        texte.setGeometry(4,0,232,110)
-        texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        texte_volt = QLabel("V", parent = fenetre)
-        texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
-        texte_volt.setGeometry(4, 0, 232, 110)
-        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )
-        texte.raise_()
-        fenetre.exec()
-
-    @staticmethod
-    def fenetre_amperemetre(infos_amperemetre):
-            fenetre = QDialog()
-            fenetre.setWindowTitle("Ampèremètre")
-            fenetre.setFixedSize(240, 350)
-
-            # image qui simule l'ampèremètre
-            image = QLabel(parent=fenetre)
-            pixmap = QPixmap("images/interface/amperemetre.png")
-            image.setPixmap(pixmap)
-            image.setScaledContents(True)
-            image.setGeometry(QRect(0, 110, 240, 270))
-
-            # on simule l'affichage du voltmètre
-            fond = QLabel(parent=fenetre)
-            fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
-            fond.setGeometry(4, 0, 232, 110)
-            amperage = str(infos_amperemetre[-1])
-            texte = QLabel(amperage, parent=fenetre)
-            texte.setStyleSheet("font-size: 50pt; color: #000000")
-            texte.setGeometry(4, 0, 232, 110)
-            texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            exte_volt = QLabel("V", parent = fenetre)
-            texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
-            texte_volt.setGeometry(4, 0, 232, 110)
-            texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )
-
-            texte.raise_()
-            fenetre.exec()
-
-
-    @staticmethod
-    def retourner_image(liste):
-        nom_composante = liste[0]
-        sens = liste[1]
-        composante = get_composante_from_name(nom_composante)
-        image = composante.image_circuit
-        if sens == "haut":
-            nouveau_sens = "bas"
-        elif sens == "bas":
-            nouveau_sens = "haut"
-        elif sens == "droite":
-            nouveau_sens = "gauche"
-        else:
-            nouveau_sens = "droite"
-
-        return image, sens, nouveau_sens
-        """
 
 
 toolbar_composantes = {
