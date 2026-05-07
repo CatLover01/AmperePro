@@ -27,16 +27,71 @@ class Type(Enum):
 
 
 class ComposanteBase(ABC):
-    def __init__(self, type: Type, nom: str, image_toolbar: str, image_circuit: str, scale: int,
+    def __init__(self, type: Type, nom: str, image_toolbar: str, image_circuit: str,
                  description: str):
         self.type = type
         self.nom = nom
         self.description = description
         self.image_toolbar = image_toolbar
         self.image_circuit = image_circuit
-        self.scale = scale
         self.tension = 0
         self.resistance = 0
+
+    @property
+    def type(self):
+        return self._type
+
+    @type.setter
+    def type(self, types):
+        self._type = types
+
+    @property
+    def nom(self):
+        return self._nom
+
+    @nom.setter
+    def nom(self, noms):
+        self._nom = noms
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, descriptions):
+        self._description = descriptions
+
+    @property
+    def image_toolbar(self):
+        return self._image_toolbar
+
+    @image_toolbar.setter
+    def image_toolbar(self, toolbar):
+        self._image_toolbar = toolbar
+
+    @property
+    def image_circuit(self):
+        return self._image_circuit
+
+    @image_circuit.setter
+    def image_circuit(self, circuit):
+        self._image_circuit = circuit
+
+    @property
+    def tension(self):
+        return self._tension
+
+    @tension.setter
+    def tension(self, tension):
+        self._tension = tension
+
+    @property
+    def resistance(self):
+        return self._resistance
+
+    @resistance.setter
+    def resistance(self, resistance):
+        self._resistance = resistance
 
     def clique(self):
         pass
@@ -45,7 +100,7 @@ class ComposanteBase(ABC):
 class Batterie(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Batterie, "Batterie", "images/circuit/batterie.png",
-                         "images/circuit/batterie.png", 40,
+                         "images/circuit/batterie.png",
                          "- Fournit l’énergie électrique au circuit. <br>"
                          "- Crée une différence de potentiel (tension). <br>"
                          "- Possède une borne positive (+) et négative (-). <br>"
@@ -104,7 +159,8 @@ class Batterie(ComposanteBase):
 
 class LED(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.LED, "LED", "images/circuit/LED.png", "images/circuit/LED.png", 68,
+        super().__init__(Type.LED, "LED", "images/circuit/LED.png",
+                         "images/circuit/LED.png",
                          "- Diode qui émet de la lumière quand le courant passe dans le bon sens <br>"
                          "- Elle a une polarité : anode (+) et cathode (-). <br>"
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
@@ -114,7 +170,7 @@ class LED(ComposanteBase):
 class Resistor(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Resistor, "Résistor", "images/circuit/resistor.png",
-                         "images/circuit/resistor.png", 56,
+                         "images/circuit/resistor.png",
                          "- Composante qui limite le courant. <br>"
                          "- Unité : Ohms (Ω) <br>"
                          "- Loi d'Ohm : V = R · I <br>"
@@ -173,7 +229,8 @@ class Resistor(ComposanteBase):
 
 class Diode(ComposanteBase):
     def __init__(self):
-        super().__init__(Type.Diode, "Diode", "images/circuit/diode.png", "images/circuit/diode.png", 30,
+        super().__init__(Type.Diode, "Diode", "images/circuit/diode.png",
+                         "images/circuit/diode.png",
                          "- Laisse passer le courant dans un seul sens ( en résumé ). <br>"
                          "- Polarité importante. <br>"
                          "- Utile pour bloquer le retour de courant ou redresser un signal "
@@ -183,7 +240,7 @@ class Diode(ComposanteBase):
 class Interrupteur(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Interrupteur, "Interrupteur", "images/circuit/interrupteur_ouvert.png",
-                         "images/circuit/interrupteur_ouvert.png", 45,
+                         "images/circuit/interrupteur_ouvert.png",
                          "- Sert à ouvrir ou fermer un circuit. <br>"
                          "- Ouvert : le courant ne passe pas. <br>"
                          "- Fermé : le courant peut passer ( si le circuit est complet )."
@@ -193,18 +250,18 @@ class Interrupteur(ComposanteBase):
 class Voltmetre(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Voltmetre, "Voltmètre", "images/circuit/voltmetre.png",
-                         "images/circuit/voltmetre.png", 40,
+                         "images/circuit/voltmetre.png",
                          "- Sert à mesurer la tension (différence de potentiel) entre deux points. <br> "
                          "- Unité : Volt (V). <br> "
                          "- Se branche en parallèle aux bornes de la composante dont on veut mesurer la tension. <br>"
-                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas déranger le circuit."
+                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit."
                          )
 
 
 class Amperemetre(ComposanteBase):
     def __init__(self):
         super().__init__(Type.Amperemetre, "Ampèremètre", "images/circuit/amperemetre.png",
-                         "images/circuit/amperemetre.png", 40,
+                         "images/circuit/amperemetre.png",
                          "- Sert à mesurer le courant électrique qui traverse une branche. <br>"
                          "- Unité : Ampères (A). <br> "
                          "- Se branche en série dans la branche où on veut mesurer le courant <br>"
