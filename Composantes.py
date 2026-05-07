@@ -5,7 +5,7 @@ from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QPixmap, Qt, QTransform
 from PySide6.QtWidgets import QGraphicsPixmapItem, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 class Cote(Enum):
@@ -35,6 +35,11 @@ class ComposanteBase(ABC):
         self.image_toolbar = image_toolbar
         self.image_circuit = image_circuit
         self.scale = scale
+        self.tension = 0
+        self.resistance = 0
+
+    def clique(self):
+        pass
 
 
 class Batterie(ComposanteBase):
@@ -46,6 +51,55 @@ class Batterie(ComposanteBase):
                          "- Possède une borne positive (+) et négative (-). <br>"
                          "- Permet au courant de circuler dans le circuit."
                          )
+
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.tension = 10
+
+    # Ouvre une fenetre pour changer la tension
+    def clique(self):
+
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Batterie")
+        layout_principal = QVBoxLayout()
+        fenetre.setLayout(layout_principal)
+        sous_layout = QHBoxLayout()
+        layout_principal.addLayout(sous_layout)
+
+        texte = QLabel("Tension (V): ")
+        sous_layout.addWidget(texte)
+        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes) avec une décimale de précision
+        nombre = QDoubleSpinBox()
+        nombre.setRange(0, 999.9)
+        nombre.setDecimals(1)
+
+        nombre.setValue(self.tension)
+        sous_layout.addWidget(nombre)
+
+        # boutons ok et annuler
+        sous_layout_deux = QHBoxLayout()
+        layout_principal.addLayout(sous_layout_deux)
+        bouton_ok = QPushButton("OK")
+        bouton_ok.clicked.connect(fenetre.accept)
+        sous_layout_deux.addWidget(bouton_ok)
+        bouton_annuler = QPushButton("Annuler")
+        bouton_annuler.clicked.connect(fenetre.reject)
+        sous_layout_deux.addWidget(bouton_annuler)
+        verifier_return = fenetre.exec()
+
+        # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
+        if verifier_return == QDialog.Accepted:
+            if verifier_return == QDialog.Accepted:
+                if self.tension != nombre.value():
+                    ancienne_tension = self.tension
+                    self.tension = nombre.value()
+                    return ancienne_tension, self.tension
+            else:
+                return None
+
+        else:
+            return None
 
 
 class LED(ComposanteBase):
@@ -67,6 +121,54 @@ class Resistor(ComposanteBase):
                          "- Baisse l'intensité du courant. <br>"
                          "- V en Volts, R en Ohms, I en Ampères"
                          )
+
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.resistance = 1000
+
+    # ouvre un dialog pour changer la resistance
+    def clique(self):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Résistor")
+        layout_principal = QVBoxLayout()
+        fenetre.setLayout(layout_principal)
+        sous_layout = QHBoxLayout()
+        layout_principal.addLayout(sous_layout)
+
+        texte = QLabel("Résistance (V): ")
+        sous_layout.addWidget(texte)
+        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes) avec une décimale de précision
+        nombre = QDoubleSpinBox()
+        nombre.setRange(0, 9999999.9)
+        nombre.setDecimals(1)
+
+        nombre.setValue(self.resistance)
+        sous_layout.addWidget(nombre)
+
+        # boutons ok et annuler
+        sous_layout_deux = QHBoxLayout()
+        layout_principal.addLayout(sous_layout_deux)
+        bouton_ok = QPushButton("OK")
+        bouton_ok.clicked.connect(fenetre.accept)
+        sous_layout_deux.addWidget(bouton_ok)
+        bouton_annuler = QPushButton("Annuler")
+        bouton_annuler.clicked.connect(fenetre.reject)
+        sous_layout_deux.addWidget(bouton_annuler)
+        verifier_return = fenetre.exec()
+
+        # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
+        if verifier_return == QDialog.Accepted:
+            if verifier_return == QDialog.Accepted:
+                if self.resistance != nombre.value():
+                    ancienne_resistance = self.resistance
+                    self.resistance = nombre.value()
+                    return ancienne_resistance, self.resistance
+            else:
+                return None
+
+        else:
+            return None
 
 
 class Diode(ComposanteBase):
@@ -169,6 +271,7 @@ class Composante:
 
 
 class InfosComposantes:
+    """
     @staticmethod
     def infos_batterie(sens):
         nom = "Batterie"
@@ -351,11 +454,10 @@ class InfosComposantes:
         texte.setStyleSheet("font-size: 50pt; color: #000000")
         texte.setGeometry(4,0,232,110)
         texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        """texte_volt = QLabel("V", parent = fenetre)
+        texte_volt = QLabel("V", parent = fenetre)
         texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
         texte_volt.setGeometry(4, 0, 232, 110)
-        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )"""
-
+        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )
         texte.raise_()
         fenetre.exec()
 
@@ -381,10 +483,10 @@ class InfosComposantes:
             texte.setStyleSheet("font-size: 50pt; color: #000000")
             texte.setGeometry(4, 0, 232, 110)
             texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            """texte_volt = QLabel("V", parent = fenetre)
+            exte_volt = QLabel("V", parent = fenetre)
             texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
             texte_volt.setGeometry(4, 0, 232, 110)
-            texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )"""
+            texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter )
 
             texte.raise_()
             fenetre.exec()
@@ -406,13 +508,7 @@ class InfosComposantes:
             nouveau_sens = "droite"
 
         return image, sens, nouveau_sens
-
-def get_composante_from_name(nom: str) -> ComposanteBase | None:
-    for composante in toolbar_composantes.values():
-        if nom == composante.nom:
-            return composante
-
-    return None
+        """
 
 
 toolbar_composantes = {
