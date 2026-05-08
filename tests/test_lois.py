@@ -1,6 +1,6 @@
 import unittest
 
-from circuit_libre import LoisPhysiques
+from circuit.circuit import LoisPhysiques
 
 
 class TestsLois(unittest.TestCase):

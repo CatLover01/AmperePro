@@ -10,7 +10,7 @@ from niveau.definitions import Sujet, DetailNiveau, INFO_NIVEAUX
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
-from circuit_libre import Circuit, GraphicsView
+from circuit.circuit import Circuit, GraphicsView
 
 
 class Mode(Enum):

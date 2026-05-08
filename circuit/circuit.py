@@ -1,286 +1,15 @@
-from PySide6.QtCore import QSize, QPointF, QRect, QFile, QTextStream, QLineF, QRectF
-from PySide6.QtGui import QColorConstants, QPen, Qt, QBrush, QAction, QIcon, QPixmap, QColor, QImage
+from PySide6.QtCore import QSize, QPointF, QLineF
+from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
-                               QHBoxLayout, QToolBar, QLabel, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog)
+                               QHBoxLayout, QToolBar, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog)
 import math
 import numpy as np
 
 from button import ToolTipButton
+from .fil import Fil
+from .noeud import Noeud
 from composantes import toolbar_composantes, Composante
 from sauvegarde import Sauvegarde
-
-
-class Noeud:
-    def __init__(self, pos):
-        self.voltage = 0
-        self.info_voisins = []
-        self.pos = pos
-
-    @property
-    def voltage(self):
-        return self._voltage
-
-    @voltage.setter
-    def voltage(self, voltage):
-        self._voltage = voltage
-
-    @property
-    def voisins(self):
-        return self._info_voisins
-
-    @voisins.setter
-    def voisins(self, voisins):
-        self._info_voisins = voisins
-
-    @property
-    def position(self):
-        return self._pos
-
-    @position.setter
-    def position(self, position):
-        self._pos = position
-
-    # Rajoute un fil lié et l'autre noeud qui touche au fil
-    def ajouter_info(self, fil, noeud_voisin):
-        nouveau_voisin = [fil, noeud_voisin]
-        if nouveau_voisin not in self.info_voisins:
-            self.info_voisins.append(nouveau_voisin)
-
-    # Enlève les informations relatives à un fil
-    def enlever_info_fil(self, fil):
-        for k in range(len(self.info_voisins)):
-            if self.info_voisins[k][0] == fil:
-                del self.info_voisins[k]
-                break
-
-    # Retire le noeud et merge les fils qui étaient séparés par ce noeud
-    def enlever_noeud(self, scene):
-        # le premier fil doit finir par self sinon switch
-        # le dernier fil doit commencer par self sinon switch
-
-        # TODO Ça marche pas TABARNAK
-        if len(self.info_voisins) == 1:
-            i, j = scene.pos_to_mat(self.pos.x(), self.pos.y())
-            scene.mat_points[i, j] = self.info_voisins[0][0]
-            scene.noeuds.remove(self)
-            scene.visualiser_matrice()
-
-        else:
-            fil_depart = self.info_voisins[0][0]
-            if fil_depart.noeuds[0] == self:
-                fil_depart.lignes.reverse()
-                fil_depart.noeuds.reverse()
-                fil_depart.composantes.reverse()
-                fil_depart.points.reverse()
-
-            fil_fin = self.info_voisins[1][0]
-            if fil_fin.noeuds[1] == self:
-                fil_fin.lignes.reverse()
-                fil_fin.noeuds.reverse()
-                fil_fin.composantes.reverse()
-                fil_fin.points.reverse()
-
-            # fil_depart va devenir le merge des deux fils
-            fil_depart.lignes += fil_fin.lignes
-            fil_depart.noeuds[1] = fil_fin.noeuds[1]
-            fil_depart.composantes += fil_fin.composantes
-
-            fil_fin.points.append(self.pos)
-            fil_depart.points += fil_fin.points
-
-            fil_depart.noeuds[0].enlever_info_fil(fil_depart)
-            fil_depart.noeuds[0].ajouter_info(fil_depart, fil_depart.noeuds[1])
-            fil_depart.noeuds[1].enlever_info_fil(fil_fin)
-            fil_depart.noeuds[1].ajouter_info(fil_depart, fil_depart.noeuds[0])
-
-            scene.fils.remove(fil_fin)
-
-            for point in fil_fin.points:
-                i, j = scene.pos_to_mat(point.x(), point.y())
-                scene.mat_points[i, j] = fil_depart
-
-            scene.noeuds.remove(self)
-
-            scene.visualiser_matrice()
-
-
-class Fil:
-    def __init__(self, scene, points, lignes):
-        self.scene = scene
-        self.points = points
-        self.noeuds = None
-        self.lignes = lignes
-
-        # self.resistance, self.tension = self.calculs()
-        self.composantes = []
-
-        self.tension = 0
-        self.resistance = 0
-
-    @property
-    def points(self):
-        return self._points
-
-    @points.setter
-    def points(self, points):
-        self._points = points
-
-    @property
-    def noeuds(self):
-        return self._noeuds
-
-    @noeuds.setter
-    def noeuds(self, noeuds):
-        self._noeuds = noeuds
-
-    @property
-    def lignes(self):
-        return self._lignes
-
-    @lignes.setter
-    def lignes(self, lignes):
-        self._lignes = lignes
-
-    @property
-    def tension(self):
-        return self._tension
-
-    @tension.setter
-    def tension(self, tension):
-        self._tension = tension
-
-    @property
-    def resistance(self):
-        return self._resistance
-
-    @resistance.setter
-    def resistance(self, resistance):
-        self._resistance = resistance
-
-    # Calcul la tension et la résistance relative dans le fil
-    def calculs(self):
-        res = 0
-        tension = 0
-        for composante in self.composantes:
-            if hasattr(composante, 'resistance'):
-                res += composante.resistance
-            if hasattr(composante, 'tension'):
-                tension += composante.tension
-        return res, tension
-
-    def ajouter_composante(self, composante):
-        def index_comp(index_point):
-            for i in range(len(self.composantes)):
-                pos_comp = self.composantes[i].points_fil[1]
-                index_comp_points = self.points.index(pos_comp)
-
-                if index_point <= index_comp_points:
-                    return i
-            return 0
-
-        if composante.nom == "Batterie":
-            index_point_depart = self.points.index(composante.points_fil[0])
-            index_point_fin = self.points.index(composante.points_fil[-1])
-
-            sens_comp = 1
-            if index_point_depart > index_point_fin:
-                sens_comp = -1
-
-            self.composantes.insert(index_comp(index_point_depart), composante)
-
-            self.resistance += composante.resistance
-            self.tension += sens_comp * composante.tension
-        else:
-            index_milieu = self.points.index(composante.points_fil[1])
-
-            self.composantes.insert(index_comp(index_milieu), composante)
-
-            self.resistance += composante.resistance
-
-    # Ajoute un noeud au fil, ce qui sépare le fil en deux fils distincts
-    def ajouter_noeud(self, pos: QPointF, noeud: Noeud):
-        index_point = self.points.index(pos)
-        points_avant = self.points[:index_point]
-        points_apres = self.points[index_point + 1:]
-
-        for i in range(len(self.lignes)):
-            ligne = self.lignes[i]
-            p1 = ligne.line().p1()
-            p2 = ligne.line().p2()
-            x_max, x_min = max(p1.x(), p2.x()), min(p1.x(), p2.x())
-            y_max, y_min = max(p1.y(), p2.y()), min(p1.y(), p2.y())
-            if x_max >= pos.x() >= x_min and y_max >= pos.y() >= y_min:
-                ligne.setLine(QLineF(p1, pos))
-
-                nouvelle_ligne = self.scene.ajouter_ligne(pos.x(), pos.y(), p2.x(), p2.y())
-                self.lignes.insert(i + 1, nouvelle_ligne)
-
-                lignes_avant = self.lignes[:i + 1]
-                lignes_apres = self.lignes[i + 1:]
-                break
-
-        # Quand y'a pas de noeud, le fil ne se split pas, mais le début commence maintenant au noeud
-        if self.noeuds is None:
-            self.points = points_apres.copy() + points_avant.copy()
-            self.lignes = lignes_apres.copy() + lignes_avant.copy()
-            self.noeuds = [noeud, noeud]
-        else:
-            comp_avant = []
-            comp_apres = []
-            for i in range(len(self.composantes)):
-                pos_comp = self.composantes[i].points_fil[1]
-                index_comp_points = self.points.index(pos_comp)
-
-                if index_point < index_comp_points:
-                    comp_avant = self.composantes[:i]
-                    comp_apres = self.composantes[i:]
-                    break
-
-            nouveau_fil = Fil(self.scene, points_apres, lignes_apres.copy())
-            nouveau_fil.noeuds = [noeud, self.noeuds[1]]
-            nouveau_fil.composantes = comp_apres.copy()
-            self.scene.fils.append(nouveau_fil)
-
-            for point_apres in points_apres:
-                i, j = self.scene.pos_to_mat(point_apres.x(), point_apres.y())
-                self.scene.mat_points[i, j] = nouveau_fil
-
-            self.noeuds[0].enlever_info_fil(self)
-            self.noeuds[0].ajouter_info(self, noeud)
-
-            if self.noeuds[0] != self.noeuds[1]:
-                self.noeuds[1].enlever_info_fil(self)
-            self.noeuds[1].ajouter_info(nouveau_fil, noeud)
-
-            noeud.ajouter_info(self, self.noeuds[0])
-            noeud.ajouter_info(nouveau_fil, self.noeuds[0])
-
-            self.composantes = comp_avant.copy()
-            self.noeuds = [self.noeuds[0], noeud]
-            self.points = points_avant.copy()
-            self.lignes = lignes_avant.copy()
-
-    # TODO faire en sorte que les noeuds soient pas retirés si ils sont connectés à plus de deux fils
-    def enlever_fil(self):
-        for point in self.points:
-            i, j = self.scene.pos_to_mat(point.x(), point.y())
-            self.scene.mat_points[i, j] = None
-
-        self.scene.rapetisser_matrice()
-        self.scene.visualiser_matrice()
-
-        self.noeuds[0].enlever_info_fil(self)
-        if len(self.noeuds[0].info_voisins) <= 2:
-            self.noeuds[0].enlever_noeud(self.scene)
-
-        self.noeuds[1].enlever_info_fil(self)
-        if len(self.noeuds[1].info_voisins) <= 2:
-            self.noeuds[1].enlever_noeud(self.scene)
-
-        for composante in self.composantes:
-            self.scene.removeItem(composante)
-        for ligne in self.lignes:
-            self.scene.removeItem(ligne)
 
 
 class Circuit(QGraphicsScene):
@@ -1279,7 +1008,7 @@ class Circuit(QGraphicsScene):
 
         # ajoute le bouton poubelle à la toolbar
         poubelle_icone = QIcon("images/toolbar/poubelle.webp")
-        poubelle_bouton = ToolTipButton("Main")
+        poubelle_bouton = ToolTipButton("Poubelle")
         poubelle_bouton.setIcon(poubelle_icone)
         poubelle_bouton.setIconSize(QSize(45, 45))
         poubelle_bouton.clicked.connect(self.poubelle_click)
@@ -1561,6 +1290,7 @@ class Circuit(QGraphicsScene):
                 self.removeItem(element)
                 self.zones_blanches.remove(element)
 
+    # Modification d'une composante lors du double click gauche
     def modifier_composante(self, position):
         x, y = self.pos_selon_grid(position)
         composante = self.verifier_collision_fil(QPointF(x, y))
@@ -1568,8 +1298,11 @@ class Circuit(QGraphicsScene):
             ancienne_tension = composante.tension
             ancienne_resistance = composante.resistance
 
+            # Note: Cette function ne devrait probablement rien retourner et devrait avoir un nom plus claire
             modification = composante.clique(self.taille_grid)
-            self.modifications.append(modification, composante)
+            if modification is not None:
+                # Note: append prend un parametre, pas 2
+                self.modifications.append(modification, composante)
             # TODO faire en sorte de save la modification dans les rollbacks
 
         self.operations.append(4)
@@ -1586,6 +1319,7 @@ class Circuit(QGraphicsScene):
     @staticmethod
     def operation_tourner(collision):
         collision.image_item.setRotation(collision.image_item.rotation() + 180)
+
 
 class GraphicsView(QGraphicsView):
 
