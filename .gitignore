@@ -9,3 +9,6 @@ data.json
 
 # MacOS
 .DS_Store
+
+# Python Virtual Env
+.venv
