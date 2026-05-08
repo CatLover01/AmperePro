@@ -6,7 +6,7 @@ import math
 import numpy as np
 
 from Button import ToolTipButton
-from Composantes import toolbar_composantes, ComposanteBase
+from Composantes import toolbar_composantes, Composante
 from sauvegarde import Sauvegarde
 
 
@@ -887,7 +887,7 @@ class Circuit(QGraphicsScene):
                 except ValueError:
                     if isinstance(self.mat_points[i, j], Noeud):
                         num = "x"
-                    elif isinstance(self.mat_points[i, j], ComposanteBase):
+                    elif isinstance(self.mat_points[i, j], Composante):
                         num = "c"
                     else:
                         num = "0"
@@ -1563,8 +1563,8 @@ class Circuit(QGraphicsScene):
     def modifier_composante(self, position):
         x, y = self.pos_selon_grid(position)
         collision = self.verifier_collision_fil(QPointF(x, y))
-        if isinstance(collision, ComposanteBase):
-            modification = collision.clique()
+        if isinstance(collision, Composante):
+            modification = collision.clique(self.taille_grid)
             # TODO faire en sorte de save la modification dans les rollbacks
 
         self.operations.append(4)
@@ -1573,7 +1573,7 @@ class Circuit(QGraphicsScene):
         x, y = self.pos_selon_grid(position)
         collision = self.verifier_collision_fil(QPointF(x, y))
 
-        if isinstance(collision, ComposanteBase) and collision.nom != "Ampèremètre" and collision.nom != "Voltmètre":
+        if isinstance(collision, Composante) and collision.nom != "Ampèremètre" and collision.nom != "Voltmètre":
             collision.image_item.setRotation(collision.image_item.rotation() + 180)
 
             self.operations.append(3)

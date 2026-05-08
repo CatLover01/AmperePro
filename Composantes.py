@@ -1,21 +1,13 @@
-from collections.abc import Callable
 from enum import Enum
+from typing import override
+from abc import ABC
 
 from PySide6.QtCore import QRect, Qt
-from PySide6.QtGui import QPixmap, Qt, QTransform
-from PySide6.QtWidgets import QGraphicsPixmapItem, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
+from PySide6.QtGui import QPixmap, Qt
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
-from abc import ABC, abstractmethod
 
 
-class Cote(Enum):
-    Gauche = 1
-    Droite = 2
-    Haut = 3
-    Bas = 4
-
-
-# Type de composante que nous supportons
 class Type(Enum):
     Batterie = 1
     LED = 2
@@ -26,16 +18,22 @@ class Type(Enum):
     Amperemetre = 7
 
 
-class ComposanteBase(ABC):
+class Composante(ABC):
     def __init__(self, type: Type, nom: str, image_toolbar: str, image_circuit: str,
-                 description: str):
+                 description: str, tension: int = 0, resistance: int = 0):
         self.type = type
         self.nom = nom
         self.description = description
         self.image_toolbar = image_toolbar
         self.image_circuit = image_circuit
-        self.tension = 0
-        self.resistance = 0
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+
+        # Fait partie de chaque composante pour pouvoir faire les calculs plus tard
+        self.tension = tension
+        self.resistance = resistance
 
     @property
     def type(self):
@@ -93,28 +91,26 @@ class ComposanteBase(ABC):
     def resistance(self, resistance):
         self._resistance = resistance
 
-    def clique(self):
+    # Fonction pouvant être redéfinie dans chaque composante
+    # La taille de la grille est fournie pour conserver l'échelle lors d'un changement de pixmap
+    def clique(self, taille_grid: int):
         pass
 
 
-class Batterie(ComposanteBase):
+class Batterie(Composante):
     def __init__(self):
         super().__init__(Type.Batterie, "Batterie", "images/circuit/batterie.png",
                          "images/circuit/batterie.png",
                          "- Fournit l’énergie électrique au circuit. <br>"
                          "- Crée une différence de potentiel (tension). <br>"
                          "- Possède une borne positive (+) et négative (-). <br>"
-                         "- Permet au courant de circuler dans le circuit."
+                         "- Permet au courant de circuler dans le circuit.",
+                         10
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.tension = 10
-
     # Ouvre une fenetre pour changer la tension
-    def clique(self):
+    @override
+    def clique(self, _):
         fenetre = QDialog()
         fenetre.setWindowTitle("Batterie")
         layout_principal = QVBoxLayout()
@@ -144,20 +140,15 @@ class Batterie(ComposanteBase):
         verifier_return = fenetre.exec()
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
-        if verifier_return == QDialog.Accepted:
-            if verifier_return == QDialog.Accepted:
-                if self.tension != nombre.value():
-                    ancienne_tension = self.tension
-                    self.tension = nombre.value()
-                    return ancienne_tension, self.tension
-            else:
-                return None
-
+        if verifier_return == QDialog.DialogCode.Accepted and self.tension != nombre.value():
+            ancienne_tension = self.tension
+            self.tension = nombre.value()
+            return ancienne_tension, self.tension
         else:
             return None
 
 
-class LED(ComposanteBase):
+class LED(Composante):
     def __init__(self):
         super().__init__(Type.LED, "LED", "images/circuit/LED.png",
                          "images/circuit/LED.png",
@@ -166,13 +157,8 @@ class LED(ComposanteBase):
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
 
-
-class Resistor(ComposanteBase):
+class Resistor(Composante):
     def __init__(self):
         super().__init__(Type.Resistor, "Résistor", "images/circuit/resistor.png",
                          "images/circuit/resistor.png",
@@ -180,17 +166,13 @@ class Resistor(ComposanteBase):
                          "- Unité : Ohms (Ω) <br>"
                          "- Loi d'Ohm : V = R · I <br>"
                          "- Baisse l'intensité du courant. <br>"
-                         "- V en Volts, R en Ohms, I en Ampères"
+                         "- V en Volts, R en Ohms, I en Ampères",
+                         0, 1000
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.resistance = 1000
-
     # ouvre un dialog pour changer la resistance
-    def clique(self):
+    @override
+    def clique(self, _):
         fenetre = QDialog()
         fenetre.setWindowTitle("Résistor")
         layout_principal = QVBoxLayout()
@@ -221,20 +203,15 @@ class Resistor(ComposanteBase):
         verifier_return = fenetre.exec()
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
-        if verifier_return == QDialog.Accepted:
-            if verifier_return == QDialog.Accepted:
-                if self.resistance != nombre.value():
-                    ancienne_resistance = self.resistance
-                    self.resistance = nombre.value()
-                    return ancienne_resistance, self.resistance
-            else:
-                return None
-
+        if verifier_return == QDialog.DialogCode.Accepted and self.resistance != nombre.value():
+            ancienne_resistance = self.resistance
+            self.resistance = nombre.value()
+            return ancienne_resistance, self.resistance
         else:
             return None
 
 
-class Diode(ComposanteBase):
+class Diode(Composante):
     def __init__(self):
         super().__init__(Type.Diode, "Diode", "images/circuit/diode.png",
                          "images/circuit/diode.png",
@@ -243,13 +220,8 @@ class Diode(ComposanteBase):
                          "- Utile pour bloquer le retour de courant ou redresser un signal "
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
 
-
-class Interrupteur(ComposanteBase):
+class Interrupteur(Composante):
     def __init__(self):
         super().__init__(Type.Interrupteur, "Interrupteur", "images/circuit/interrupteur_ouvert.png",
                          "images/circuit/interrupteur_ouvert.png",
@@ -258,34 +230,37 @@ class Interrupteur(ComposanteBase):
                          "- Fermé : le courant peut passer ( si le circuit est complet )."
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.ferme = False
+        self.ouvert = True
 
-    def clique(self):
-        # TODO mettre image ouvert/ferme
-        pass
+    @override
+    def clique(self, taille_grid):
+        if self.ouvert:
+            image_path = "images/circuit/interrupteur_ferme.png"
+        else:
+            # Image circuit est ouvert par défault dans la classe de base
+            image_path = self.image_circuit
+
+        self.ouvert = not self.ouvert
+
+        pixmap = QPixmap(image_path)
+        pixmap_scaled = pixmap.scaled(taille_grid * 2, taille_grid * 2)
+        self.image_item.setPixmap(pixmap_scaled)
 
 
-class Voltmetre(ComposanteBase):
+class Voltmetre(Composante):
     def __init__(self):
         super().__init__(Type.Voltmetre, "Voltmètre", "images/circuit/voltmetre.png",
                          "images/circuit/voltmetre.png",
                          "- Sert à mesurer la tension (différence de potentiel) entre deux points. <br> "
                          "- Unité : Volt (V). <br> "
                          "- Se branche en parallèle aux bornes de la composante dont on veut mesurer la tension. <br>"
-                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit."
+                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit.",
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
         self.voltage = 0
 
-    def clique(self):
+    @override
+    def clique(self, _):
         fenetre = QDialog()
         fenetre.setWindowTitle("Voltmètre")
         fenetre.setFixedSize(240, 350)
@@ -316,7 +291,7 @@ class Voltmetre(ComposanteBase):
         fenetre.exec()
 
 
-class Amperemetre(ComposanteBase):
+class Amperemetre(Composante):
     def __init__(self):
         super().__init__(Type.Amperemetre, "Ampèremètre", "images/circuit/amperemetre.png",
                          "images/circuit/amperemetre.png",
@@ -326,94 +301,33 @@ class Amperemetre(ComposanteBase):
                          "- Idéalement, la résistance dans l'ampèremètre est très faible."
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
         self.amperage = 0
 
-    def clique(self):
-            fenetre = QDialog()
-            fenetre.setWindowTitle("Ampèremètre")
-            fenetre.setFixedSize(240, 350)
+    @override
+    def clique(self, _):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Ampèremètre")
+        fenetre.setFixedSize(240, 350)
 
-            # image qui simule l'ampèremètre
-            image = QLabel(parent=fenetre)
-            pixmap = QPixmap("images/interface/amperemetre.png")
-            image.setPixmap(pixmap)
-            image.setScaledContents(True)
-            image.setGeometry(QRect(0, 110, 240, 270))
+        # image qui simule l'ampèremètre
+        image = QLabel(parent=fenetre)
+        pixmap = QPixmap("images/interface/amperemetre.png")
+        image.setPixmap(pixmap)
+        image.setScaledContents(True)
+        image.setGeometry(QRect(0, 110, 240, 270))
 
-            # on simule l'affichage du voltmètre
-            fond = QLabel(parent=fenetre)
-            fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
-            fond.setGeometry(4, 0, 232, 110)
-            amperage = str(self.amperage)
-            texte = QLabel(amperage, parent=fenetre)
-            texte.setStyleSheet("font-size: 50pt; color: #000000")
-            texte.setGeometry(4, 0, 232, 110)
-            texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # on simule l'affichage du voltmètre
+        fond = QLabel(parent=fenetre)
+        fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
+        fond.setGeometry(4, 0, 232, 110)
+        amperage = str(self.amperage)
+        texte = QLabel(amperage, parent=fenetre)
+        texte.setStyleSheet("font-size: 50pt; color: #000000")
+        texte.setGeometry(4, 0, 232, 110)
+        texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            texte.raise_()
-            fenetre.exec()
-
-
-# Classe des item_instance des composantes
-class Item(QGraphicsPixmapItem):
-    def __init__(self, pixmap, callback: Callable):
-        super().__init__(pixmap)
-        self.callback = callback
-
-    # appel la fonction clicked de sa composante parente
-    def mousePressEvent(self, event):
-        self.callback()
-
-
-class Composante:
-    def __init__(self, composante: Type):
-        self.base = toolbar_composantes[composante]
-        self.item_instance = None
-        self.cote: Cote | None = None
-
-        match composante:
-            case Type.Interrupteur:
-                self.ouvert = True
-                self.image_ferme = "images/circuit/interrupteur_ferme.png"
-
-    def ajouter_pixmap(self) -> QGraphicsPixmapItem:
-        pixmap = QPixmap(self.base.image_circuit)
-        pixmap_scaled = pixmap.scaled(self.base.scale, self.base.scale, Qt.AspectRatioMode.KeepAspectRatio)
-        pixmap_item = Item(pixmap_scaled, self.clicked)
-
-        pixmap_item.setZValue(1)
-        self.item_instance = pixmap_item
-
-        # Retourner l'item pour l'ajouter à la scène
-        return pixmap_item
-
-    def clicked(self):
-        if self.item_instance is None:
-            return
-
-        match self.base.type:
-            case Type.LED | Type.Diode:
-                transform = QTransform()
-                transform.scale(-1, 1)
-                pixmap_flipped = self.item_instance.pixmap().transformed(transform)
-                self.item_instance.setPixmap(pixmap_flipped)
-
-            case Type.Interrupteur:
-                if self.ouvert:
-                    image = self.image_ferme
-                else:
-                    # Image circuit est ouvert par défault dans la classe de base
-                    image = self.base.image_circuit
-
-                self.ouvert = not self.ouvert
-
-                pixmap = QPixmap(image)
-                pixmap_scaled = pixmap.scaled(self.base.scale, self.base.scale, Qt.AspectRatioMode.KeepAspectRatio)
-                self.item_instance.setPixmap(pixmap_scaled)
+        texte.raise_()
+        fenetre.exec()
 
 
 toolbar_composantes = {
