@@ -93,7 +93,7 @@ class Composante(ABC):
 
     # Fonction pouvant être redéfinie dans chaque composante
     # La taille de la grille est fournie pour conserver l'échelle lors d'un changement de pixmap
-    def clique(self, taille_grid: int):
+    def clique(self, taille_grid: int) -> None | int:
         pass
 
 
@@ -141,9 +141,8 @@ class Batterie(Composante):
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
         if verifier_return == QDialog.DialogCode.Accepted and self.tension != nombre.value():
-            ancienne_tension = self.tension
             self.tension = nombre.value()
-            return ancienne_tension, self.tension
+            return self.tension
         else:
             return None
 
@@ -204,9 +203,8 @@ class Resistor(Composante):
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
         if verifier_return == QDialog.DialogCode.Accepted and self.resistance != nombre.value():
-            ancienne_resistance = self.resistance
             self.resistance = nombre.value()
-            return ancienne_resistance, self.resistance
+            return self.resistance
         else:
             return None
 

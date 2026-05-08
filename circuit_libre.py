@@ -1332,7 +1332,7 @@ class Circuit(QGraphicsScene):
     def composante_toolbar_clicked(self, composante):
         if composante in toolbar_composantes.values():
             self.selection = "composante"
-            self.composante_selectionnee = composante.__class__()
+            self.composante_selectionnee = composante
 
             if self.image_composante is not None:
                 self.removeItem(self.image_composante)
@@ -1563,10 +1563,13 @@ class Circuit(QGraphicsScene):
 
     def modifier_composante(self, position):
         x, y = self.pos_selon_grid(position)
-        collision = self.verifier_collision_fil(QPointF(x, y))
-        if isinstance(collision, Composante):
-            modification, ignorer = collision.clique(self.taille_grid)
-            self.modifications.append(modification, collision)
+        composante = self.verifier_collision_fil(QPointF(x, y))
+        if isinstance(composante, Composante):
+            ancienne_tension = composante.tension
+            ancienne_resistance = composante.resistance
+
+            modification = composante.clique(self.taille_grid)
+            self.modifications.append(modification, composante)
             # TODO faire en sorte de save la modification dans les rollbacks
 
         self.operations.append(4)
