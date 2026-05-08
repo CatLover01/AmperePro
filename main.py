@@ -56,7 +56,6 @@ class AmperePro(QMainWindow):
         self.menu_aide.addAction(documentation_action)
 
         # ajout du guide au menu aide
-        #TODO: modifier image
         guide_action = QAction("Guide Mode Libre", self)
         guide_action.setIcon(QIcon("images/menubar/guide.png"))
         guide_action.triggered.connect(self.telecharger_guide)
@@ -241,7 +240,7 @@ class AmperePro(QMainWindow):
                 barre_progression.setFormat(str(int(progressions[i]/total_points * 100)) + " %")
 
             # TODO: blocker l'utilisateur si il a en bas de 60% au niveau précédent?
-            bouton_niveau = ToolTipButton(description, "Niveau " + str(i + 1))
+            bouton_niveau = ToolTipButton(description, "niveau " + str(i + 1))
             bouton_niveau.clicked.connect(lambda _, n=i + 1: self.ouvrir_niveau(sujet, n))
 
             label_difficulte = QLabel(difficultes[i])

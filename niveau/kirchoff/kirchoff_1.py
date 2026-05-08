@@ -12,22 +12,26 @@ class NiveauKirchoff1(QWidget):
     def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
-        style_niveau = QFile("stylesheet/app.qss")
-        if style_niveau.open(QFile.OpenModeFlag.ReadOnly):
-            stream = QTextStream(style_niveau)
-            self.setStyleSheet(stream.readAll())
-            style_niveau.close()
-
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
 
+        # affichage bouton aide
         layout_exterieur = QVBoxLayout()
+        top_layout = QHBoxLayout()
+        top_layout.addStretch()
+
+        aide = QPushButton("Aide")
+        aide.clicked.connect(self.ouvrir_aide)
+
+        top_layout.addWidget(aide)
+        layout_exterieur.addLayout(top_layout)
         self.setLayout(layout_exterieur)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
+
 
         contenu = QWidget()
         contenu.setMaximumWidth(900)
@@ -38,7 +42,7 @@ class NiveauKirchoff1(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(20)
 
-        titre = QLabel("kirchoff - Niveau 1")
+        titre = QLabel("kirchoff - niveau 1")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
         police_titre.setPointSize(32)
@@ -112,6 +116,25 @@ class NiveauKirchoff1(QWidget):
         boutons_layout.addStretch()
 
         main_layout.addLayout(boutons_layout)
+
+    # ouvrir la documentation
+    def ouvrir_aide(self):
+        from docs import DocumentationWindow
+        from PySide6.QtCore import QFile, QTextStream, Qt
+
+        parent_window = self.window()
+
+        self.fenetre_doc = DocumentationWindow(parent_window)
+        self.fenetre_doc.setWindowModality(Qt.WindowModality.NonModal)
+
+        style_docu = QFile("stylesheet/documentation.qss")
+        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
+            stream_docu = QTextStream(style_docu)
+            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+            style_docu.close()
+
+        self.fenetre_doc.show()
+        self.fenetre_doc.raise_()
 
     def valider_reponses(self):
         bonne_reponses = 0

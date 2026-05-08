@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, QRegularExpression
-from PySide6.QtGui import QFont, QPixmap, QRegularExpressionValidator
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QMessageBox, QScrollArea, QGridLayout
@@ -16,7 +16,17 @@ class NiveauKirchoff5(QWidget):
         self.retour_callback = retour_callback
         self.reponses = []
 
+        # affichage bouton aide
         layout_exterieur = QVBoxLayout()
+        top_layout = QHBoxLayout()
+        top_layout.addStretch()
+
+        aide = QPushButton("Aide")
+        aide.clicked.connect(self.ouvrir_aide)
+
+        top_layout.addWidget(aide)
+        layout_exterieur.addLayout(top_layout)
+
         self.setLayout(layout_exterieur)
 
         scroll = QScrollArea()
@@ -32,7 +42,7 @@ class NiveauKirchoff5(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(25)
 
-        titre = QLabel("Loi de Kirchoff - Niveau 5")
+        titre = QLabel("Loi de Kirchoff - niveau 5")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
         police_titre.setPointSize(30)
@@ -88,6 +98,25 @@ class NiveauKirchoff5(QWidget):
         boutons_layout.addStretch()
 
         main_layout.addLayout(boutons_layout)
+
+        # ouvrir la documentation
+    def ouvrir_aide(self):
+        from docs import DocumentationWindow
+        from PySide6.QtCore import QFile, QTextStream, Qt
+
+        parent_window = self.window()
+
+        self.fenetre_doc = DocumentationWindow(parent_window)
+        self.fenetre_doc.setWindowModality(Qt.WindowModality.NonModal)
+
+        style_docu = QFile("stylesheet/documentation.qss")
+        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
+            stream_docu = QTextStream(style_docu)
+            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+            style_docu.close()
+
+        self.fenetre_doc.show()
+        self.fenetre_doc.raise_()
 
     def valider_reponses(self):
         bonne_reponses = 0
