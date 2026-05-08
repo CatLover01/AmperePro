@@ -336,6 +336,7 @@ class Circuit(QGraphicsScene):
         self.modifications = []
         # les ajouts seront 1, les jetés seront 2, composantes tournées seront 3 et composantes modifiées seront 4
         self.operations = []
+        self.tournes = []
 
         # pour les composantes
         self.toolbar = None
@@ -722,16 +723,16 @@ class Circuit(QGraphicsScene):
 
             self.dernier_jete.pop()
 
+        elif dernier == 3:
+            collision = self.tournes.pop()
+            self.operation_tourner(collision)
+
         else:
             # annuler la plus récente modification à une composante.
             dernier_element = self.modifications.pop()
             operation = dernier_element[0]
 
-            if operation == "tourner":
-                # TODO: tourner la composante avec la fonction, utiliser nimporte quelle position de la composante
-                pass
-
-            elif operation == "Batterie":
+            if operation == "Batterie":
                 # TODO: remettre voltage batterie précédent
                 pass
 
@@ -1564,7 +1565,8 @@ class Circuit(QGraphicsScene):
         x, y = self.pos_selon_grid(position)
         collision = self.verifier_collision_fil(QPointF(x, y))
         if isinstance(collision, Composante):
-            modification = collision.clique(self.taille_grid)
+            modification, ignorer = collision.clique(self.taille_grid)
+            self.modifications.append(modification, collision)
             # TODO faire en sorte de save la modification dans les rollbacks
 
         self.operations.append(4)
@@ -1574,10 +1576,13 @@ class Circuit(QGraphicsScene):
         collision = self.verifier_collision_fil(QPointF(x, y))
 
         if isinstance(collision, Composante) and collision.nom != "Ampèremètre" and collision.nom != "Voltmètre":
-            collision.image_item.setRotation(collision.image_item.rotation() + 180)
-
+            self.operation_tourner(collision)
             self.operations.append(3)
+            self.tournes.append(collision)
 
+    @staticmethod
+    def operation_tourner(collision):
+        collision.image_item.setRotation(collision.image_item.rotation() + 180)
 
 class GraphicsView(QGraphicsView):
 

@@ -3,7 +3,7 @@ from typing import override
 from abc import ABC
 
 from PySide6.QtCore import QRect, Qt
-from PySide6.QtGui import QPixmap, Qt
+from PySide6.QtGui import QPixmap, Qt, QFontMetrics
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
 
@@ -278,15 +278,36 @@ class Voltmetre(Composante):
         fond.setGeometry(4, 0, 232, 110)
         voltage = str(self.voltage)
         texte = QLabel(voltage, parent=fenetre)
-        texte.setStyleSheet("font-size: 50pt; color: #000000")
-        texte.setGeometry(4, 0, 232, 110)
-        texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        """ Affiche un V dans le voltmetre (a mettre a lamperemetre aussi)
+        texte.setStyleSheet("color: #000000")
+
+        #s'assure que le texte ne sorte pas ou n'overlap pas le "v"
+        longueur_max = 186
+        position_x = 5
+        taille_police_initiale = 50
+        police = texte.font()
+        police.setPointSizeF(taille_police_initiale)
+        verification = QFontMetrics(police)
+        taille_texte = verification.boundingRect(texte.text()).width()
+        if taille_texte >= longueur_max:
+            while taille_texte >= longueur_max:
+                taille_police_initiale -=1
+                police.setPointSizeF(taille_police_initiale)
+                verification = QFontMetrics(police)
+                taille_texte = verification.boundingRect(texte.text()).width()
+
+        else:
+            position_x = longueur_max/2 - taille_texte/2
+
+        police.setPointSizeF(taille_police_initiale)
+        texte.setFont(police)
+        texte.setGeometry(position_x, 0, taille_texte + 4, 110)
+
+        #Affiche un V dans le voltmetre
         texte_volt = QLabel("V", parent=fenetre)
         texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
         texte_volt.setGeometry(4, 0, 232, 110)
         texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        """
+
         texte.raise_()
         fenetre.exec()
 
@@ -306,10 +327,10 @@ class Amperemetre(Composante):
     @override
     def clique(self, _):
         fenetre = QDialog()
-        fenetre.setWindowTitle("Ampèremètre")
+        fenetre.setWindowTitle("Voltmètre")
         fenetre.setFixedSize(240, 350)
 
-        # image qui simule l'ampèremètre
+        # image qui simule le voltmètre
         image = QLabel(parent=fenetre)
         pixmap = QPixmap("images/interface/amperemetre.png")
         image.setPixmap(pixmap)
@@ -322,9 +343,35 @@ class Amperemetre(Composante):
         fond.setGeometry(4, 0, 232, 110)
         amperage = str(self.amperage)
         texte = QLabel(amperage, parent=fenetre)
-        texte.setStyleSheet("font-size: 50pt; color: #000000")
-        texte.setGeometry(4, 0, 232, 110)
-        texte.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        texte.setStyleSheet("color: #000000")
+
+        # s'assure que le texte ne sorte pas ou n'overlap pas le "v"
+        longueur_max = 186
+        position_x = 5
+        taille_police_initiale = 50
+        police = texte.font()
+        police.setPointSizeF(taille_police_initiale)
+        verification = QFontMetrics(police)
+        taille_texte = verification.boundingRect(texte.text()).width()
+        if taille_texte >= longueur_max:
+            while taille_texte >= longueur_max:
+                taille_police_initiale -= 1
+                police.setPointSizeF(taille_police_initiale)
+                verification = QFontMetrics(police)
+                taille_texte = verification.boundingRect(texte.text()).width()
+
+        else:
+            position_x = longueur_max / 2 - taille_texte / 2
+
+        police.setPointSizeF(taille_police_initiale)
+        texte.setFont(police)
+        texte.setGeometry(position_x, 0, taille_texte + 4, 110)
+
+        # Affiche un V dans le voltmetre
+        texte_volt = QLabel("V", parent=fenetre)
+        texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
+        texte_volt.setGeometry(4, 0, 232, 110)
+        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
         texte.raise_()
         fenetre.exec()
