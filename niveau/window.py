@@ -1,23 +1,23 @@
 from PySide6.QtWidgets import QVBoxLayout, QDialog
 
-from Niveau.LoiKirchoff.Kirchoff_4 import NiveauKirchoff4
-from Niveau.LoiKirchoff.kirchoff_5 import NiveauKirchoff5
-from Niveau.LoiOhm.ohm_1 import NiveauOhm1
-from Niveau.LoiOhm.ohm_2 import NiveauOhm2
-from Niveau.LoiOhm.ohm_3 import NiveauOhm3
-from Niveau.LoiOhm.ohm_4 import NiveauOhm4
-from Niveau.LoiOhm.ohm_5 import NiveauOhm5
-from Niveau.LoiKirchoff.kirchoff_1 import NiveauKirchoff1
-from Niveau.LoiKirchoff.kirchoff_2 import NiveauKirchoff2
-from Niveau.LoiKirchoff.kirchoff_3 import NiveauKirchoff3
-from Niveau.Resistance_equivalente.re_1 import NiveauRE1
-from Niveau.Resistance_equivalente.re_2 import NiveauRE2
-from Niveau.Resistance_equivalente.re_3 import NiveauRE3
-from Niveau.definitions import Sujet
+from niveau.kirchoff.kirchoff_4 import NiveauKirchoff4
+from niveau.kirchoff.kirchoff_5 import NiveauKirchoff5
+from niveau.ohm.ohm_1 import NiveauOhm1
+from niveau.ohm.ohm_2 import NiveauOhm2
+from niveau.ohm.ohm_3 import NiveauOhm3
+from niveau.ohm.ohm_4 import NiveauOhm4
+from niveau.ohm.ohm_5 import NiveauOhm5
+from niveau.kirchoff.kirchoff_1 import NiveauKirchoff1
+from niveau.kirchoff.kirchoff_2 import NiveauKirchoff2
+from niveau.kirchoff.kirchoff_3 import NiveauKirchoff3
+from niveau.resistance_equivalente.re_1 import NiveauRE1
+from niveau.resistance_equivalente.re_2 import NiveauRE2
+from niveau.resistance_equivalente.re_3 import NiveauRE3
+from niveau.definitions import Sujet
 
 
 class NiveauWindow(QDialog):
-    # Niveau commence à 1
+    # niveau commence à 1
     def __init__(self, sujet: Sujet, niveau: int, update_niveau):
         super().__init__()
 

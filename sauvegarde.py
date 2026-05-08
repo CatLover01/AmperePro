@@ -5,7 +5,7 @@ from dataclasses import dataclass, asdict
 from dacite import from_dict
 import uuid
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
 
 @dataclass
@@ -19,7 +19,7 @@ class CircuitLibre:
 class Sauvegarde:
     def __init__(self):
         try:
-            # Données utilisateur: Niveau atteint, circuits personnalisés
+            # Données utilisateur: niveau atteint, circuits personnalisés
             self.data = read("data.json")
         except (FileNotFoundError, JSONDecodeError):
             # Création d'un état par défaut si la sauvegarde n'existe pas ou malformé

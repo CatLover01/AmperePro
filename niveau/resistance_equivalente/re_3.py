@@ -17,8 +17,8 @@ class NiveauRE3(QWidget):
 
         # image + réponse
         self.questions = [
-            ("images/niveau/Résistance équivalente/3/RE3-circuit1.png", 2),
-            ("images/niveau/Résistance équivalente/3/RE3-circuit2.png", 2),
+            ("images/niveau/resistance_equivalente/3/circuit_1.png", 2),
+            ("images/niveau/resistance_equivalente/3/circuit_2.png", 2),
         ]
 
         layout_exterieur = QVBoxLayout()

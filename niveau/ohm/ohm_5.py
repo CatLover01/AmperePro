@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QMessageBox, QScrollArea
 )
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
 
 class NiveauOhm5(QWidget):
@@ -17,11 +17,11 @@ class NiveauOhm5(QWidget):
         self.reponses = []
 
         self.questions = [
-            ("images/Niveau/ohm/5/Circuit 5-1.png", 4.67),
-            ("images/Niveau/ohm/5/Circuit 5-2.png", 4),
-            ("images/Niveau/ohm/5/Circuit 5-3.png", 2.75),
-            ("images/Niveau/ohm/5/Circuit 5-4.png", 5),
-            ("images/Niveau/ohm/5/Circuit 5-5.png", 4),
+            ("images/niveau/ohm/5/circuit_1.png", 4.67),
+            ("images/niveau/ohm/5/circuit_2.png", 4),
+            ("images/niveau/ohm/5/circuit_3.png", 2.75),
+            ("images/niveau/ohm/5/circuit_4.png", 5),
+            ("images/niveau/ohm/5/circuit_5.png", 4),
         ]
 
         layout_exterieur = QVBoxLayout()

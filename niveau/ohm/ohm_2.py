@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, QScrollArea
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
 
 class NiveauOhm2(QWidget):

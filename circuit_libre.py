@@ -5,8 +5,8 @@ from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDial
 import math
 import numpy as np
 
-from Button import ToolTipButton
-from Composantes import toolbar_composantes, Composante
+from button import ToolTipButton
+from composantes import toolbar_composantes, Composante
 from sauvegarde import Sauvegarde
 
 
@@ -58,7 +58,7 @@ class Noeud:
         # le premier fil doit finir par self sinon switch
         # le dernier fil doit commencer par self sinon switch
 
-        #TODO Ça marche pas TABARNAK
+        # TODO Ça marche pas TABARNAK
         if len(self.info_voisins) == 1:
             i, j = scene.pos_to_mat(self.pos.x(), self.pos.y())
             scene.mat_points[i, j] = self.info_voisins[0][0]
@@ -102,6 +102,7 @@ class Noeud:
             scene.noeuds.remove(self)
 
             scene.visualiser_matrice()
+
 
 class Fil:
     def __init__(self, scene, points, lignes):
@@ -152,7 +153,7 @@ class Fil:
     def resistance(self):
         return self._resistance
 
-    @ resistance.setter
+    @resistance.setter
     def resistance(self, resistance):
         self._resistance = resistance
 
@@ -731,15 +732,15 @@ class Circuit(QGraphicsScene):
                 pass
 
             elif operation == "Batterie":
-                #TODO: remettre voltage batterie précédent
+                # TODO: remettre voltage batterie précédent
                 pass
 
             elif operation == "Résistor":
-                #Todo: remettre dernière résistance
+                # Todo: remettre dernière résistance
                 pass
 
             elif operation == "Interrupteur":
-                #Todo: ouvrir ou fermer interrupteur
+                # Todo: ouvrir ou fermer interrupteur
                 pass
 
         self.operations.pop()
@@ -1038,7 +1039,7 @@ class Circuit(QGraphicsScene):
             self.continuer_dessin(pos)
 
     def fil_accepte(self, position):
-        #TODO: valider que l'on peut mettre un fil (pas de composantes, pas collé à un autre fil
+        # TODO: valider que l'on peut mettre un fil (pas de composantes, pas collé à un autre fil
         pass
 
     # Calcul l'ensemble des voltages aux noeuds si le premier noeuds est 0V.
@@ -1327,7 +1328,6 @@ class Circuit(QGraphicsScene):
         zone_surbrillance.setBrush(QColor(218, 44, 44))
         self.addItem(zone_surbrillance)"""
 
-
     def composante_toolbar_clicked(self, composante):
         if composante in toolbar_composantes.values():
             self.selection = "composante"
@@ -1433,18 +1433,18 @@ class Circuit(QGraphicsScene):
 
         milieu = self.image_composante.scenePos()
         # Les points du milieu qui doivent etre connecté au fil
-        point_debut = QPointF(milieu.x() + x_mult*self.taille_grid, milieu.y() + y_mult*self.taille_grid)
-        point_fin = QPointF(milieu.x() - x_mult*self.taille_grid, milieu.y() - y_mult*self.taille_grid)
+        point_debut = QPointF(milieu.x() + x_mult * self.taille_grid, milieu.y() + y_mult * self.taille_grid)
+        point_fin = QPointF(milieu.x() - x_mult * self.taille_grid, milieu.y() - y_mult * self.taille_grid)
         points_fil = [point_debut, milieu, point_fin]
 
         # Les points ou ca doit etre vide
         points_vide = []
         for i in range(3):
             if y_mult == 0:
-                points_vide.append(QPointF(milieu.x() + (i - 1)*self.taille_grid, milieu.y() + self.taille_grid))
+                points_vide.append(QPointF(milieu.x() + (i - 1) * self.taille_grid, milieu.y() + self.taille_grid))
                 points_vide.append(QPointF(milieu.x() + (i - 1) * self.taille_grid, milieu.y() - self.taille_grid))
             else:
-                points_vide.append(QPointF(milieu.x() + self.taille_grid, milieu.y() + (i - 1)*self.taille_grid))
+                points_vide.append(QPointF(milieu.x() + self.taille_grid, milieu.y() + (i - 1) * self.taille_grid))
                 points_vide.append(QPointF(milieu.x() - self.taille_grid, milieu.y() + (i - 1) * self.taille_grid))
 
         return points_fil, points_vide
@@ -1484,7 +1484,7 @@ class Circuit(QGraphicsScene):
         else:
             self.couleur_recouvre.setBrush(QColor(44, 246, 44))
 
-    #TODO
+    # TODO
     def jeter_composante(self, position):
         a_jeter = None
         for zone in self.zones_surbrillance:
@@ -1533,7 +1533,7 @@ class Circuit(QGraphicsScene):
             self.composantes_jetes.append(composante_supprimee)
             self.composantes_jetes.append(image_composante_supprimee)
             self.composantes_jetes.append(position_supprimee)
-            self.composantes_jetes.append(math.floor(index/3))
+            self.composantes_jetes.append(math.floor(index / 3))
             self.dernier_jete.append("composante")
 
             self.selection = None

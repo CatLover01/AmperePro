@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QPushButton, QMessageBox, QScrollArea, QRadioButton, QButtonGroup
 )
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
 
 class ChoixCircuit(QWidget):
@@ -65,12 +65,12 @@ class NiveauRE1(QWidget):
         self.fenetre_doc = None
 
         self.questions = [
-            ("images/Niveau/Résistance équivalente/1/RE-circuit1.png", "série"),
-            ("images/Niveau/Résistance équivalente/1/RE-circuit2.png", "série"),
-            ("images/Niveau/Résistance équivalente/1/RE-circuit3.png", "parallèle"),
-            ("images/Niveau/Résistance équivalente/1/RE-circuit4.png", "série"),
-            ("images/Niveau/Résistance équivalente/1/RE-circuit5.png", "mixte"),
-            ("images/Niveau/Résistance équivalente/1/RE-circuit6.png", "série"),
+            ("images/niveau/resistance_equivalente/1/circuit_1.png", "série"),
+            ("images/niveau/resistance_equivalente/1/circuit_2.png", "série"),
+            ("images/niveau/resistance_equivalente/1/circuit_3.png", "parallèle"),
+            ("images/niveau/resistance_equivalente/1/circuit_4.png", "série"),
+            ("images/niveau/resistance_equivalente/1/circuit_5.png", "mixte"),
+            ("images/niveau/resistance_equivalente/1/circuit_6.png", "série"),
         ]
 
         layout_exterieur = QVBoxLayout()
@@ -156,7 +156,7 @@ class NiveauRE1(QWidget):
         self.fenetre_doc = DocumentationWindow(parent_window)
         self.fenetre_doc.setWindowModality(Qt.WindowModality.NonModal)
 
-        style_docu = QFile("StyleSheet/StyleDocumentation.qss")
+        style_docu = QFile("stylesheet/documentation.qss")
         if style_docu.open(QFile.OpenModeFlag.ReadOnly):
             stream_docu = QTextStream(style_docu)
             self.fenetre_doc.setStyleSheet(stream_docu.readAll())

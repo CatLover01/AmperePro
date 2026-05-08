@@ -5,9 +5,9 @@ from PySide6.QtWidgets import (
     QPushButton, QMessageBox, QScrollArea, QRadioButton, QButtonGroup
 )
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
-DOSSIER_IMAGES = "images/Niveau/kirchoff/2/"
+DOSSIER_IMAGES = "images/niveau/kirchoff/2/"
 
 
 class NiveauKirchoff2(QWidget):
@@ -20,32 +20,32 @@ class NiveauKirchoff2(QWidget):
 
         self.questions = [
             {
-                "image": DOSSIER_IMAGES + "circuitk_2.1.png",
+                "image": DOSSIER_IMAGES + "circuit_1.png",
                 "question": "15-12I\u2081-5I\u2082-7?=0",
                 "type": "lettre",
                 "reponse": "I₁",
             },
             {
-                "image": DOSSIER_IMAGES + "circuitk_2.2.png",
+                "image": DOSSIER_IMAGES + "circuit_2.png",
                 "question": "15-12I\u2081?5-7I\u2081=0",
                 "type": "symbole",
                 "reponse": "-",
             },
             {
-                "image": DOSSIER_IMAGES + "circuitk_2.3.png",
+                "image": DOSSIER_IMAGES + "circuit_3.png",
                 "question": "15-12I\u2081-2?-7I\u2082=0",
                 "type": "lettre",
                 "reponse": "I₃",
             },
             {
-                "image": DOSSIER_IMAGES + "circuitk_2.4.png",
+                "image": DOSSIER_IMAGES + "circuit_4.png",
                 "question": "À partir de la maille FEBAF\n"
                             "?6I\u2082+12-5I\u2081=0",
                 "type": "symbole",
                 "reponse": "+",
             },
             {
-                "image": DOSSIER_IMAGES + "circuitk_2.4.png",
+                "image": DOSSIER_IMAGES + "circuit_4.png",
                 "question": "À partir de la maille DCBED\n"
                             "-100I\u2083?12-6I\u2082=0",
                 "type": "symbole",

@@ -62,7 +62,7 @@ class NiveauKirchoff4(QWidget):
         consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
-        image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/4/circuit_k_4.1.png"))
+        image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/4/circuit_1.png"))
         image_circuit.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(image_circuit)
 

@@ -5,14 +5,14 @@ from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, \
     QScrollArea, QCheckBox
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
 
 class NiveauKirchoff1(QWidget):
     def __init__(self, retour_callback, update_niveau):
         super().__init__()
 
-        style_niveau = QFile("StyleSheet/StyleMainWindow.qss")
+        style_niveau = QFile("stylesheet/app.qss")
         if style_niveau.open(QFile.OpenModeFlag.ReadOnly):
             stream = QTextStream(style_niveau)
             self.setStyleSheet(stream.readAll())
@@ -38,7 +38,7 @@ class NiveauKirchoff1(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(20)
 
-        titre = QLabel("LoiKirchoff - Niveau 1")
+        titre = QLabel("kirchoff - Niveau 1")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
         police_titre.setPointSize(32)
@@ -61,7 +61,7 @@ class NiveauKirchoff1(QWidget):
         lettre = ["A", "B", "C", "D", "E", "F"]
         q1_layout = QVBoxLayout()
 
-        circuit1 = QLabel(pixmap=QPixmap("images/Niveau/kirchoff/1/circuit_K_1.1.png"))
+        circuit1 = QLabel(pixmap=QPixmap("images/niveau/kirchoff/1/circuit_1.png"))
         circuit1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         q1_layout.addWidget(circuit1)
 
@@ -78,7 +78,7 @@ class NiveauKirchoff1(QWidget):
 
         q2_layout = QVBoxLayout()
 
-        circuit2 = QLabel(pixmap=QPixmap("images/Niveau/kirchoff/1/circuit_K_1.2.png"))
+        circuit2 = QLabel(pixmap=QPixmap("images/niveau/kirchoff/1/circuit_2.png"))
         circuit2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         q2_layout.addWidget(circuit2)
 

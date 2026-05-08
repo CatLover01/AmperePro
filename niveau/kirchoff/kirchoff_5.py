@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QMessageBox, QScrollArea, QGridLayout
 )
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
 
 class NiveauKirchoff5(QWidget):
@@ -44,7 +44,7 @@ class NiveauKirchoff5(QWidget):
         consigne.setWordWrap(True)
         main_layout.addWidget(consigne)
 
-        image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/5/circuit_k_5.png"))
+        image_circuit = QLabel(pixmap=QPixmap("images/niveau/kirchoff/5/circuit_1.png"))
         image_circuit.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(image_circuit)
 

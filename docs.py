@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QListWidget, QLabel, QPushButton
 )
 from PySide6.QtCore import Qt
-from Composantes import toolbar_composantes
+from composantes import toolbar_composantes
 
 # Voir les descriptions des composites pour le reste de la documentation
 Texte = {

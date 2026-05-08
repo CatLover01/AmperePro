@@ -4,9 +4,9 @@ from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, Q
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
-from Button import RightClickButton, ToolTipButton
-from Niveau.window import NiveauWindow
-from Niveau.definitions import Sujet, DetailNiveau, INFO_NIVEAUX
+from button import RightClickButton, ToolTipButton
+from niveau.window import NiveauWindow
+from niveau.definitions import Sujet, DetailNiveau, INFO_NIVEAUX
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitLibre
@@ -22,14 +22,14 @@ class AmperePro(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        style_main = QFile("StyleSheet/StyleMainWindow.qss")
+        style_main = QFile("stylesheet/app.qss")
         if style_main.open(QFile.OpenModeFlag.ReadOnly):
             stream = QTextStream(style_main)
             self.setStyleSheet(stream.readAll())
             style_main.close()
 
         self.setWindowTitle("AmpèrePro")
-        self.setWindowIcon(QIcon("images/interface/AmperePro_fond_bleu.png"))
+        self.setWindowIcon(QIcon("images/interface/app_logo_fond_bleu.png"))
         self.setMinimumSize(500, 500)
 
         self.title = None
@@ -80,7 +80,7 @@ class AmperePro(QMainWindow):
         self.setCentralWidget(main_widget)
 
         # Logo
-        logo = QLabel(pixmap=QPixmap("images/Interface/AmperePro_logo.png"))
+        logo = QLabel(pixmap=QPixmap("images/interface/app_logo.png"))
         logo.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(logo)
 
@@ -125,7 +125,7 @@ class AmperePro(QMainWindow):
         self.fenetre_doc = DocumentationWindow()
 
         # ouverture du Stylesheet
-        style_docu = QFile("StyleSheet/StyleDocumentation.qss")
+        style_docu = QFile("stylesheet/documentation.qss")
         if style_docu.open(QFile.OpenModeFlag.ReadOnly):
             stream_docu = QTextStream(style_docu)
             self.fenetre_doc.setStyleSheet(stream_docu.readAll())
@@ -135,7 +135,7 @@ class AmperePro(QMainWindow):
 
     def ouvrir_a_propos(self):
         # ouverture du stylesheet
-        style_propos = QFile("StyleSheet/StylePropos.qss")
+        style_propos = QFile("stylesheet/a_propos.qss")
         if style_propos.open(QFile.OpenModeFlag.ReadOnly):
             stream = QTextStream(style_propos)
             self.fenetre_a_propos.setStyleSheet(stream.readAll())

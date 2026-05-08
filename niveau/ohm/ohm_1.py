@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QAction
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMenu, QMessageBox, QScrollArea
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
 
 class TrouButton(QPushButton):

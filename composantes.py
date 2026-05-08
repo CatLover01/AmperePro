@@ -150,8 +150,8 @@ class Batterie(Composante):
 
 class LED(Composante):
     def __init__(self):
-        super().__init__(Type.LED, "LED", "images/circuit/LED.png",
-                         "images/circuit/LED.png",
+        super().__init__(Type.LED, "LED", "images/circuit/led.png",
+                         "images/circuit/led.png",
                          "- Diode qui émet de la lumière quand le courant passe dans le bon sens <br>"
                          "- Elle a une polarité : anode (+) et cathode (-). <br>"
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
@@ -254,7 +254,7 @@ class Voltmetre(Composante):
                          "- Sert à mesurer la tension (différence de potentiel) entre deux points. <br> "
                          "- Unité : Volt (V). <br> "
                          "- Se branche en parallèle aux bornes de la composante dont on veut mesurer la tension. <br>"
-                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit.",
+                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit."
                          )
 
         self.voltage = 0

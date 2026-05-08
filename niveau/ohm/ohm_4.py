@@ -5,8 +5,9 @@ from PySide6.QtWidgets import (
     QPushButton, QMessageBox, QScrollArea
 )
 
-from Niveau.definitions import Sujet
+from niveau.definitions import Sujet
 
+DOSSIER_IMAGES = "images/niveau/ohm/4/"
 
 class CaseNumero(QPushButton):
     def __init__(self, index_case, parent_niveau):
@@ -33,27 +34,27 @@ class NiveauOhm4(QWidget):
 
         self.circuits = [
             {
-                "image": "images/Niveau/ohm/4/circuit4-1.png",
+                "image": DOSSIER_IMAGES + "circuit_1.png",
                 "bonne_position": 1,
             },
             {
-                "image": "images/Niveau/ohm/4/circuit4-2.png",
+                "image": DOSSIER_IMAGES + "circuit_2.png",
                 "bonne_position": 2,
             },
             {
-                "image": "images/Niveau/ohm/4/circuit4-3.png",
+                "image": DOSSIER_IMAGES + "circuit_3.png",
                 "bonne_position": 6,
             },
             {
-                "image": "images/Niveau/ohm/4/circuit4-4.png",
+                "image": DOSSIER_IMAGES + "circuit_4.png",
                 "bonne_position": 4,
             },
             {
-                "image": "images/Niveau/ohm/4/circuit4-5.png",
+                "image": DOSSIER_IMAGES + "circuit_5.png",
                 "bonne_position": 3,
             },
             {
-                "image": "images/Niveau/ohm/4/circuit4-6.png",
+                "image": DOSSIER_IMAGES + "circuit_6.png",
                 "bonne_position": 5,
             }
         ]
