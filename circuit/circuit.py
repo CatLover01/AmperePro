@@ -338,21 +338,6 @@ class Circuit(QGraphicsScene):
     def grid_par_dessus(self, grid_par_dessus):
         self._grid_par_dessus = grid_par_dessus
 
-    @property
-    def composantes(self):
-        return self._composantes
-
-    @composantes.setter
-    def composantes(self, composantes):
-        self._composantes = composantes
-
-    @property
-    def nombre_de_rotations(self):
-        return self._nombre_de_rotations
-
-    @nombre_de_rotations.setter
-    def nombre_de_rotations(self, nombre_de_rotations):
-        self._nombre_de_rotations = nombre_de_rotations
 
     def sauvegarder_triggered(self):
         # Si l'id est None, on demande un nom pour le circuit + on le créé
@@ -459,19 +444,21 @@ class Circuit(QGraphicsScene):
         else:
             # annuler la plus récente modification à une composante.
             dernier_element = self.modifications.pop()
-            operation = dernier_element[0]
+            collision = self.modifications.pop()
+            valeur = self.modifications.pop()
 
-            if operation == "Batterie":
-                # TODO: remettre voltage batterie précédent
-                pass
+            if dernier_element == 1:
+                # remettre dernière valeur tension
+                collision.rollback(valeur)
 
-            elif operation == "Résistor":
-                # Todo: remettre dernière résistance
-                pass
+            elif dernier_element == 2:
+                # remettre dernière valeur résistance
+                collision.rollback(valeur)
 
-            elif operation == "Interrupteur":
-                # Todo: ouvrir ou fermer interrupteur
-                pass
+            elif dernier_element == 3:
+                # dans ce cas, le rollback revient à faire l'action. Les autres valeurs sont inutiles,
+                # elles n'ont été stockées que par soucis d'unicité de la liste
+                collision.clique(self.taille_grid)
 
         self.operations.pop()
         self.rollback_possible()
@@ -1023,11 +1010,11 @@ class Circuit(QGraphicsScene):
         self.toolbar.addWidget(fil_bouton)
 
         # Ajouter un bouton dans la toolbar pour chaque composante
-        for composante in toolbar_composantes.values():
-            bouton = ToolTipButton(composante.nom)
-            bouton.setIcon(QIcon(composante.image_toolbar))
+        for composante_class in toolbar_composantes.values():
+            bouton = ToolTipButton(composante_class().nom)
+            bouton.setIcon(QIcon(composante_class().image_toolbar))
             bouton.setIconSize(QSize(45, 45))
-            bouton.clicked.connect(lambda _, c=composante: self.composante_toolbar_clicked(c))
+            bouton.clicked.connect(lambda _, c=composante_class: self.composante_toolbar_clicked(c))
             self.toolbar.addWidget(bouton)
 
         self.main_window.addToolBar(self.toolbar)
@@ -1061,7 +1048,7 @@ class Circuit(QGraphicsScene):
     def composante_toolbar_clicked(self, composante):
         if composante in toolbar_composantes.values():
             self.selection = "composante"
-            self.composante_selectionnee = composante
+            self.composante_selectionnee = composante()
 
             if self.image_composante is not None:
                 self.removeItem(self.image_composante)
@@ -1294,18 +1281,24 @@ class Circuit(QGraphicsScene):
     def modifier_composante(self, position):
         x, y = self.pos_selon_grid(position)
         composante = self.verifier_collision_fil(QPointF(x, y))
-        if isinstance(composante, Composante):
-            ancienne_tension = composante.tension
-            ancienne_resistance = composante.resistance
+        a_modifier = ["Résistor", "Batterie", "Interrupteur"]
+        a_afficher = ["Ampèremètre", "Voltmètre"]
+        # il n'y a que ces composantes qui ont quelque chose à modifier
+        if composante.nom in a_modifier:
+            print ("Y a été")
+            ancienne_valeur, genre = composante.clique(self.taille_grid)
+            if ancienne_valeur > -1:
+                self.modifications.append(ancienne_valeur)
+                self.modifications.append(composante)
+                self.modifications.append(genre)
+                self.operations.append(4)
+        # ces composantes affichent une fenetre, mais aucune autre opération ne doit être effectuée
+        elif composante.nom in a_afficher:
+            composante.clique(self.taille_grid)
+        # sinon, on ignore le clic
+        else:
+            return
 
-            # Note: Cette function ne devrait probablement rien retourner et devrait avoir un nom plus claire
-            modification = composante.clique(self.taille_grid)
-            if modification is not None:
-                # Note: append prend un parametre, pas 2
-                self.modifications.append(modification, composante)
-            # TODO faire en sorte de save la modification dans les rollbacks
-
-        self.operations.append(4)
 
     def tourner_image_composante(self, position):
         x, y = self.pos_selon_grid(position)

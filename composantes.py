@@ -141,10 +141,17 @@ class Batterie(Composante):
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
         if verifier_return == QDialog.DialogCode.Accepted and self.tension != nombre.value():
+            ancienne_tension = self.tension
             self.tension = nombre.value()
-            return self.tension
+            # on retourne cela pour le rollback (1 pour savoir que batterie modifiée)
+            return ancienne_tension, 1
         else:
-            return None
+            return -4, -4
+
+    def rollback(self, ancienne_valeur):
+        self.tension = ancienne_valeur
+
+
 
 
 class LED(Composante):
@@ -203,10 +210,14 @@ class Resistor(Composante):
 
         # si la valeur est modifiée, on retourne la liste initiale avec valeur modifiée
         if verifier_return == QDialog.DialogCode.Accepted and self.resistance != nombre.value():
+            ancienne_resistance = self.resistance
             self.resistance = nombre.value()
-            return self.resistance
+            return ancienne_resistance, 2
         else:
-            return None
+            return -4, -4
+
+    def rollback(self, ancienne_resistance):
+        self.resistance = ancienne_resistance
 
 
 class Diode(Composante):
@@ -243,6 +254,8 @@ class Interrupteur(Composante):
         pixmap = QPixmap(image_path)
         pixmap_scaled = pixmap.scaled(taille_grid * 2, taille_grid * 2)
         self.image_item.setPixmap(pixmap_scaled)
+        # pour permettre logique uniforme dans modification
+        return 0, 3
 
 
 class Voltmetre(Composante):
@@ -366,7 +379,7 @@ class Amperemetre(Composante):
         texte.setGeometry(position_x, 0, taille_texte + 4, 110)
 
         # Affiche un V dans le voltmetre
-        texte_volt = QLabel("V", parent=fenetre)
+        texte_volt = QLabel("A", parent=fenetre)
         texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
         texte_volt.setGeometry(4, 0, 232, 110)
         texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -374,12 +387,12 @@ class Amperemetre(Composante):
         texte.raise_()
         fenetre.exec()
 
-
+# afin de permettre aux copies d'être uniques, cela n'appelle plus la classe mais crée un objet de la classe
 toolbar_composantes = {
-    Type.Batterie: Batterie(),
-    Type.LED: LED(),
-    Type.Resistor: Resistor(),
-    Type.Diode: Diode(),
-    Type.Interrupteur: Interrupteur(),
-    Type.Voltmetre: Voltmetre(),
-    Type.Amperemetre: Amperemetre()}
+    Type.Batterie: Batterie,
+    Type.LED: LED,
+    Type.Resistor: Resistor,
+    Type.Diode: Diode,
+    Type.Interrupteur: Interrupteur,
+    Type.Voltmetre: Voltmetre,
+    Type.Amperemetre: Amperemetre}
