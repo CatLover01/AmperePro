@@ -6,19 +6,17 @@ from PySide6.QtWidgets import (
 )
 
 
-class NiveauRE3(QWidget):
+class NiveauRE4(QWidget):
     def __init__(self, retour_callback=None, update_niveau=None):
         super().__init__()
 
         self.retour_callback = retour_callback
         self.update_niveau = update_niveau
-
         self.questions_widgets = []
 
-        # image + réponse
         self.questions = [
-            ("images/niveau/Résistance équivalente/3/RE3-circuit1.png", 8.4),
-            ("images/niveau/Résistance équivalente/3/RE3-circuit2.png", 6.43),
+            ("images/niveau/Résistance équivalente/4/RE4-circuit1.png", 8),
+            ("images/niveau/Résistance équivalente/4/RE4-circuit2.png", 9),
         ]
 
         layout_exterieur = QVBoxLayout()
@@ -34,31 +32,20 @@ class NiveauRE3(QWidget):
         main_layout = QVBoxLayout()
         contenu.setLayout(main_layout)
 
-        # Titre
-        titre = QLabel("Résistance équivalente - Niveau 3")
+        titre = QLabel("Résistance équivalente - Niveau 4")
         titre.setAlignment(Qt.AlignCenter)
-
         police = QFont()
         police.setPointSize(28)
-
         titre.setFont(police)
-
         main_layout.addWidget(titre)
 
-        # Consigne
-        consigne = QLabel(
-            "Calcule la résistance équivalente de chaque circuit."
-        )
-
+        consigne = QLabel("Que vaut le « ? » en ohm (Ω) ?")
         consigne.setAlignment(Qt.AlignCenter)
-
         main_layout.addWidget(consigne)
 
-        # Questions
         for image_path, reponse in self.questions:
             self.ajouter_question(main_layout, image_path, reponse)
 
-        # Boutons
         boutons = QHBoxLayout()
 
         valider = QPushButton("Valider")
@@ -76,75 +63,59 @@ class NiveauRE3(QWidget):
         main_layout.addLayout(boutons)
 
     def ajouter_question(self, layout, image_path, bonne_reponse):
-
         bloc = QVBoxLayout()
 
-        # Image
         image_label = QLabel()
-
         pixmap = QPixmap(image_path)
 
         if not pixmap.isNull():
             image_label.setPixmap(
                 pixmap.scaledToWidth(
-                    900
+                    900,
+                    Qt.TransformationMode.SmoothTransformation
                 )
             )
         else:
-            image_label.setText(
-                "Image introuvable : " + image_path
-            )
+            image_label.setText("Image introuvable : " + image_path)
 
         image_label.setAlignment(Qt.AlignCenter)
-
         bloc.addWidget(image_label)
 
-        # Question
-        question = QLabel(
-            "Quelle est la résistance équivalente dans ce circuit ?"
-        )
-
+        question = QLabel("Que vaut le « ? » en ohm (Ω) ?")
         question.setAlignment(Qt.AlignCenter)
-
         question.setFont(QFont("", 14))
-
         bloc.addWidget(question)
 
-        # Input
-        input_field = QLineEdit()
+        ligne_reponse = QHBoxLayout()
 
-        input_field.setPlaceholderText(
-            "Réponse en Ω"
-        )
+        label = QLabel("Réponse =")
+        champ = QLineEdit()
+        champ.setPlaceholderText("Réponse en Ω")
+        champ.setFixedWidth(180)
+        unite = QLabel("Ω")
 
-        input_field.setFixedWidth(200)
+        ligne_reponse.addStretch()
+        ligne_reponse.addWidget(label)
+        ligne_reponse.addSpacing(8)
+        ligne_reponse.addWidget(champ)
+        ligne_reponse.addSpacing(8)
+        ligne_reponse.addWidget(unite)
+        ligne_reponse.addStretch()
 
-        bloc.addWidget(
-            input_field,
-            alignment=Qt.AlignCenter
-        )
-
+        bloc.addLayout(ligne_reponse)
         layout.addLayout(bloc)
 
-        self.questions_widgets.append(
-            (input_field, bonne_reponse)
-        )
+        self.questions_widgets.append((champ, bonne_reponse))
 
     def valider(self):
-
         bonnes = 0
 
-        for input_field, bonne_rep in self.questions_widgets:
-
+        for champ, bonne_reponse in self.questions_widgets:
             try:
-                valeur = float(
-                    input_field.text().replace(",", ".")
-                )
-
-                if valeur == bonne_rep:
+                valeur = float(champ.text().replace(",", "."))
+                if abs(valeur - bonne_reponse) < 0.05:
                     bonnes += 1
-
-            except:
+            except ValueError:
                 pass
 
         QMessageBox.information(
@@ -153,7 +124,9 @@ class NiveauRE3(QWidget):
             f"{bonnes} bonnes réponses sur {len(self.questions_widgets)}"
         )
 
-    def retour(self):
+        if self.update_niveau is not None:
+            self.update_niveau(bonnes, len(self.questions_widgets))
 
+    def retour(self):
         if self.retour_callback:
             self.retour_callback()
