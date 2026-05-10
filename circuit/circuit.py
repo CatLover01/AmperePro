@@ -364,26 +364,19 @@ class Circuit(QGraphicsScene):
     def rollback_triggered(self):
         dernier = self.operations[-1]
         if dernier == 1:
-            dernier_ajout = self.ajouts[-1]
+            dernier_ajout = self.ajouts.pop()
             if isinstance(dernier_ajout, Fil):
                 dernier_ajout.enlever_fil()
                 self.fils.remove(dernier_ajout)
                 # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
             else:
-                # enlever la dernière composante du dessin (donc les 3 dernières infos ajoutées)
-                pass
-
-            self.ajouts.pop()
+                self.jeter_element(dernier_ajout, False)
 
         elif dernier == 2:
             composante = self.composantes_jetes.pop()
             if hasattr(composante, 'nom'):
-                self.addItem(composante.image_item)
-                self.ajouter_elements(composante)
-
-                #TODO: réajouter la composante au fil
-
-
+                self.image_composante = composante.image_item
+                self.inserer_composante(composante)
 
         elif dernier == 3:
             collision = self.tournes.pop()
@@ -1023,8 +1016,9 @@ class Circuit(QGraphicsScene):
             point_milieu = points_fil[1]
             fil = self.verifier_collision_fil(point_milieu)
             # on enleve la surbrillance
-            self.removeItem(self.couleur_recouvre)
-            self.couleur_recouvre = None
+            if self.couleur_recouvre is not None:
+                self.removeItem(self.couleur_recouvre)
+                self.couleur_recouvre = None
             # on cache le fil sous la composante
             coin_sup_gauche_x = point_milieu.x() - self.taille_grid
             coin_sup_gauche_y = point_milieu.y() - self.taille_grid
@@ -1072,7 +1066,7 @@ class Circuit(QGraphicsScene):
             self.image_composante = None
             # on update les infos liées à l'ajout pour le rollback
             self.operations.append(1)
-            self.ajouts.append(composante)
+            self.ajouts.append(point_milieu)
             self.rollback_possible()
 
     def clic_droit_composante(self):
@@ -1172,7 +1166,7 @@ class Circuit(QGraphicsScene):
                 self.zones_surbrillance = None
                 self.composante_surbrillance = None
 
-    def jeter_composante(self, position):
+    def jeter_element(self, position, rollback):
         x, y = self.pos_selon_grid(position)
         composante = self.verifier_collision_fil(QPointF(x, y))
         if hasattr(composante, "nom"):
@@ -1182,11 +1176,14 @@ class Circuit(QGraphicsScene):
             self.retirer_elements(composante)
             self.zones_surbrillance = None
 
-            # TODO: retirer la composante du fil
+            # TODO: retirer la composante du fil. C'est impératif que cela redevienne un fil à l'emplacement de la composante.
+            # TODO: possibilité de poursuivre la méthode nettoyer composante (si une autre manière est choisie aucun problème)
+            self.nettoyer_composante(composante)
 
-            # on ajuste pour rollback
-            self.composantes_jetes.append(composante)
-            self.operations.append(2)
+            # on ajuste pour rollback si on provient de clic gauche et pas du rollback (si rollback = True)
+            if rollback:
+                self.composantes_jetes.append(composante)
+                self.operations.append(2)
 
 
     def deplacer_composante(self, position):
@@ -1205,10 +1202,11 @@ class Circuit(QGraphicsScene):
         for item in items:
                 self.removeItem(item)
 
-    def ajouter_elements(self, composante):
-        items = composante.items
-        for item in items:
-            self.addItem(item)
+    @staticmethod
+    def nettoyer_composante(composante):
+        composante.items = []
+        composante.points_fil = []
+        composante.points_cote = []
 
     # Modification d'une composante lors du double click gauche
     def modifier_composante(self, position):
@@ -1267,7 +1265,7 @@ class GraphicsView(QGraphicsView):
                 self.scene.inserer_composante(self.scene.composante_selectionnee)
 
             elif self.scene.selection == "poubelle" and self.scene.zones_surbrillance:
-                self.scene.jeter_composante(position_scene)
+                self.scene.jeter_element(position_scene, True)
 
         if event.button() == Qt.MouseButton.RightButton:
             if self.scene.selection == "fil":
