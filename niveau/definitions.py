@@ -72,7 +72,7 @@ INFO_NIVEAUX = {
         },
         4: {
             DetailNiveau.Description: "...",
-            DetailNiveau.PointTotal: None,
+            DetailNiveau.PointTotal: 2,
         },
         5: {
             DetailNiveau.Description: "...",

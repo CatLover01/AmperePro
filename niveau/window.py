@@ -13,6 +13,7 @@ from niveau.kirchoff.kirchoff_3 import NiveauKirchoff3
 from niveau.resistance_equivalente.re_1 import NiveauRE1
 from niveau.resistance_equivalente.re_2 import NiveauRE2
 from niveau.resistance_equivalente.re_3 import NiveauRE3
+from niveau.resistance_equivalente.re_4 import NiveauRE4
 from niveau.definitions import Sujet
 
 
@@ -55,6 +56,8 @@ class NiveauWindow(QDialog):
             widget = NiveauRE2(self.quitter, update_niveau)
         elif sujet == Sujet.Resistance and niveau == 3:
             widget = NiveauRE3(self.quitter, update_niveau)
+        elif sujet == Sujet.Resistance and niveau == 4:
+            widget = NiveauRE4(self.quitter, update_niveau)
 
         if widget is not None:
             layout = QVBoxLayout()
