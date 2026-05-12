@@ -1295,23 +1295,3 @@ class GraphicsView(QGraphicsView):
                 position_scene = self.mapToScene(event.position().toPoint())
                 self.scene.tourner_image_composante(position_scene)
 
-
-class LoisPhysiques:
-    @staticmethod
-    def loi_ohm(resistance, tension):
-        intensite = tension / resistance
-        return intensite
-
-    @staticmethod
-    def resistance_serie(*args):
-        res_eq = 0
-        for arg in args:
-            res_eq += arg
-        return res_eq
-
-    @staticmethod
-    def resistance_parallele(*args):
-        res_eq = 0
-        for arg in args:
-            res_eq += 1 / arg
-        return 1 / res_eq
