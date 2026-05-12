@@ -96,7 +96,7 @@ class NiveauRE1(QWidget):
         main_layout = QVBoxLayout()
         contenu.setLayout(main_layout)
 
-        titre = QLabel("Résistance équivalente - Niveau 1")
+        titre = QLabel("Résistance équivalente - niveau 1")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
         police.setPointSize(28)

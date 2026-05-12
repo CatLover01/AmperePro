@@ -54,7 +54,7 @@ class NiveauOhm1(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(15)
 
-        titre = QLabel("Loi d'Ohm - Niveau 1")
+        titre = QLabel("Loi d'Ohm - niveau 1")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
         police_titre.setPointSize(40)

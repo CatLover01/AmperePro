@@ -45,7 +45,7 @@ class NiveauRE2(QWidget):
         contenu.setLayout(main_layout)
 
         # Titre
-        titre = QLabel("Résistance équivalente - Niveau 2")
+        titre = QLabel("Résistance équivalente - niveau 2")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
         police.setPointSize(28)

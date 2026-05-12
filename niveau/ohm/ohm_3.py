@@ -33,7 +33,7 @@ class NiveauOhm3(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(25)
 
-        titre = QLabel("Loi d'Ohm - Niveau 3")
+        titre = QLabel("Loi d'Ohm - niveau 3")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
         police_titre.setPointSize(30)

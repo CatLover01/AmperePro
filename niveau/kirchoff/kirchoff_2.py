@@ -56,7 +56,7 @@ class NiveauKirchoff2(QWidget):
 
         main_layout = QVBoxLayout()
 
-        titre = QLabel("Loi de Kirchoff - Niveau 2 ")
+        titre = QLabel("Loi de Kirchoff - niveau 2 ")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
         police.setPointSize(28)

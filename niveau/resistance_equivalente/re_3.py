@@ -35,7 +35,7 @@ class NiveauRE3(QWidget):
         contenu.setLayout(main_layout)
 
         # Titre
-        titre = QLabel("Résistance équivalente - Niveau 3")
+        titre = QLabel("Résistance équivalente - niveau 3")
         titre.setAlignment(Qt.AlignCenter)
 
         police = QFont()

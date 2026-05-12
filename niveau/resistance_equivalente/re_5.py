@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 
 
-class NiveauRE4(QWidget):
+class NiveauRE5(QWidget):
     def __init__(self, retour_callback=None, update_niveau=None):
         super().__init__()
 
@@ -15,8 +15,7 @@ class NiveauRE4(QWidget):
         self.questions_widgets = []
 
         self.questions = [
-            ("images/niveau/resistance_equivalente/4/circuit_1.png", 8),
-            ("images/niveau/resistance_equivalente/4/circuit_2.png", 9),
+            ("images/niveau/Résistance équivalente/5/Circuit_RE5.png", 5.625)
         ]
 
         layout_exterieur = QVBoxLayout()
@@ -32,15 +31,17 @@ class NiveauRE4(QWidget):
         main_layout = QVBoxLayout()
         contenu.setLayout(main_layout)
 
-        titre = QLabel("Résistance équivalente - niveau 4")
-        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        titre = QLabel("Résistance équivalente - Niveau 5")
+        titre.setAlignment(Qt.AlignCenter)
+
         police = QFont()
         police.setPointSize(28)
         titre.setFont(police)
+
         main_layout.addWidget(titre)
 
-        consigne = QLabel("Que vaut le « ? » en ohm (Ω) ?")
-        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        consigne = QLabel("Calcule la résistance équivalente du circuit.")
+        consigne.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(consigne)
 
         for image_path, reponse in self.questions:
@@ -71,24 +72,24 @@ class NiveauRE4(QWidget):
         if not pixmap.isNull():
             image_label.setPixmap(
                 pixmap.scaledToWidth(
-                    900,
+                    800,
                     Qt.TransformationMode.SmoothTransformation
                 )
             )
         else:
             image_label.setText("Image introuvable : " + image_path)
 
-        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        image_label.setAlignment(Qt.AlignCenter)
         bloc.addWidget(image_label)
 
-        question = QLabel("Que vaut le « ? » en ohm (Ω) ?")
-        question.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        question = QLabel("Quelle est la résistance équivalente Req de ce circuit ?")
+        question.setAlignment(Qt.AlignCenter)
         question.setFont(QFont("", 14))
         bloc.addWidget(question)
 
         ligne_reponse = QHBoxLayout()
 
-        label = QLabel("Réponse =")
+        label = QLabel("Req =")
         champ = QLineEdit()
         champ.setPlaceholderText("Réponse en Ω")
         champ.setFixedWidth(180)
@@ -121,7 +122,7 @@ class NiveauRE4(QWidget):
         QMessageBox.information(
             self,
             "Résultat",
-            f"{bonnes} bonnes réponses sur {len(self.questions_widgets)}"
+            f"{bonnes} bonne réponse sur {len(self.questions_widgets)}"
         )
 
         if self.update_niveau is not None:
