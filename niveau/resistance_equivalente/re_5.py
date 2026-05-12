@@ -15,7 +15,7 @@ class NiveauRE5(QWidget):
         self.questions_widgets = []
 
         self.questions = [
-            ("images/niveau/Résistance équivalente/5/Circuit_RE5.png", 5.625)
+            ("images/niveau/resistance_equivalente/5/circuit_1.png", 5.625)
         ]
 
         layout_exterieur = QVBoxLayout()
@@ -32,7 +32,7 @@ class NiveauRE5(QWidget):
         contenu.setLayout(main_layout)
 
         titre = QLabel("Résistance équivalente - Niveau 5")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         police = QFont()
         police.setPointSize(28)
@@ -41,7 +41,7 @@ class NiveauRE5(QWidget):
         main_layout.addWidget(titre)
 
         consigne = QLabel("Calcule la résistance équivalente du circuit.")
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
         for image_path, reponse in self.questions:
@@ -79,11 +79,11 @@ class NiveauRE5(QWidget):
         else:
             image_label.setText("Image introuvable : " + image_path)
 
-        image_label.setAlignment(Qt.AlignCenter)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         bloc.addWidget(image_label)
 
         question = QLabel("Quelle est la résistance équivalente Req de ce circuit ?")
-        question.setAlignment(Qt.AlignCenter)
+        question.setAlignment(Qt.AlignmentFlag.AlignCenter)
         question.setFont(QFont("", 14))
         bloc.addWidget(question)
 
