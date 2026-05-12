@@ -1,60 +1,30 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+# Évite circular dependency pour avoir le type Circuit
+if TYPE_CHECKING:
+    from circuit.circuit import Circuit
+
 from PySide6.QtCore import QLineF, QPointF
+from PySide6.QtWidgets import QGraphicsLineItem
 
 from circuit.noeud import Noeud
+from composantes import Composante
 
 
 class Fil:
-    def __init__(self, scene, points, lignes):
-        self.scene = scene
+    def __init__(self, circuit: Circuit, points: list[QPointF], lignes: list[QGraphicsLineItem]):
+        self._circuit = circuit
         self.points = points
         self.noeuds = None
         self.lignes = lignes
 
         # self.resistance, self.tension = self.calculs()
-        self.composantes = []
+        self.composantes: list[Composante] = []
 
         self.tension = 0
         self.resistance = 0
 
-    @property
-    def points(self):
-        return self._points
-
-    @points.setter
-    def points(self, points):
-        self._points = points
-
-    @property
-    def noeuds(self):
-        return self._noeuds
-
-    @noeuds.setter
-    def noeuds(self, noeuds):
-        self._noeuds = noeuds
-
-    @property
-    def lignes(self):
-        return self._lignes
-
-    @lignes.setter
-    def lignes(self, lignes):
-        self._lignes = lignes
-
-    @property
-    def tension(self):
-        return self._tension
-
-    @tension.setter
-    def tension(self, tension):
-        self._tension = tension
-
-    @property
-    def resistance(self):
-        return self._resistance
-
-    @resistance.setter
-    def resistance(self, resistance):
-        self._resistance = resistance
 
     # Calcul la tension et la résistance relative dans le fil
     def calculs(self):
@@ -67,8 +37,8 @@ class Fil:
                 tension += composante.tension
         return res, tension
 
-    def ajouter_composante(self, composante):
-        def index_comp(index_point):
+    def ajouter_composante(self, composante: Composante):
+        def index_comp(index_point: int):
             for i in range(len(self.composantes)):
                 pos_comp = self.composantes[i].points_fil[1]
                 index_comp_points = self.points.index(pos_comp)
@@ -102,6 +72,9 @@ class Fil:
         points_avant = self.points[:index_point]
         points_apres = self.points[index_point + 1:]
 
+        lignes_avant = []
+        lignes_apres = []
+
         for i in range(len(self.lignes)):
             ligne = self.lignes[i]
             p1 = ligne.line().p1()
@@ -111,7 +84,7 @@ class Fil:
             if x_max >= pos.x() >= x_min and y_max >= pos.y() >= y_min:
                 ligne.setLine(QLineF(p1, pos))
 
-                nouvelle_ligne = self.scene.ajouter_ligne(pos.x(), pos.y(), p2.x(), p2.y())
+                nouvelle_ligne = self._circuit.ajouter_ligne(pos.x(), pos.y(), p2.x(), p2.y())
                 self.lignes.insert(i + 1, nouvelle_ligne)
 
                 lignes_avant = self.lignes[:i + 1]
@@ -121,7 +94,7 @@ class Fil:
         # Quand y'a pas de noeud, le fil ne se split pas, mais le début commence maintenant au noeud
         if self.noeuds is None:
             self.points = points_apres.copy() + points_avant.copy()
-            self.lignes = lignes_apres.copy() + lignes_avant.copy()
+            self._lignes = lignes_apres.copy() + lignes_avant.copy()
             self.noeuds = [noeud, noeud]
         else:
             comp_avant = []
@@ -135,14 +108,14 @@ class Fil:
                     comp_apres = self.composantes[i:]
                     break
 
-            nouveau_fil = Fil(self.scene, points_apres, lignes_apres.copy())
+            nouveau_fil = Fil(self._circuit, points_apres, lignes_apres.copy())
             nouveau_fil.noeuds = [noeud, self.noeuds[1]]
             nouveau_fil.composantes = comp_apres.copy()
-            self.scene.fils.append(nouveau_fil)
+            self._circuit.fils.append(nouveau_fil)
 
             for point_apres in points_apres:
-                i, j = self.scene.pos_to_mat(point_apres.x(), point_apres.y())
-                self.scene.mat_points[i, j] = nouveau_fil
+                i, j = self._circuit.pos_to_mat(point_apres.x(), point_apres.y())
+                self._circuit.mat_points[i, j] = nouveau_fil
 
             self.noeuds[0].enlever_info_fil(self)
             self.noeuds[0].ajouter_info(self, noeud)
@@ -162,22 +135,22 @@ class Fil:
     # TODO faire en sorte que les noeuds soient pas retirés si ils sont connectés à plus de deux fils
     def enlever_fil(self):
         for point in self.points:
-            i, j = self.scene.pos_to_mat(point.x(), point.y())
-            self.scene.mat_points[i, j] = None
+            i, j = self._circuit.pos_to_mat(point.x(), point.y())
+            self._circuit.mat_points[i, j] = None
 
-        self.scene.rapetisser_matrice()
-        self.scene.visualiser_matrice()
+        self._circuit.rapetisser_matrice()
+        self._circuit.visualiser_matrice()
 
         self.noeuds[0].enlever_info_fil(self)
-        if len(self.noeuds[0].info_voisins) <= 2:
-            self.noeuds[0].enlever_noeud(self.scene)
+        if len(self.noeuds[0]._info_voisins) <= 2:
+            self.noeuds[0].enlever_noeud(self._circuit)
 
         self.noeuds[1].enlever_info_fil(self)
-        if len(self.noeuds[1].info_voisins) <= 2:
-            self.noeuds[1].enlever_noeud(self.scene)
+        if len(self.noeuds[1]._info_voisins) <= 2:
+            self.noeuds[1].enlever_noeud(self._circuit)
 
         for composante in self.composantes:
-            self.scene.removeItem(composante)
-        for ligne in self.lignes:
-            self.scene.removeItem(ligne)
-
+            self._circuit.removeItem(composante.image_item)
+            self._circuit.retirer_elements(composante)
+        for ligne in self._lignes:
+            self._circuit.removeItem(ligne)
