@@ -3,7 +3,7 @@ import unittest
 from circuit.circuit import LoisPhysiques
 
 
-class TestsLois(unittest.TestCase):
+class TestLois(unittest.TestCase):
     def test_ohm(self):
         lp = LoisPhysiques()
         self.assertEqual(lp.loi_ohm(10, 25), 2.5)
