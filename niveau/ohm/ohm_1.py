@@ -40,6 +40,18 @@ class NiveauOhm1(QWidget):
         layout_exterieur.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setLayout(layout_exterieur)
 
+        # affichage bouton aide
+
+        top_layout = QHBoxLayout()
+        top_layout.addStretch()
+
+        aide = QPushButton("Aide")
+        aide.clicked.connect(self.ouvrir_aide)
+
+        top_layout.addWidget(aide)
+        layout_exterieur.addLayout(top_layout)
+
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
@@ -163,6 +175,24 @@ class NiveauOhm1(QWidget):
 
         main_layout.addLayout(ligne)
 
+        # ouvrir la documentation
+    def ouvrir_aide(self):
+        from docs import DocumentationWindow
+        from PySide6.QtCore import QFile, QTextStream, Qt
+
+        parent_window = self.window()
+
+        self.fenetre_doc = DocumentationWindow(parent_window)
+        self.fenetre_doc.setWindowModality(Qt.WindowModality.NonModal)
+
+        style_docu = QFile("stylesheet/documentation.qss")
+        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
+            stream_docu = QTextStream(style_docu)
+            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+            style_docu.close()
+
+        self.fenetre_doc.show()
+        self.fenetre_doc.raise_()
     def valider_reponses(self):
         total = len(self.bonnes_reponses)
         bonne_reponses = 0
