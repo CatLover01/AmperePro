@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from sauvegarde import NoeudDTO
+
 # Évite circular dependency pour avoir le type Circuit + Fil
 if TYPE_CHECKING:
     from circuit.circuit import Circuit
@@ -10,10 +12,23 @@ from PySide6.QtCore import QPointF
 
 
 class Noeud:
-    def __init__(self, pos: QPointF):
-        self.voltage = 0
-        self._info_voisins: list[list[Fil | Noeud]] = []
+    def __init__(self, pos: QPointF, info_voisins=None, voltage: float = 0):
+        if info_voisins is None:
+            info_voisins = []
+        self.voltage = voltage
+        self._info_voisins: list[list[Fil | Noeud]] = info_voisins
         self._pos = pos
+
+    def to_dto(self, fil_to_index: dict, noeud_to_index: dict) -> NoeudDTO:
+        return NoeudDTO(
+            [self._pos.x(), self._pos.y()],
+            self.voltage,
+            [(fil_to_index[fil], noeud_to_index[voisin]) for fil, voisin in self.info_voisins]
+        )
+
+    @classmethod
+    def from_dto(cls, dto: NoeudDTO) -> Noeud:
+        return cls(QPointF(dto.pos[0], dto.pos[1]), dto.voisins, dto.voltage)
 
     @property
     def info_voisins(self) -> list[list[Fil | Noeud]]:

@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from sauvegarde import FilDTO
+
 # Évite circular dependency pour avoir le type Circuit
 if TYPE_CHECKING:
     from circuit.circuit import Circuit
@@ -13,17 +15,38 @@ from composantes import Composante
 
 
 class Fil:
-    def __init__(self, circuit: Circuit, points: list[QPointF], lignes: list[QGraphicsLineItem]):
+    def __init__(self, circuit: Circuit, points: list[QPointF], lignes: list[QGraphicsLineItem], composantes=None, tension: float = 0, resistance: float = 0):
+        if composantes is None:
+            composantes = []
         self._circuit = circuit
         self.points = points
         self.noeuds = None
         self.lignes = lignes
 
         # self.resistance, self.tension = self.calculs()
-        self.composantes: list[Composante] = []
+        self.composantes: list[Composante] = composantes
 
-        self.tension = 0
-        self.resistance = 0
+        self.tension = tension
+        self.resistance = resistance
+
+    def to_dto(self, noeud_to_index: dict) -> FilDTO:
+        points = [[p.x(), p.y()] for p in self.points]
+        composantes = [composante.to_dto() for composante in self.composantes]
+        if self.noeuds is None:
+            noeuds = None
+        else:
+            noeuds = [noeud_to_index[n] for n in self.noeuds]
+
+        return FilDTO(points, composantes, self.tension, self.resistance, noeuds)
+
+    @classmethod
+    def from_dto(cls, dto: FilDTO, circuit: Circuit) -> Fil:
+        points = [QPointF(p[0], p[1]) for p in dto.points]
+        composantes = [Composante.from_dto(composante) for composante in dto.composantes]
+        # TODO: générer les lignes (QGraphicsLineItem) à partir des points
+        lignes = []
+
+        return cls(circuit, points, lignes, composantes, dto.tension, dto.resistance)
 
 
     # Calcul la tension et la résistance relative dans le fil

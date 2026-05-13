@@ -1,18 +1,40 @@
 import datetime
 import json
-from json import JSONDecodeError
 from dataclasses import dataclass, asdict
 from dacite import from_dict
 import uuid
 
 from niveau.definitions import Sujet
 
+@dataclass
+class ComposanteDTO:
+    type: int # enum
+    resistance: float
+    tension: float
 
 @dataclass
-class CircuitLibre:
+class NoeudDTO:
+    pos: list[float] # [x, y]
+    voltage: float
+    voisins: list[tuple[int, int]]  # (fil_index, noeud_index)
+
+@dataclass
+class FilDTO:
+    points: list[list[float]] # [[x, y], [x, y], ...]
+    composantes: list[ComposanteDTO]
+    tension: float
+    resistance: float
+    # indices des noeuds dans le circuit (references temporaires pour la serialisation)
+    # une meilleur facon de faire serait d'utiliser des IDs uniques (noeud.id / fil.id / composante.id)
+    # pour eviter toute dependance a l'ordre des listes
+    noeuds: list[int] | None
+
+@dataclass
+class CircuitDTO:
     id: str
     nom: str
-    matrix: list
+    fils: list[FilDTO]
+    noeuds: list[NoeudDTO]
     derniere_sauvegarde: int
 
 
@@ -21,7 +43,7 @@ class Sauvegarde:
         try:
             # Données utilisateur: niveau atteint, circuits personnalisés
             self.data = read("data.json")
-        except (FileNotFoundError, JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError):
             # Création d'un état par défaut si la sauvegarde n'existe pas ou malformé
             self.initialize_defaults()
 
@@ -55,12 +77,23 @@ class Sauvegarde:
                 write("data.json", self.data)
                 break
 
-    def circuits_libre(self) -> list[CircuitLibre]:
+
+    def get_circuit(self, id: str) -> CircuitDTO | None:
+        try:
+            for circuit in self.data["circuits-libre"]:
+                if circuit["id"] == id:
+                    return from_dict(CircuitDTO, circuit)
+        except:
+            # Data malformé
+            self.initialize_defaults()
+            return None
+
+    def get_circuits(self) -> list[CircuitDTO]:
         # Retourne la liste des circuits libres sauvegardés par l'utilisateur.
         try:
             circuits = []
             for circuit in self.data["circuits-libre"]:
-                circuits.append(from_dict(CircuitLibre, circuit))
+                circuits.append(from_dict(CircuitDTO, circuit))
             return circuits
         except:
             # Data malformé
@@ -71,19 +104,20 @@ class Sauvegarde:
     def creation_circuit_libre(self, nom: str) -> str:
         id = str(uuid.uuid4())
         date = int(datetime.datetime.now(datetime.UTC).timestamp())
-        nouveau_circuit = CircuitLibre(id, nom, [], date)
+        nouveau_circuit = CircuitDTO(id, nom, [], [], date)
 
         self.data["circuits-libre"].append(asdict(nouveau_circuit))
         write("data.json", self.data)
         return id
 
-    def modifie_circuit(self, id: str, mat: list) -> bool:
+    def modifie_circuit(self, id: str, fils: list[dict], noeuds: list[dict]) -> bool:
         for idx, circuit in enumerate(self.data["circuits-libre"]):
             if circuit["id"] != id: continue
 
             date = int(datetime.datetime.now(datetime.UTC).timestamp())
-            circuit["date"] = date
-            circuit["matrix"] = mat
+            circuit["derniere_sauvegarde"] = date
+            circuit["fils"] = fils
+            circuit["noeuds"] = noeuds
             write("data.json", self.data)
             return True
 
