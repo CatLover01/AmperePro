@@ -17,8 +17,8 @@ class NiveauRE3(QWidget):
 
         # image + réponse
         self.questions = [
-            ("images/niveau/Résistance équivalente/3/RE3-circuit1.png", 8.4),
-            ("images/niveau/Résistance équivalente/3/RE3-circuit2.png", 6.43),
+            ("images/niveau/resistance_equivalente/3/circuit_1.png", 8.4),
+            ("images/niveau/resistance_equivalente/3/circuit_2.png", 6.43),
         ]
 
         layout_exterieur = QVBoxLayout()
@@ -170,7 +170,7 @@ class NiveauRE3(QWidget):
                     input_field.text().replace(",", ".")
                 )
 
-                if valeur == bonne_rep:
+                if round(valeur * 100) / 100 == bonne_rep:
                     bonnes += 1
 
             except:

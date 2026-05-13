@@ -947,7 +947,7 @@ class Circuit(QGraphicsScene):
                         self.zones_surbrillance = None
 
                     image = composante.image_item
-                    point_milieu = image._pos()
+                    point_milieu = image.pos()
                     # si la souris recouvre une composante, on le signale en la mettant en rouge.
                     coin_sup_gauche_x = point_milieu.x() - self.taille_grid
                     coin_sup_gauche_y = point_milieu.y() - self.taille_grid
