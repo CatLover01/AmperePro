@@ -19,16 +19,16 @@ class NiveauRE2(QWidget):
             ("Circuit en série :\nReq = 15 Ω\nR1 = 5 Ω\nR2 = 4 Ω\nR3 = ?", 6),
 
             # Parallèle
-            ("Circuit en parallèle à 3 branches :\nReq = 2 Ω\nR1 = 6 Ω\nR2 = 3 Ω\nR3 = ?", 6),
+            ("Circuit en parallèle à 3 branches :\nReq = 1,5 Ω\nR1 = 6 Ω\nR2 = 3 Ω\nR3 = ?", 6),
 
             # Parallèle
-            ("Circuit en parallèle à 4 branches :\nReq = 1 Ω\nR1 = 2 Ω\nR2 = 2 Ω\nR3 = 2 Ω\nR4 = ?", 2),
+            ("Circuit en parallèle à 4 branches :\nReq = 0.5 Ω\nR1 = 2 Ω\nR2 = 2 Ω\nR3 = 2 Ω\nR4 = ?", 2),
 
             # Série
             ("Circuit en série :\nReq = 20 Ω\nR1 = 8 Ω\nR2 = ?\nR3 = 5 Ω", 7),
 
             # Parallèle
-            ("Circuit en parallèle à 3 branches :\nReq = 3 Ω\nR1 = 6 Ω\nR2 = ?\nR3 = 6 Ω", 6),
+            ("Circuit en parallèle à 3 branches :\nReq = 2 Ω\nR1 = 6 Ω\nR2 = ?\nR3 = 6 Ω", 6),
         ]
 
         layout_exterieur = QVBoxLayout()
