@@ -15,11 +15,21 @@ class NiveauRE5(QWidget):
         self.questions_widgets = []
 
         self.questions = [
-            ("images/niveau/Résistance équivalente/5/Circuit_RE5.png", 5.625)
+            ("images/niveau/resistance_equivalente/5/circuit_1.png", 5.625)
         ]
 
         layout_exterieur = QVBoxLayout()
         self.setLayout(layout_exterieur)
+
+        # affichage bouton aide
+        top_layout = QHBoxLayout()
+        top_layout.addStretch()
+
+        aide = QPushButton("Aide")
+        aide.clicked.connect(self.ouvrir_aide)
+
+        top_layout.addWidget(aide)
+        layout_exterieur.addLayout(top_layout)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -32,7 +42,7 @@ class NiveauRE5(QWidget):
         contenu.setLayout(main_layout)
 
         titre = QLabel("Résistance équivalente - Niveau 5")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         police = QFont()
         police.setPointSize(28)
@@ -41,7 +51,7 @@ class NiveauRE5(QWidget):
         main_layout.addWidget(titre)
 
         consigne = QLabel("Calcule la résistance équivalente du circuit.")
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
         for image_path, reponse in self.questions:
@@ -79,11 +89,11 @@ class NiveauRE5(QWidget):
         else:
             image_label.setText("Image introuvable : " + image_path)
 
-        image_label.setAlignment(Qt.AlignCenter)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         bloc.addWidget(image_label)
 
         question = QLabel("Quelle est la résistance équivalente Req de ce circuit ?")
-        question.setAlignment(Qt.AlignCenter)
+        question.setAlignment(Qt.AlignmentFlag.AlignCenter)
         question.setFont(QFont("", 14))
         bloc.addWidget(question)
 
@@ -107,6 +117,25 @@ class NiveauRE5(QWidget):
         layout.addLayout(bloc)
 
         self.questions_widgets.append((champ, bonne_reponse))
+
+    # ouvrir la documentation
+    def ouvrir_aide(self):
+        from docs import DocumentationWindow
+        from PySide6.QtCore import QFile, QTextStream, Qt
+
+        parent_window = self.window()
+
+        self.fenetre_doc = DocumentationWindow(parent_window)
+        self.fenetre_doc.setWindowModality(Qt.WindowModality.NonModal)
+
+        style_docu = QFile("stylesheet/documentation.qss")
+        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
+            stream_docu = QTextStream(style_docu)
+            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+            style_docu.close()
+
+        self.fenetre_doc.show()
+        self.fenetre_doc.raise_()
 
     def valider(self):
         bonnes = 0

@@ -76,7 +76,7 @@ INFO_NIVEAUX = {
         },
         5: {
             DetailNiveau.Description: "...",
-            DetailNiveau.PointTotal: None,
+            DetailNiveau.PointTotal: 1,
         },
     }
 }

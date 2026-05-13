@@ -21,11 +21,11 @@ class Type(Enum):
 class Composante(ABC):
     def __init__(self, type: Type, nom: str, image_toolbar: str, image_circuit: str,
                  description: str, tension: int = 0, resistance: int = 0):
-        self.type = type
-        self.nom = nom
-        self.description = description
-        self.image_toolbar = image_toolbar
-        self.image_circuit = image_circuit
+        self._type = type
+        self._nom = nom
+        self._description = description
+        self._image_toolbar = image_toolbar
+        self._image_circuit = image_circuit
         self.points_fil = []
         self.poins_cote = []
         self.items = []
@@ -39,62 +39,50 @@ class Composante(ABC):
     def type(self):
         return self._type
 
-    @type.setter
-    def type(self, types):
-        self._type = types
-
     @property
     def nom(self):
         return self._nom
-
-    @nom.setter
-    def nom(self, noms):
-        self._nom = noms
 
     @property
     def description(self):
         return self._description
 
-    @description.setter
-    def description(self, descriptions):
-        self._description = descriptions
-
     @property
     def image_toolbar(self):
         return self._image_toolbar
-
-    @image_toolbar.setter
-    def image_toolbar(self, toolbar):
-        self._image_toolbar = toolbar
 
     @property
     def image_circuit(self):
         return self._image_circuit
 
-    @image_circuit.setter
-    def image_circuit(self, circuit):
-        self._image_circuit = circuit
-
     @property
-    def tension(self):
+    def tension(self) -> int:
         return self._tension
 
     @tension.setter
-    def tension(self, tension):
+    def tension(self, tension: int):
         self._tension = tension
 
     @property
-    def resistance(self):
+    def resistance(self) -> int:
         return self._resistance
 
     @resistance.setter
-    def resistance(self, resistance):
+    def resistance(self, resistance: int):
         self._resistance = resistance
 
     # Fonction pouvant être redéfinie dans chaque composante
     # La taille de la grille est fournie pour conserver l'échelle lors d'un changement de pixmap
-    def clique(self, taille_grid: int) -> None | int:
+    def double_clique_gauche(self, taille_grid: int) -> None | int:
         pass
+
+    def tourner(self):
+        self.image_item.setRotation(self.image_item.rotation() + 180)
+
+    def nettoyer(self):
+        self.items = []
+        self.points_fil = []
+        self.poins_cote = []
 
 
 class Batterie(Composante):
@@ -110,7 +98,7 @@ class Batterie(Composante):
 
     # Ouvre une fenetre pour changer la tension
     @override
-    def clique(self, _):
+    def double_clique_gauche(self, _):
         fenetre = QDialog()
         fenetre.setWindowTitle("Batterie")
         layout_principal = QVBoxLayout()
@@ -178,7 +166,7 @@ class Resistor(Composante):
 
     # ouvre un dialog pour changer la resistance
     @override
-    def clique(self, _):
+    def double_clique_gauche(self, _):
         fenetre = QDialog()
         fenetre.setWindowTitle("Résistor")
         layout_principal = QVBoxLayout()
@@ -242,7 +230,7 @@ class Interrupteur(Composante):
         self.ouvert = True
 
     @override
-    def clique(self, taille_grid):
+    def double_clique_gauche(self, taille_grid):
         if self.ouvert:
             image_path = "images/circuit/interrupteur_ferme.png"
         else:
@@ -271,7 +259,7 @@ class Voltmetre(Composante):
         self.voltage = 0
 
     @override
-    def clique(self, _):
+    def double_clique_gauche(self, _):
         fenetre = QDialog()
         fenetre.setWindowTitle("Voltmètre")
         fenetre.setFixedSize(240, 350)
@@ -336,7 +324,7 @@ class Amperemetre(Composante):
         self.amperage = 0
 
     @override
-    def clique(self, _):
+    def double_clique_gauche(self, _):
         fenetre = QDialog()
         fenetre.setWindowTitle("Voltmètre")
         fenetre.setFixedSize(240, 350)
