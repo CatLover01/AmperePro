@@ -11,11 +11,12 @@ from PySide6.QtCore import QLineF, QPointF
 from PySide6.QtWidgets import QGraphicsLineItem
 
 from circuit.noeud import Noeud
-from composantes import Composante
+from composantes import Composante, TypeComposante
 
 
 class Fil:
-    def __init__(self, circuit: Circuit, points: list[QPointF], lignes: list[QGraphicsLineItem], composantes=None, tension: float = 0, resistance: float = 0):
+    def __init__(self, circuit: Circuit, points: list[QPointF], lignes: list[QGraphicsLineItem], composantes=None,
+                 tension: float = 0, resistance: float = 0):
         if composantes is None:
             composantes = []
         self._circuit = circuit
@@ -48,7 +49,6 @@ class Fil:
 
         return cls(circuit, points, lignes, composantes, dto.tension, dto.resistance)
 
-
     # Calcul la tension et la résistance relative dans le fil
     def calculs(self):
         res = 0
@@ -70,7 +70,7 @@ class Fil:
                     return i
             return 0
 
-        if composante.nom == "Batterie":
+        if composante.type == TypeComposante.Batterie:
             index_point_depart = self.points.index(composante.points_fil[0])
             index_point_fin = self.points.index(composante.points_fil[-1])
 

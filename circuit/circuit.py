@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from enum import Enum
 
 from PySide6.QtCore import QSize, QPointF, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
@@ -139,7 +140,7 @@ class Circuit(QGraphicsScene):
         self.sauvegarde.modifie_circuit(self.id, fils, noeuds)
 
     def serialiser_circuit(self) -> tuple[list[dict], list[dict]]:
-        # Map internal object id to index (on devrait probablement avoir un id pour chaque noeud / fil pour le future
+        # Map internal object id to index (on devrait probablement avoir un id pour chaque noeud / fil / composante)
         noeud_to_index = {n: i for i, n in enumerate(self.noeuds)}
         fil_to_index = {f: i for i, f in enumerate(self.fils)}
 
