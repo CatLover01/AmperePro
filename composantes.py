@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 
 from sauvegarde import ComposanteDTO
 
+
 class TypeComposante(Enum):
     Batterie = 1
     LED = 2
@@ -151,8 +152,6 @@ class Batterie(Composante):
         self.tension = ancienne_valeur
 
 
-
-
 class LED(Composante):
     def __init__(self):
         super().__init__(TypeComposante.LED, "LED", "images/circuit/led.png",
@@ -290,7 +289,7 @@ class Voltmetre(Composante):
         texte = QLabel(voltage, parent=fenetre)
         texte.setStyleSheet("color: #000000")
 
-        #s'assure que le texte ne sorte pas ou n'overlap pas le "v"
+        # s'assure que le texte ne sorte pas ou n'overlap pas le "v"
         longueur_max = 186
         position_x = 5
         taille_police_initiale = 50
@@ -300,19 +299,19 @@ class Voltmetre(Composante):
         taille_texte = verification.boundingRect(texte.text()).width()
         if taille_texte >= longueur_max:
             while taille_texte >= longueur_max:
-                taille_police_initiale -=1
+                taille_police_initiale -= 1
                 police.setPointSizeF(taille_police_initiale)
                 verification = QFontMetrics(police)
                 taille_texte = verification.boundingRect(texte.text()).width()
 
         else:
-            position_x = longueur_max/2 - taille_texte/2
+            position_x = longueur_max / 2 - taille_texte / 2
 
         police.setPointSizeF(taille_police_initiale)
         texte.setFont(police)
         texte.setGeometry(position_x, 0, taille_texte + 4, 110)
 
-        #Affiche un V dans le voltmetre
+        # Affiche un V dans le voltmetre
         texte_volt = QLabel("V", parent=fenetre)
         texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
         texte_volt.setGeometry(4, 0, 232, 110)
@@ -385,6 +384,7 @@ class Amperemetre(Composante):
 
         texte.raise_()
         fenetre.exec()
+
 
 # afin de permettre aux copies d'être uniques, cela n'appelle plus la classe mais crée un objet de la classe
 toolbar_composantes = {

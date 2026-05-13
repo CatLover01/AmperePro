@@ -2,7 +2,8 @@ import random
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, QScrollArea
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, \
+    QScrollArea
 
 from niveau.definitions import Sujet
 
@@ -28,7 +29,6 @@ class NiveauOhm2(QWidget):
 
         top_layout.addWidget(aide)
         layout_exterieur.addLayout(top_layout)
-
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -185,6 +185,7 @@ class NiveauOhm2(QWidget):
         main_layout.addSpacing(15)
 
         # ouvrir la documentation
+
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt

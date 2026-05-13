@@ -6,21 +6,24 @@ import uuid
 
 from niveau.definitions import Sujet
 
+
 @dataclass
 class ComposanteDTO:
-    type: int # enum
+    type: int  # enum
     resistance: float
     tension: float
 
+
 @dataclass
 class NoeudDTO:
-    pos: list[float] # [x, y]
+    pos: list[float]  # [x, y]
     voltage: float
     voisins: list[tuple[int, int]]  # (fil_index, noeud_index)
 
+
 @dataclass
 class FilDTO:
-    points: list[list[float]] # [[x, y], [x, y], ...]
+    points: list[list[float]]  # [[x, y], [x, y], ...]
     composantes: list[ComposanteDTO]
     tension: float
     resistance: float
@@ -28,6 +31,7 @@ class FilDTO:
     # une meilleur facon de faire serait d'utiliser des IDs uniques (noeud.id / fil.id / composante.id)
     # pour eviter toute dependance a l'ordre des listes
     noeuds: list[int] | None
+
 
 @dataclass
 class CircuitDTO:
@@ -77,7 +81,6 @@ class Sauvegarde:
                 write("data.json", self.data)
                 break
 
-
     def get_circuit(self, id: str) -> CircuitDTO | None:
         try:
             for circuit in self.data["circuits-libre"]:
@@ -112,7 +115,8 @@ class Sauvegarde:
 
     def modifie_circuit(self, id: str, fils: list[dict], noeuds: list[dict]) -> bool:
         for idx, circuit in enumerate(self.data["circuits-libre"]):
-            if circuit["id"] != id: continue
+            if circuit["id"] != id:
+                continue
 
             date = int(datetime.datetime.now(datetime.UTC).timestamp())
             circuit["derniere_sauvegarde"] = date

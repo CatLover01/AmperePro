@@ -1,5 +1,4 @@
 from dataclasses import asdict
-from enum import Enum
 
 from PySide6.QtCore import QSize, QPointF, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
@@ -507,8 +506,8 @@ class Circuit(QGraphicsScene):
     # pour un seul noeud
     # À partir de ça, les ampérages et différences de potentiels pourront être calculés selon delta V = RI
     def calculer_voltage(self):
-        mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
-        mat_B = np.zeros((len(self.noeuds) - 1, 1))
+        mat_a = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
+        mat_b = np.zeros((len(self.noeuds) - 1, 1))
 
         noeud_zero = self.noeuds[-1]
         noeud_zero._voltage = 0
@@ -518,14 +517,14 @@ class Circuit(QGraphicsScene):
                 j_voisin = info[1]
                 fil = info[0]
 
-                mat_A[i, j_noeud] += 1 / fil.resistance
-                mat_B[i, 0] -= fil.tension / fil.resistance
+                mat_a[i, j_noeud] += 1 / fil.resistance
+                mat_b[i, 0] -= fil.tension / fil.resistance
                 if self.noeuds[j_voisin] != noeud_zero:
-                    mat_A[i, j_voisin] -= 1 / fil.resistance
+                    mat_a[i, j_voisin] -= 1 / fil.resistance
 
-        mat_X = np.linalg.solve(mat_A, mat_B)
-        for i in range(len(mat_X)):
-            self.noeuds[i].voltage = mat_X[i][0]
+        mat_x = np.linalg.solve(mat_a, mat_b)
+        for i in range(len(mat_x)):
+            self.noeuds[i].voltage = mat_x[i][0]
 
     def clic_droit_fil(self):
         # Annule le fil entrain d'être dessiné et enlève ses références dans la matrice points

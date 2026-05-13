@@ -237,7 +237,7 @@ class AmperePro(QMainWindow):
                 barre_progression.setMaximum(total_points)
                 barre_progression.setValue(progressions[i])
                 # Conversion en int pour éviter de garder les décimals pour la beauté
-                barre_progression.setFormat(str(int(progressions[i]/total_points * 100)) + " %")
+                barre_progression.setFormat(str(int(progressions[i] / total_points * 100)) + " %")
 
             # TODO: blocker l'utilisateur si il a en bas de 60% au niveau précédent?
             bouton_niveau = ToolTipButton(description, "niveau " + str(i + 1))

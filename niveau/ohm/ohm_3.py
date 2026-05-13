@@ -9,6 +9,7 @@ from niveau.definitions import Sujet
 
 DOSSIER_IMAGES = "images/niveau/ohm/3/"
 
+
 class NiveauOhm3(QWidget):
     def __init__(self, retour_callback, update_niveau):
         super().__init__()

@@ -51,7 +51,6 @@ class NiveauOhm1(QWidget):
         top_layout.addWidget(aide)
         layout_exterieur.addLayout(top_layout)
 
-
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
@@ -108,7 +107,8 @@ class NiveauOhm1(QWidget):
         self.creer_section(main_layout, "R", "Résistance", "Ohm (Ω)", "R = R1 + R2 + R3", "1/R = 1/R1 + 1/R2 + 1/R3",
                            options_noms, options_unites, options_series, options_paralleles)
 
-        self.creer_section(main_layout, "I", "Intensité du courant", "Ampère (A)", "I = I1 = I2 = I3", "I = I1 + I2 + I3",
+        self.creer_section(main_layout, "I", "Intensité du courant", "Ampère (A)", "I = I1 = I2 = I3",
+                           "I = I1 + I2 + I3",
                            options_noms, options_unites, options_series, options_paralleles)
 
         main_layout.addSpacing(20)
@@ -176,6 +176,7 @@ class NiveauOhm1(QWidget):
         main_layout.addLayout(ligne)
 
         # ouvrir la documentation
+
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt
@@ -193,6 +194,7 @@ class NiveauOhm1(QWidget):
 
         self.fenetre_doc.show()
         self.fenetre_doc.raise_()
+
     def valider_reponses(self):
         total = len(self.bonnes_reponses)
         bonne_reponses = 0

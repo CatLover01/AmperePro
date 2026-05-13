@@ -27,6 +27,7 @@ Le point d'entrée de l'application est `main.py`.
 ## Tests
 
 Les tests unitaires sont situés dans le dossier `tests/` et peuvent être exécutés avec :
+
 ```bash
 python -m unittest discover tests
 ```
