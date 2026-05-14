@@ -21,7 +21,7 @@ class Circuit(QGraphicsScene):
     def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str, mat: list | None):
         super().__init__()
         self.main_window = mainwindow
-        self.scene_size = QSize(500, 500)
+        self.scene_size = QSize(540, 500)
         self.graphics_view = GraphicsView(self, mainwindow)
         self.main_window.setCentralWidget(self.graphics_view)
         self.graphics_view.setMinimumSize(self.scene_size)

@@ -275,6 +275,7 @@ class AmperePro(QMainWindow):
             id = circuit.id
 
         self.nouveau_circuit = Circuit(self, self.sauvegarde, id, None)
+        self.setMinimumSize(540,500)
         self.nouveau_circuit.creer_toolbar()
         self.setCentralWidget(self.nouveau_circuit.graphics_view)
         self.setMenuBar(self.nouveau_circuit.barre_menu)
