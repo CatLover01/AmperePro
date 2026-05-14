@@ -273,7 +273,7 @@ class AmperePro(QMainWindow):
         if circuit is not None:
             id = circuit.id
 
-        self.nouveau_circuit = Circuit(self, self.sauvegarde, id)
+        self.nouveau_circuit = Circuit(self, self.sauvegarde, id, None)
         self.nouveau_circuit.creer_toolbar()
         self.setCentralWidget(self.nouveau_circuit.graphics_view)
         self.setMenuBar(self.nouveau_circuit.barre_menu)

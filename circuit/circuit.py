@@ -5,7 +5,7 @@ from PySide6.QtCore import QSize, QPointF, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
                                QHBoxLayout, QToolBar, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog,
-                               QGraphicsLineItem)
+                               QGraphicsLineItem, QSizePolicy)
 import math
 import numpy as np
 
@@ -14,10 +14,11 @@ from .fil import Fil
 from .noeud import Noeud
 from composantes import toolbar_composantes, Composante, TypeComposante
 from sauvegarde import Sauvegarde
+from .calculateur_courant import calculer_circuit
 
 
 class Circuit(QGraphicsScene):
-    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str | None):
+    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str, mat: list | None):
         super().__init__()
         self.main_window = mainwindow
         self.scene_size = QSize(500, 500)
@@ -278,10 +279,8 @@ class Circuit(QGraphicsScene):
         haut = self.hauteur / 2 - hauteur_circuit / 2
         bas = self.hauteur / 2 + hauteur_circuit / 2
 
-        gauche_haut = self.pos_selon_grid(QPointF(gauche, haut))
-        gauche, haut = gauche_haut.x(), gauche_haut.y()
-        droite_bas = self.pos_selon_grid(QPointF(droite, bas))
-        droite, bas = droite_bas.x(), droite_bas.y()
+        gauche, haut = self.pos_selon_grid(QPointF(gauche, haut))
+        droite, bas = self.pos_selon_grid(QPointF(droite, bas))
 
         ligne_haut = self.ajouter_ligne(gauche, haut, droite, haut)
         ligne_droite = self.ajouter_ligne(droite, haut, droite, bas)
@@ -354,20 +353,19 @@ class Circuit(QGraphicsScene):
         print("===============================================================================")
 
     # trouve ce qui est dans le grid à la position donnée
-    def verifier_collision_fil(self, pos: QPointF) -> Noeud | Fil | Composante | None:
-        grid_pos = self.pos_selon_grid(pos)
-        pos_i, pos_j = self.pos_to_mat(grid_pos.x(), grid_pos.y())
+    def verifier_collision(self, pos):
+        x, y = self.pos_selon_grid(pos)
+        pos_i, pos_j = self.pos_to_mat(x, y)
 
         max_i = self.mat_points.shape[0] - 1
         max_j = self.mat_points.shape[1] - 1
 
-        if grid_pos == self.dernier_point:
-            return None
-
-        if max_i >= pos_i >= 0 and max_j >= pos_j >= 0:
+        # False si a la meme position qu'avant
+        if QPointF(x, y) == self.dernier_point:
+            return False
+        elif max_i >= pos_i >= 0 and max_j >= pos_j >= 0:
             touche = self.mat_points[pos_i, pos_j]
-            if touche is not None and (
-                    isinstance(touche, Composante) or isinstance(touche, Fil) or isinstance(touche, Noeud)):
+            if touche is not None and isinstance(touche, object):
                 return touche
 
         return None
@@ -404,10 +402,6 @@ class Circuit(QGraphicsScene):
             fin_ligne = ligne.line().p2()
             points = get_points_ligne(debut_ligne, fin_ligne)
 
-            # Si la liste de points est vide
-            if not points:
-                return debut_ligne, fin_ligne, points
-
             i_fin, j_fin = self.pos_to_mat(points[-1].x(), points[-1].y())
             self.agrandir_matrice(i_fin, j_fin)
 
@@ -418,17 +412,18 @@ class Circuit(QGraphicsScene):
 
             return debut_ligne, fin_ligne, points
 
-        fil_touche = self.verifier_collision_fil(pos)
-        grid_pos = self.pos_selon_grid(pos)
+        fil_touche = self.verifier_collision(pos)
+        x, y = self.pos_selon_grid(pos)
+
         if not self.dessine:
             # lorsque le fil est pas démarré et que le clic démarre à un fil, un nouveau fil est commencé
-            if fil_touche is not None:
+            if isinstance(fil_touche, Fil):
                 self.dessine = True
-                ligne = self.ajouter_ligne(grid_pos.x(), grid_pos.y(), grid_pos.x(), grid_pos.y())
+                ligne = self.ajouter_ligne(x, y, x, y)
                 self.lignes.append(ligne)
-                self.dernier_point = grid_pos
+                self.dernier_point = QPointF(x, y)
 
-                self.points_avant_pivot.append(grid_pos)
+                self.points_avant_pivot.append(QPointF(x, y))
 
                 fil = Fil(self, [], [])
                 self.nouveau_fil = fil
@@ -441,8 +436,8 @@ class Circuit(QGraphicsScene):
             # Ajouter noeud a premier et dernier point
             points = self.points_avant_pivot + points_apres_pivot
 
-            self.dernier_point = False
-            fil_noeud1 = self.verifier_collision_fil(points[0])
+            self.dernier_point = None
+            fil_noeud1 = self.verifier_collision(points[0])
 
             if isinstance(fil_noeud1, Fil):
                 noeud_debut = Noeud(points[0])
@@ -452,7 +447,7 @@ class Circuit(QGraphicsScene):
             else:
                 noeud_debut = fil_noeud1
 
-            fil_noeud2 = self.verifier_collision_fil(fin_ligne)
+            fil_noeud2 = self.verifier_collision(fin_ligne)
 
             if isinstance(fil_noeud2, Fil):
                 noeud_fin = Noeud(fin_ligne)
@@ -486,46 +481,28 @@ class Circuit(QGraphicsScene):
             self.operations.append(1)
             self.rollback_possible()
 
+            self.update_courant()
 
-        # lorsque le fil n'est pas complet, crée un nouveau pivot au fil pour que l'usager puisse changer de sens
-        elif (grid_pos != self.points_avant_pivot[0] and not isinstance(fil_touche, Fil)
-              and not isinstance(fil_touche, Noeud)):
-            debut_ligne, fin_ligne, points_apres_pivot = mettre_fil_mat(self.lignes[-1], self.nouveau_fil)
-            ligne = self.ajouter_ligne(fin_ligne.x(), fin_ligne.y(), fin_ligne.x(), fin_ligne.y())
+        else:
+            point = self.lignes[-1].line().p2()
+            est_premier_point = point == self.points_avant_pivot[0]
+            sur_pivot = point == self.lignes[-1].line().p1()
+            touche_fil_noeud = isinstance(fil_touche, Fil) or isinstance(fil_touche, Noeud)
 
-            self.points_avant_pivot += points_apres_pivot
-            self.lignes.append(ligne)
-            self.dernier_point = QPointF(fin_ligne.x(), fin_ligne.y())
-            self.continuer_dessin(pos)
+            # lorsque le fil n'est pas complet, crée un nouveau pivot au fil pour que l'usager puisse changer de sens
+            if not est_premier_point and not sur_pivot and not touche_fil_noeud:
+
+                debut_ligne, fin_ligne, points_apres_pivot = mettre_fil_mat(self.lignes[-1], self.nouveau_fil)
+                ligne = self.ajouter_ligne(fin_ligne.x(), fin_ligne.y(), fin_ligne.x(), fin_ligne.y())
+
+                self.points_avant_pivot += points_apres_pivot
+                self.lignes.append(ligne)
+                self.dernier_point = QPointF(fin_ligne.x(), fin_ligne.y())
+                self.continuer_dessin(pos)
 
     def fil_accepte(self, position: QPointF):
         # TODO: valider que l'on peut mettre un fil (pas de composantes, pas collé à un autre fil
         pass
-
-    # Calcul l'ensemble des voltages aux noeuds si le premier noeuds est 0V.
-    # C'est seulement la différence de potentiel qui compte donc c'est pas grave d'avoir un voltage déja choisi
-    # pour un seul noeud
-    # À partir de ça, les ampérages et différences de potentiels pourront être calculés selon delta V = RI
-    def calculer_voltage(self):
-        mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
-        mat_B = np.zeros((len(self.noeuds) - 1, 1))
-
-        noeud_zero = self.noeuds[-1]
-        noeud_zero._voltage = 0
-        for i in range(len(self.noeuds) - 1):
-            j_noeud = i
-            for info in self.noeuds[i].info_voisins:
-                j_voisin = info[1]
-                fil = info[0]
-
-                mat_A[i, j_noeud] += 1 / fil.resistance
-                mat_B[i, 0] -= fil.tension / fil.resistance
-                if self.noeuds[j_voisin] != noeud_zero:
-                    mat_A[i, j_voisin] -= 1 / fil.resistance
-
-        mat_X = np.linalg.solve(mat_A, mat_B)
-        for i in range(len(mat_X)):
-            self.noeuds[i].voltage = mat_X[i][0]
 
     def clic_droit_fil(self):
         # Annule le fil entrain d'être dessiné et enlève ses références dans la matrice points
@@ -546,6 +523,7 @@ class Circuit(QGraphicsScene):
 
             self.dessine = False
             self.lignes = []
+            self.dernier_point = None
 
     # Vérifie si i et j sont hors de la matrice, si c'est le cas, agrandit la matrice pour pouvoir les inclure
     def agrandir_matrice(self, i: int, j: int):
@@ -632,72 +610,77 @@ class Circuit(QGraphicsScene):
                 break
 
     def continuer_dessin(self, pos: QPointF):
-        collision = self.verifier_collision_fil(pos)
-
+        collision = self.verifier_collision(pos)
         # Ajuste la dernière ligne pour qu'elle s'étende du pivot à la position selon grid du curseur
-        if collision is not None or self.dessine:
-            grid_pos = self.pos_selon_grid(pos)
+        if collision is not False:
+            curs_x, curs_y = self.pos_selon_grid(pos)
 
             ligne = self.lignes[-1]
             pivot = ligne.line().p1()
 
-            diff_x = grid_pos.x() - pivot.x()
-            diff_y = grid_pos.y() - pivot.y()
+            diff_x = curs_x - pivot.x()
+            diff_y = curs_y - pivot.y()
 
-            if abs(diff_x) > abs(diff_y):
-                sens_x = 1
-                if diff_x < 0:
-                    sens_x = -1
-                sens_y = 0
-                x = grid_pos.x()
-                y = pivot.y()
-
+            if diff_x == 0 == diff_y:
+                ligne_p2_x = pivot.x()
+                ligne_p2_y = pivot.y()
             else:
-                sens_y = 1
-                if diff_y < 0:
-                    sens_y = -1
-                sens_x = 0
-                x = pivot.x()
-                y = grid_pos.y()
+                if abs(diff_x) > abs(diff_y):
+                    sens_x = 1
+                    if diff_x < 0:
+                        sens_x = -1
+                    sens_y = 0
+                    x = curs_x
+                    y = pivot.y()
 
-            dernier_point = ligne.line().p2()
-            if QPointF(x, y) != dernier_point:
-                self.fil_complet = False
+                else:
+                    sens_y = 1
+                    if diff_y < 0:
+                        sens_y = -1
+                    sens_x = 0
+                    x = pivot.x()
+                    y = curs_y
 
-                ligne_p2_x = pivot.x() + self.taille_grid * sens_x
-                ligne_p2_y = pivot.y() + self.taille_grid * sens_y
+                dernier_point = ligne.line().p2()
+                if QPointF(x, y) != dernier_point:
+                    self.fil_complet = False
 
-                ligne_i, ligne_j = self.pos_to_mat(ligne_p2_x, ligne_p2_y)
+                    ligne_p2_x = pivot.x() + self.taille_grid * sens_x
+                    ligne_p2_y = pivot.y() + self.taille_grid * sens_y
 
-                while True:
-                    if ligne_i < 0 or ligne_j < 0:
-                        mat_num = 0
-                    else:
-                        try:
-                            mat_num = self.mat_points[ligne_i, ligne_j]
-                        except IndexError:
-                            mat_num = 0
+                    ligne_i, ligne_j = self.pos_to_mat(ligne_p2_x, ligne_p2_y)
 
-                    if isinstance(mat_num, Fil) or isinstance(mat_num, Noeud):
-                        x_avant = ligne_p2_x - self.taille_grid * sens_x
-                        y_avant = ligne_p2_y - self.taille_grid * sens_y
-                        if mat_num == self.nouveau_fil or QPointF(x_avant, y_avant) == self.points_avant_pivot[0]:
-                            ligne_p2_x = x_avant
-                            ligne_p2_y = y_avant
+                    while True:
+                        if ligne_i < 0 or ligne_j < 0:
+                            touche = 0
                         else:
-                            self.fil_complet = True
+                            try:
+                                touche = self.mat_points[ligne_i, ligne_j]
+                            except IndexError:
+                                touche = 0
 
-                        break
+                        if isinstance(touche, Fil) or isinstance(touche, Noeud):
+                            x_avant = ligne_p2_x - self.taille_grid * sens_x
+                            y_avant = ligne_p2_y - self.taille_grid * sens_y
+                            if touche == self.nouveau_fil or QPointF(x_avant, y_avant) == self.points_avant_pivot[0]:
+                                ligne_p2_x = x_avant
+                                ligne_p2_y = y_avant
+                            else:
+                                self.fil_complet = True
 
-                    if ligne_p2_x == x and ligne_p2_y == y:
-                        break
+                            break
 
-                    ligne_i += sens_y
-                    ligne_j += sens_x
-                    ligne_p2_x += self.taille_grid * sens_x
-                    ligne_p2_y += self.taille_grid * sens_y
+                        if ligne_p2_x == x and ligne_p2_y == y:
+                            break
 
-                ligne.setLine(QLineF(pivot.x(), pivot.y(), ligne_p2_x, ligne_p2_y))
+                        ligne_i += sens_y
+                        ligne_j += sens_x
+                        ligne_p2_x += self.taille_grid * sens_x
+                        ligne_p2_y += self.taille_grid * sens_y
+                else:
+                    ligne_p2_x, ligne_p2_y = dernier_point.x(), dernier_point.y()
+
+            ligne.setLine(QLineF(pivot.x(), pivot.y(), ligne_p2_x, ligne_p2_y))
 
     # retourne la position dans la scene d'un point dans la matrice points
     # Jamais utilisée pour l'instant, possiblement à retirer un jour
@@ -721,10 +704,15 @@ class Circuit(QGraphicsScene):
         y = round(pos.y() / self.taille_grid) * self.taille_grid
         y = max(min(y, math.floor(self.scene_size.height() / self.taille_grid) * self.taille_grid), 0)
 
-        return QPointF(x, y)
+        return x, y
 
     def creer_toolbar(self):
         self.toolbar = QToolBar()
+
+        # 2. Force the Toolbar to check for updates on mouse release
+        self.toolbar.updateGeometry()
+        self.toolbar.setMovable(False)
+        self.toolbar.setFloatable(False)
         # ne permet pas à l'utilisateur de cacher la toolbar.
         self.toolbar.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
 
@@ -753,11 +741,11 @@ class Circuit(QGraphicsScene):
         self.toolbar.addWidget(fil_bouton)
 
         # Ajouter un bouton dans la toolbar pour chaque composante
-        for composante_class in toolbar_composantes.values():
-            bouton = ToolTipButton(composante_class().nom)
-            bouton.setIcon(QIcon(composante_class().image_toolbar))
+        for composante_classe in toolbar_composantes.values():
+            bouton = ToolTipButton(composante_classe().nom)
+            bouton.setIcon(QIcon(composante_classe().image_toolbar))
             bouton.setIconSize(QSize(45, 45))
-            bouton.clicked.connect(lambda _, c=composante_class: self.composante_toolbar_clicked(c))
+            bouton.clicked.connect(lambda _, c=composante_classe: self.composante_toolbar_clicked(c))
             self.toolbar.addWidget(bouton)
 
         self.main_window.addToolBar(self.toolbar)
@@ -768,18 +756,26 @@ class Circuit(QGraphicsScene):
         self.toolbar = None
 
     def main_click(self):
+        if self.selection == "fil":
+            self.clic_droit_fil()
         self.selection = "main"
 
     def clic_gauche_main(self):
         pass
 
     def poubelle_click(self):
+        if self.selection == "fil":
+            self.clic_droit_fil()
+
         self.selection = "poubelle"
 
-    def composante_toolbar_clicked(self, composante):
-        if composante in toolbar_composantes.values():
+    def composante_toolbar_clicked(self, composante_classe):
+        if self.selection == "fil":
+            self.clic_droit_fil()
+
+        if composante_classe in toolbar_composantes.values():
             self.selection = "composante"
-            self.composante_selectionnee = composante()
+            self.composante_selectionnee = composante_classe()
 
             if self.image_composante is not None:
                 self.removeItem(self.image_composante)
@@ -808,6 +804,21 @@ class Circuit(QGraphicsScene):
             self.removeItem(self.image_composante)
             self.image_composante = None
 
+    # Refait les calculs du courant
+    def update_courant(self):
+        if len(self.fils) > 1:
+            calculer_circuit(self.fils)
+
+        else:
+            fil = self.fils[0]
+            try:
+                fil.definir_amperage(fil.tension / fil.resistance)
+            except ZeroDivisionError:
+                if fil.tension == 0:
+                    fil.definir_amperage(0)
+                else:
+                    fil.definir_amperage(999999999999999999)
+
     def inserer_composante(self, composante: Composante):
         if self.image_composante:
             composante.image_item = self.image_composante
@@ -816,7 +827,7 @@ class Circuit(QGraphicsScene):
             composante.points_fil = points_fil
             composante.points_cote = points_cote
             point_milieu = points_fil[1]
-            fil = self.verifier_collision_fil(point_milieu)
+            fil = self.verifier_collision(point_milieu)
             # on enleve la surbrillance
             if self.couleur_recouvre is not None:
                 self.removeItem(self.couleur_recouvre)
@@ -862,6 +873,10 @@ class Circuit(QGraphicsScene):
                 self.mat_points[i, j] = composante
 
             fil.ajouter_composante(composante)
+            composante.fil = fil
+
+            # on retourne à la main
+            self.main_click()
 
             # on reset les variables liées à l'ajout de composantes
             self.accepter_modification = False
@@ -870,6 +885,9 @@ class Circuit(QGraphicsScene):
             self.operations.append(1)
             self.ajouts.append(point_milieu)
             self.rollback_possible()
+
+            # On recalcul le courant
+            self.update_courant()
 
     def clic_droit_composante(self):
         liste_refusee = [TypeComposante.Amperemetre, TypeComposante.Voltmetre]
@@ -904,25 +922,26 @@ class Circuit(QGraphicsScene):
         self.accepter_positionnement = True
         # verifie que ya un fil tout au long du milieu
         for point in points_fil:
-            collision = self.verifier_collision_fil(point)
+            collision = self.verifier_collision(point)
             if not isinstance(collision, Fil):
                 self.accepter_positionnement = False
                 break
 
-        # verifie que ya pas collision avec un autre fil au trop proche
+        # verifie que ya pas collision avec un autre fil trop proche
         if self.accepter_positionnement:
             for point in points_vide:
-                collision = self.verifier_collision_fil(point)
-                if collision is not None:
-                    self.accepter_positionnement = False
-                    break
+                collision = self.verifier_collision(point)
+                if collision is not None and collision != 0:
+                        self.accepter_positionnement = False
+                        break
 
         self.couleur_image()
 
         # Essaye dans l'autre sens si cest un amperemetre ou voltmetre et que ca fonctionne pas deja
-        if ((
-                self.composante_selectionnee.type == TypeComposante.Amperemetre or self.composante_selectionnee.type == TypeComposante.Voltmetre)
+        if ((self.composante_selectionnee.type == TypeComposante.Amperemetre or
+             self.composante_selectionnee.type == TypeComposante.Voltmetre)
                 and self.image_composante.rotation() == 0 and self.accepter_positionnement is False):
+
             self.image_composante.setRotation(90)
             self.valider_position()
             self.image_composante.setRotation(0)
@@ -935,8 +954,8 @@ class Circuit(QGraphicsScene):
             self.couleur_recouvre.setBrush(QColor(44, 246, 44))
 
     def signaler_effacement(self, position_scene: QPointF):
-        new_pos = self.pos_selon_grid(position_scene)
-        composante = self.verifier_collision_fil(new_pos)
+        x, y = self.pos_selon_grid(position_scene)
+        composante = self.verifier_collision(QPointF(x, y))
         if composante:
             if isinstance(composante, Composante):
                 # si la composante est déjà surbrillée, rien ne sert de faire ça
@@ -970,8 +989,8 @@ class Circuit(QGraphicsScene):
                 self.composante_surbrillance = None
 
     def jeter_element(self, position, rollback):
-        pos = self.pos_selon_grid(position)
-        composante = self.verifier_collision_fil(pos)
+        x, y = self.pos_selon_grid(position)
+        composante = self.verifier_collision(QPointF(x, y))
         if isinstance(composante, Composante):
             # ménage visuel composante
             self.removeItem(composante.image_item)
@@ -989,13 +1008,13 @@ class Circuit(QGraphicsScene):
                 self.operations.append(2)
 
     def deplacer_composante(self, position):
-        grid_pos = self.pos_selon_grid(position)
+        x, y = self.pos_selon_grid(position)
 
         # évite que la composante soit à moitié sortie de la grid
         pos_max_x = self.scene_size.width() - self.taille_grid
         pos_max_y = self.scene_size.height() - self.taille_grid
-        x = max(min(grid_pos.x(), pos_max_x), self.taille_grid)
-        y = max(min(grid_pos.y(), pos_max_y), self.taille_grid)
+        x = max(min(x, pos_max_x), self.taille_grid)
+        y = max(min(y, pos_max_y), self.taille_grid)
 
         self.image_composante.setPos(x, y)
 
@@ -1006,34 +1025,38 @@ class Circuit(QGraphicsScene):
 
     # Modification d'une composante lors du double click gauche
     def modifier_composante(self, position: QPointF):
-        grid_pos = self.pos_selon_grid(position)
-        composante = self.verifier_collision_fil(grid_pos)
-        a_modifier = [TypeComposante.Resistor, TypeComposante.Batterie, TypeComposante.Interrupteur]
-        a_afficher = [TypeComposante.Amperemetre, TypeComposante.Voltmetre]
-        # il n'y a que ces composantes qui ont quelque chose à modifier
-        if composante.type in a_modifier:
-            ancienne_valeur, genre = composante.double_clique_gauche(self.taille_grid)
-            if ancienne_valeur > -1:
-                self.modifications.append(ancienne_valeur)
-                self.modifications.append(composante)
-                self.modifications.append(genre)
-                self.operations.append(4)
-        # ces composantes affichent une fenetre, mais aucune autre opération ne doit être effectuée
-        elif composante.type in a_afficher:
-            composante.double_clique_gauche(self.taille_grid)
-        # sinon, on ignore le clic
-        else:
-            return
+        x, y = self.pos_selon_grid(position)
+        composante = self.verifier_collision(QPointF(x, y))
+        if isinstance(composante, Composante):
+            a_modifier = [TypeComposante.Resistor, TypeComposante.Batterie, TypeComposante.Interrupteur]
+            # il n'y a que ces composantes qui ont quelque chose à modifier
+            if composante.type in a_modifier:
+                ancienne_valeur, genre = composante.double_clique_gauche(self.taille_grid)
+                self.update_courant()
+                if ancienne_valeur > -1:
+                    self.modifications.append(ancienne_valeur)
+                    self.modifications.append(composante)
+                    self.modifications.append(genre)
+                    self.operations.append(4)
+            # ces composantes affichent une fenetre ou pas et aucune autre opération ne doit être effectuée
+            else:
+                composante.double_clique_gauche(self.taille_grid)
 
     def tourner_image_composante(self, position: QPointF):
-        pos = self.pos_selon_grid(position)
-        composante = self.verifier_collision_fil(pos)
+        x, y = self.pos_selon_grid(position)
+        collision = self.verifier_collision(QPointF(x, y))
 
-        if isinstance(composante,
-                      Composante) and composante.type != TypeComposante.Amperemetre and composante.type != TypeComposante.Voltmetre:
-            composante.tourner()
+        if isinstance(collision,
+                      Composante) and collision.type != TypeComposante.Amperemetre and collision.type != TypeComposante.Voltmetre:
+            collision.tourner()
+
+            collision.points_fil.reverse()
+            collision.points_cote.reverse()
+            collision.fil.calculs()
             self.operations.append(3)
-            self.tournes.append(composante)
+            self.tournes.append(collision)
+
+            self.update_courant()
 
 
 class GraphicsView(QGraphicsView):
@@ -1062,7 +1085,7 @@ class GraphicsView(QGraphicsView):
         if event.button() == Qt.MouseButton.RightButton:
             if self.scene.selection == "fil":
                 self.scene.clic_droit_fil()
-            if self.scene.selection == "composante" and self.scene.accepter_modification == True:
+            if self.scene.selection == "composante" and self.scene.accepter_modification is True:
                 self.scene.clic_droit_composante()
                 self.scene.valider_position()
 
@@ -1071,6 +1094,7 @@ class GraphicsView(QGraphicsView):
         if self.scene.selection == "fil" and self.scene.dessine:
             self.scene.continuer_dessin(position_scene)
         elif self.scene.selection == "composante" and self.scene.accepter_modification == True:
+            position_scene = self.mapToScene(event.position().toPoint())
             self.scene.deplacer_composante(position_scene)
             self.scene.valider_position()
         elif self.scene.selection == "poubelle":
@@ -1078,11 +1102,12 @@ class GraphicsView(QGraphicsView):
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            if not self.scene.image_composante:
+            if self.scene.selection == "main":
                 position_scene = self.mapToScene(event.position().toPoint())
                 self.scene.modifier_composante(position_scene)
 
         elif event.button() == Qt.MouseButton.RightButton:
-            if not self.scene.image_composante:
+            if self.scene.selection == "main":
                 position_scene = self.mapToScene(event.position().toPoint())
                 self.scene.tourner_image_composante(position_scene)
+

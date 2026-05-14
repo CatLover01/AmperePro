@@ -1,0 +1,133 @@
+import numpy as np
+
+
+def avancer_noeud(noeud_debut, dernier_fil, noeuds_eviter, fils_visites, cible):
+    prochain_fil = None
+    prochain_noeud = None
+    sens = 1
+
+    for info in noeud_debut.info_voisins:
+        fil = info[0]
+        noeud = info[1]
+        if fil != dernier_fil:
+
+            # Retour au depart, fin du cycle
+            if noeud == cible:
+                prochain_fil = fil
+                prochain_noeud = noeud
+                if fil.noeuds[1] == noeud:
+                    sens = 1
+                else:
+                    sens = -1
+                return prochain_fil, prochain_noeud, sens, True
+
+            # priorise les fils pas deja visites pour faire le moins de mailles possible et refuse les noeuds deja visites
+            if noeud not in noeuds_eviter and (prochain_fil is None or fil not in fils_visites):
+                prochain_fil = fil
+                prochain_noeud = noeud
+                if fil.noeuds[0] == noeud:
+                    sens = 1
+                else:
+                    sens = -1
+
+    return prochain_fil, prochain_noeud, sens, False
+
+
+def trouver_mailles(fils):
+    mailles = []
+    sens_mailles = []
+    fils_visites = []
+
+    for fil_base in fils:
+        if fil_base not in fils_visites:
+            # On commence a noeud present et on veut se rendre a cible.
+            cible = fil_base.noeuds[0]
+            noeud_present = fil_base.noeuds[1]
+            dernier_fil = fil_base
+            sequence_noeuds = [[noeud_present], []]
+            index_sequence = 1
+            sens_fils = [1]
+            fils_cycle = [fil_base]
+            # Probablement changer present = noeuds_cycle[-1] pour sequence[-2][-1]
+            noeuds_cycle = [noeud_present]
+
+            while True:
+                noeuds_eviter = noeuds_cycle[:] + sequence_noeuds[index_sequence]
+
+                nouveau_fil, nouveau_noeud, nouveau_sens, fini = avancer_noeud(noeud_present, dernier_fil,
+                                                                               noeuds_eviter, fils_visites, cible)
+
+                if fini:
+                    fils_cycle.append(nouveau_fil)
+                    sens_fils.append(nouveau_sens)
+                    break
+
+                if nouveau_fil is not None:
+                    sequence_noeuds.append([])
+                    sequence_noeuds[index_sequence].append(nouveau_noeud)
+                    noeud_present = nouveau_noeud
+                    index_sequence += 1
+                    fils_cycle.append(nouveau_fil)
+                    noeuds_cycle.append(nouveau_noeud)
+                    sens_fils.append(nouveau_sens)
+                    dernier_fil = nouveau_fil
+
+                else:
+                    sequence_noeuds.pop()
+                    fils_cycle.pop()
+                    noeuds_cycle.pop()
+                    sens_fils.pop()
+                    noeud_present = noeuds_cycle[-1]
+                    index_sequence -= 1
+                    dernier_fil = fils_cycle[-1]
+
+            fils_visites += fils_cycle
+            mailles.append(fils_cycle)
+            sens_mailles.append(sens_fils)
+
+    return mailles, sens_mailles
+
+
+def calculer_circuit(fils):
+    mailles, sens_mailles = trouver_mailles(fils)
+
+    mat_A = np.zeros((len(mailles), len(fils)))
+    mat_B = np.zeros((len(mailles), 1))
+
+    for i in range(len(mailles)):
+        maille_fils = mailles[i]
+        maille_sens = sens_mailles[i]
+        for k in range(len(maille_fils)):
+            fil = maille_fils[k]
+            sens = maille_sens[k]
+            j = fils.index(fil)
+
+            mat_A[i, j] += sens * fil.resistance
+            mat_B[i, 0] += sens * fil.tension
+
+    fils_dans_noeuds = []
+    for fil in fils:
+        if fil not in fils_dans_noeuds:
+            equation = np.zeros((1, len(fils)))
+            noeud = fil.noeuds[0]
+            for info in noeud.info_voisins:
+                fil_voisin = info[0]
+
+                # entrant - sortant = 0 donc faut trouver le sens du fil en fonction du noeud
+                # Si la fin du fil c'est le noeud, ca entre sinon ca sort
+                if fil_voisin.noeuds[1] == noeud:
+                    sens = 1
+                else:
+                    sens = -1
+
+                fils_dans_noeuds.append(fil_voisin)
+                j = fils.index(fil_voisin)
+                equation[0, j] = sens
+
+            mat_A = np.append(mat_A, equation, axis=0)
+            mat_B = np.append(mat_B, [[0]], axis=0)
+
+    x = np.linalg.lstsq(mat_A, mat_B, rcond=None)[0]
+    for i in range(len(x)):
+        fil = fils[i]
+        fil.definir_amperage(x[i][0])

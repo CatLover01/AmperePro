@@ -1,9 +1,11 @@
+import math
+from collections.abc import Callable
 from enum import Enum
 from typing import override
 from abc import ABC
 
 from PySide6.QtCore import QRect, Qt
-from PySide6.QtGui import QPixmap, Qt, QFontMetrics
+from PySide6.QtGui import QPixmap, Qt, QFontMetrics, QColorConstants
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
 
@@ -107,6 +109,14 @@ class Batterie(Composante):
                          10
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.fil = None
+        self.tension = 10
+        self.resistance = 0.000001
+
     # Ouvre une fenetre pour changer la tension
     @override
     def double_clique_gauche(self, _):
@@ -119,7 +129,8 @@ class Batterie(Composante):
 
         texte = QLabel("Tension (V): ")
         sous_layout.addWidget(texte)
-        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes) avec une décimale de précision
+        # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes)
+        # avec une décimale de précision
         nombre = QDoubleSpinBox()
         nombre.setRange(0, 999.9)
         nombre.setDecimals(1)
@@ -142,6 +153,7 @@ class Batterie(Composante):
         if verifier_return == QDialog.DialogCode.Accepted and self.tension != nombre.value():
             ancienne_tension = self.tension
             self.tension = nombre.value()
+            self.fil.calculs()
             # on retourne cela pour le rollback (1 pour savoir que batterie modifiée)
             return ancienne_tension, 1
         else:
@@ -149,8 +161,6 @@ class Batterie(Composante):
 
     def rollback(self, ancienne_valeur):
         self.tension = ancienne_valeur
-
-
 
 
 class LED(Composante):
@@ -162,6 +172,11 @@ class LED(Composante):
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.fil = None
 
 class Resistor(Composante):
     def __init__(self):
@@ -175,6 +190,13 @@ class Resistor(Composante):
                          0, 1000
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.fil = None
+        self.resistance = 1000
+
     # ouvre un dialog pour changer la resistance
     @override
     def double_clique_gauche(self, _):
@@ -185,7 +207,7 @@ class Resistor(Composante):
         sous_layout = QHBoxLayout()
         layout_principal.addLayout(sous_layout)
 
-        texte = QLabel("Résistance (V): ")
+        texte = QLabel("Résistance (Ω): ")
         sous_layout.addWidget(texte)
         # on veut que la tension inscrite soit un nombre entre 0 et 1000 (tensions réalistes)
         # avec une décimale de précision
@@ -211,6 +233,7 @@ class Resistor(Composante):
         if verifier_return == QDialog.DialogCode.Accepted and self.resistance != nombre.value():
             ancienne_resistance = self.resistance
             self.resistance = nombre.value()
+            self.fil.calculs()
             return ancienne_resistance, 2
         else:
             return -4, -4
@@ -228,6 +251,12 @@ class Diode(Composante):
                          "- Utile pour bloquer le retour de courant ou redresser un signal "
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.fil = None
+
 
 class Interrupteur(Composante):
     def __init__(self):
@@ -239,6 +268,11 @@ class Interrupteur(Composante):
                          )
 
         self.ouvert = True
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.fil = None
 
     @override
     def double_clique_gauche(self, taille_grid):
@@ -256,6 +290,17 @@ class Interrupteur(Composante):
         # pour permettre logique uniforme dans modification
         return 0, 3
 
+# ajoute le prefixe m(milli), mu(lettre grecque) ou n(nano)
+def prefixe_valeur(valeur):
+    if valeur > 0.1:
+        return "", 1
+    elif valeur > 0.0001:
+        return "μ", 1000
+    elif valeur > 0:
+        return "n", 1000000
+    else:
+        return "", 1
+
 
 class Voltmetre(Composante):
     def __init__(self):
@@ -267,7 +312,13 @@ class Voltmetre(Composante):
                          "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit."
                          )
 
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.fil = None
         self.voltage = 0
+        self.resistance = 999999999999
 
     @override
     def double_clique_gauche(self, _):
@@ -282,80 +333,22 @@ class Voltmetre(Composante):
         image.setScaledContents(True)
         image.setGeometry(QRect(0, 110, 240, 270))
 
-        # on simule l'affichage du voltmètre
         fond = QLabel(parent=fenetre)
         fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
         fond.setGeometry(4, 0, 232, 110)
-        voltage = str(self.voltage)
-        texte = QLabel(voltage, parent=fenetre)
-        texte.setStyleSheet("color: #000000")
 
-        #s'assure que le texte ne sorte pas ou n'overlap pas le "v"
-        longueur_max = 186
-        position_x = 5
-        taille_police_initiale = 50
-        police = texte.font()
-        police.setPointSizeF(taille_police_initiale)
-        verification = QFontMetrics(police)
-        taille_texte = verification.boundingRect(texte.text()).width()
-        if taille_texte >= longueur_max:
-            while taille_texte >= longueur_max:
-                taille_police_initiale -=1
-                police.setPointSizeF(taille_police_initiale)
-                verification = QFontMetrics(police)
-                taille_texte = verification.boundingRect(texte.text()).width()
+        # Affiche un prefixe + V dans l'amperemetre
+        prefixe, mult = prefixe_valeur(self.voltage)
+        voltage_texte = str(round(self.voltage * mult, 4))
+        texte_unite = QLabel(prefixe + "V", parent=fenetre)
+        texte_unite.setStyleSheet("font-size: 30pt; color: #363535")
+        texte_unite.setGeometry(4, 0, 232, 110)
+        texte_unite.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
 
-        else:
-            position_x = longueur_max/2 - taille_texte/2
+        texte = QLabel(voltage_texte, parent=fenetre)
+        texte.setStyleSheet("font-size: 40pt; color: #000000")
 
-        police.setPointSizeF(taille_police_initiale)
-        texte.setFont(police)
-        texte.setGeometry(position_x, 0, taille_texte + 4, 110)
-
-        #Affiche un V dans le voltmetre
-        texte_volt = QLabel("V", parent=fenetre)
-        texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
-        texte_volt.setGeometry(4, 0, 232, 110)
-        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-
-        texte.raise_()
-        fenetre.exec()
-
-
-class Amperemetre(Composante):
-    def __init__(self):
-        super().__init__(TypeComposante.Amperemetre, "Ampèremètre", "images/circuit/amperemetre.png",
-                         "images/circuit/amperemetre.png",
-                         "- Sert à mesurer le courant électrique qui traverse une branche. <br>"
-                         "- Unité : Ampères (A). <br> "
-                         "- Se branche en série dans la branche où on veut mesurer le courant <br>"
-                         "- Idéalement, la résistance dans l'ampèremètre est très faible."
-                         )
-
-        self.amperage = 0
-
-    @override
-    def double_clique_gauche(self, _):
-        fenetre = QDialog()
-        fenetre.setWindowTitle("Voltmètre")
-        fenetre.setFixedSize(240, 350)
-
-        # image qui simule le voltmètre
-        image = QLabel(parent=fenetre)
-        pixmap = QPixmap("images/interface/amperemetre.png")
-        image.setPixmap(pixmap)
-        image.setScaledContents(True)
-        image.setGeometry(QRect(0, 110, 240, 270))
-
-        # on simule l'affichage du voltmètre
-        fond = QLabel(parent=fenetre)
-        fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
-        fond.setGeometry(4, 0, 232, 110)
-        amperage = str(self.amperage)
-        texte = QLabel(amperage, parent=fenetre)
-        texte.setStyleSheet("color: #000000")
-
-        # s'assure que le texte ne sorte pas ou n'overlap pas le "v"
+        # s'assure que le texte ne sorte pas ou n'overlap pas le "V"
         longueur_max = 186
         position_x = 5
         taille_police_initiale = 50
@@ -377,11 +370,81 @@ class Amperemetre(Composante):
         texte.setFont(police)
         texte.setGeometry(position_x, 0, taille_texte + 4, 110)
 
-        # Affiche un V dans le voltmetre
-        texte_volt = QLabel("A", parent=fenetre)
-        texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
-        texte_volt.setGeometry(4, 0, 232, 110)
-        texte_volt.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        texte.raise_()
+        fenetre.exec()
+
+
+class Amperemetre(Composante):
+    def __init__(self):
+        super().__init__(TypeComposante.Amperemetre, "Ampèremètre", "images/circuit/amperemetre.png",
+                         "images/circuit/amperemetre.png",
+                         "- Sert à mesurer le courant électrique qui traverse une branche. <br>"
+                         "- Unité : Ampères (A). <br> "
+                         "- Se branche en série dans la branche où on veut mesurer le courant <br>"
+                         "- Idéalement, la résistance dans l'ampèremètre est très faible."
+                         )
+
+        self.points_fil = []
+        self.poins_cote = []
+        self.items = []
+        self.image_item = None
+        self.fil = None
+        self.amperage = 0
+
+    @override
+    def double_clique_gauche(self, _):
+        fenetre = QDialog()
+        fenetre.setWindowTitle("Ampèremètre")
+        fenetre.setFixedSize(240, 350)
+
+        # image qui simule l'amperemetre
+        image = QLabel(parent=fenetre)
+        pixmap = QPixmap("images/interface/amperemetre.png")
+        image.setPixmap(pixmap)
+        image.setScaledContents(True)
+        image.setGeometry(QRect(0, 110, 240, 270))
+
+        fond = QLabel(parent=fenetre)
+        fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
+        fond.setGeometry(4, 0, 232, 110)
+        if self.amperage > 1000:
+            texte = QLabel("COURT CIRCUIT", parent=fenetre)
+            texte.setStyleSheet("font-size: 25pt; color: #EE0000")
+            texte.setGeometry(4, 0, 232, 110)
+            texte.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        else:
+            prefixe, mult = prefixe_valeur(self.amperage)
+            amperage_texte = str(round(self.amperage * mult, 4))
+            texte = QLabel(amperage_texte, parent=fenetre)
+            texte.setStyleSheet("font-size: 40pt; color: #000000")
+
+            # Affiche un prefixe + A dans l'amperemetre
+            texte_unite = QLabel(prefixe + "A", parent=fenetre)
+            texte_unite.setStyleSheet("font-size: 30pt; color: #363535")
+            texte_unite.setGeometry(4, 0, 232, 110)
+            texte_unite.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+
+            # s'assure que le texte ne sorte pas ou n'overlap pas le "V"
+            longueur_max = 186
+            position_x = 5
+            taille_police_initiale = 50
+            police = texte.font()
+            police.setPointSizeF(taille_police_initiale)
+            verification = QFontMetrics(police)
+            taille_texte = verification.boundingRect(texte.text()).width()
+            if taille_texte >= longueur_max:
+                while taille_texte >= longueur_max:
+                    taille_police_initiale -= 1
+                    police.setPointSizeF(taille_police_initiale)
+                    verification = QFontMetrics(police)
+                    taille_texte = verification.boundingRect(texte.text()).width()
+
+            else:
+                position_x = longueur_max / 2 - taille_texte / 2
+
+            police.setPointSizeF(taille_police_initiale)
+            texte.setFont(police)
+            texte.setGeometry(position_x, 0, taille_texte + 4, 110)
 
         texte.raise_()
         fenetre.exec()
