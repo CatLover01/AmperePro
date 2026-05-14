@@ -79,7 +79,7 @@ class NiveauKirchoff3(QWidget):
                 "image": DOSSIER_IMAGES + "circuit_4.png",
                 "texte": "À partir du point D trouve l'éqaution d'une maille\n"
                          " sachant que I\u2081 = I\u2082 + I\u2083",
-                "reponse": "",  #à repenser
+                "reponse": "8-6-4+4I2-2I3",
             },
 
         ]

@@ -84,7 +84,7 @@ class NiveauKirchoff4(QWidget):
                 question["type"],
                 question["reponse"],
             )
-        layout_exterieur = QVBoxLayout()
+
         self.setLayout(layout_exterieur)
 
         scroll = QScrollArea()
@@ -111,21 +111,10 @@ class NiveauKirchoff4(QWidget):
 
         main_layout.addLayout(boutons)
 
-    def ajouter_question(self, main_layout, image_path, texte_question, type_question, bonne_reponse):
+    def ajouter_question(self, main_layout, texte_question, type_question, bonne_reponse):
         bloc = QHBoxLayout()
         bloc.setSpacing(20)
 
-        image_label = QLabel()
-        pixmap = QPixmap(image_path)
-
-        if not pixmap.isNull():
-            image_label.setPixmap(
-                pixmap.scaledToWidth(400, Qt.TransformationMode.SmoothTransformation)
-            )
-        else:
-            image_label.setText("Image introuvable : " + image_path)
-
-            image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         ligne_question = QVBoxLayout()
 
@@ -211,10 +200,20 @@ class NiveauKirchoff4(QWidget):
             champ_reponse1 = QLineEdit()
             ligne_question.addWidget(champ_reponse1)
 
-        self.questions_widgets.append((groupe, bonne_reponse))
+        if type_question == "noeud":
+            self.questions_widgets.append((groupe,bonne_reponse,"radio"))
+        elif type_question == "mailles":
+            self.questions_widgets.append(((combo,combo2), bonne_reponse,"combo2"))
+        elif type_question == "equation":
+            self.questions_widgets.append(((champ_reponse1,champ_reponse2),bonne_reponse,"lineedit2"))
+        elif type_question == "isoler":
+            self.questions_widgets.append(((combo1,combo2), bonne_reponse,"combo2"))
+        elif type_question == "isolerNoeud":
+            self.questions_widgets.append((combo, bonne_reponse,"combo"))
+        elif type_question == "reponse":
+            self.questions_widgets.append((champ_reponse1,bonne_reponse,"lineedit"))
 
         bloc.addLayout(ligne_question)
-        bloc.addWidget(image_label)
 
         ligne_question.addStretch()
         ligne_question.addSpacing(10)
@@ -244,10 +243,28 @@ class NiveauKirchoff4(QWidget):
     def valider(self):
         bonnes = 0
 
-        for groupe, bonne_rep in self.questions_widgets:
-            btn = groupe.checkedButton()
-            if btn and btn.text() == bonne_rep:
-                bonnes += 1
+        for widget ,bonne_reponse, type_widget in self.questions_widgets:
+            if type_widget == "radio":
+                btn = widget.checkedButton()
+
+                if btn and btn.text() == bonne_reponse:
+                    bonnes += 1
+            elif type_widget == "combo":
+                if widget.currentText() == bonne_reponse:
+                    bonnes += 1
+            elif type_widget == "combo2":
+                r1,r2 = widget
+                reponse = [r1.currentText(), r2.currentText()]
+                if reponse == bonne_reponse:
+                    bonnes += 1
+            elif type_widget == "lineedit":
+                if widget.text().strip() == bonne_reponse:
+                    bonnes += 1
+            elif type_widget == "lineedit2":
+                r1,r2 = widget
+                reponse = [r1.text().strip(), r2.text().strip()]
+                if reponse == bonne_reponse:
+                    bonnes += 1
 
         QMessageBox.information(
             self,
