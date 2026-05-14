@@ -56,7 +56,7 @@ class NiveauOhm5(QWidget):
         titre.setFont(police_titre)
         main_layout.addWidget(titre)
 
-        consigne = QLabel("Trouver la résistance équivalente de chaque circuit.")
+        consigne = QLabel("Trouver la résistance équivalente de chaque circuit ( chaque bulle est une batterie ).")
         consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         consigne.setWordWrap(True)
         main_layout.addWidget(consigne)

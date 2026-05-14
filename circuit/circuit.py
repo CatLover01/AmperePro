@@ -1,5 +1,4 @@
 from dataclasses import asdict
-from enum import Enum
 
 from PySide6.QtCore import QSize, QPointF, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
@@ -15,6 +14,7 @@ from .noeud import Noeud
 from composantes import toolbar_composantes, Composante, TypeComposante
 from sauvegarde import Sauvegarde
 from .calculateur_courant import calculer_circuit
+from sauvegarde import Sauvegarde, FilDTO, NoeudDTO
 
 
 class Circuit(QGraphicsScene):
@@ -140,14 +140,13 @@ class Circuit(QGraphicsScene):
         fils, noeuds = self.serialiser_circuit()
         self.sauvegarde.modifie_circuit(self.id, fils, noeuds)
 
-    def serialiser_circuit(self) -> tuple[list[dict], list[dict]]:
+    def serialiser_circuit(self) -> tuple[list[FilDTO], list[NoeudDTO]]:
         # Map internal object id to index (on devrait probablement avoir un id pour chaque noeud / fil / composante)
         noeud_to_index = {n: i for i, n in enumerate(self.noeuds)}
         fil_to_index = {f: i for i, f in enumerate(self.fils)}
 
-        # Runtime -> DTO -> dict(json)
-        fils = [asdict(f.to_dto(noeud_to_index)) for f in self.fils]
-        noeuds = [asdict(n.to_dto(fil_to_index, noeud_to_index)) for n in self.noeuds]
+        fils = [f.to_dto(noeud_to_index) for f in self.fils]
+        noeuds = [n.to_dto(fil_to_index, noeud_to_index) for n in self.noeuds]
         return fils, noeuds
 
     def rollback_possible(self):
@@ -1110,4 +1109,3 @@ class GraphicsView(QGraphicsView):
             if self.scene.selection == "main":
                 position_scene = self.mapToScene(event.position().toPoint())
                 self.scene.tourner_image_composante(position_scene)
-

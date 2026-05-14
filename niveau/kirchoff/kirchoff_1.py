@@ -32,7 +32,6 @@ class NiveauKirchoff1(QWidget):
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
 
-
         contenu = QWidget()
         contenu.setMaximumWidth(900)
         main_layout = QVBoxLayout()

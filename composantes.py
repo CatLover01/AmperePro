@@ -11,6 +11,7 @@ from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushBu
 
 from sauvegarde import ComposanteDTO
 
+
 class TypeComposante(Enum):
     Batterie = 1
     LED = 2
@@ -448,6 +449,7 @@ class Amperemetre(Composante):
 
         texte.raise_()
         fenetre.exec()
+
 
 # afin de permettre aux copies d'être uniques, cela n'appelle plus la classe mais crée un objet de la classe
 toolbar_composantes = {

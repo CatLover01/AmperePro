@@ -100,6 +100,7 @@ class NiveauKirchoff5(QWidget):
         main_layout.addLayout(boutons_layout)
 
         # ouvrir la documentation
+
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt
