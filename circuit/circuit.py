@@ -757,6 +757,15 @@ class Circuit(QGraphicsScene):
     def main_click(self):
         if self.selection == "fil":
             self.clic_droit_fil()
+
+        if self.image_composante:
+            composante = self.composante_selectionnee
+            self.removeItem(self.zones_surbrillance)
+            self.zones_surbrillance = None
+            self.removeItem(self.image_composante)
+            self.image_composante = None
+
+
         self.selection = "main"
 
     def clic_gauche_main(self):
@@ -874,12 +883,13 @@ class Circuit(QGraphicsScene):
             fil.ajouter_composante(composante)
             composante.fil = fil
 
-            # on retourne à la main
-            self.main_click()
-
             # on reset les variables liées à l'ajout de composantes
             self.accepter_modification = False
             self.image_composante = None
+
+            # on retourne à la main
+            self.main_click()
+
             # on update les infos liées à l'ajout pour le rollback
             self.operations.append(1)
             self.ajouts.append(point_milieu)
