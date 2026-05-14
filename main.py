@@ -121,16 +121,17 @@ class AmperePro(QMainWindow):
         return title
 
     def ouvrir_documentation(self):
-        self.fenetre_doc = DocumentationWindow()
+        self.fenetre_doc = DocumentationWindow(self)
 
-        # ouverture du Stylesheet
         style_docu = QFile("stylesheet/documentation.qss")
-        if style_docu.open(QFile.OpenModeFlag.ReadOnly):
-            stream_docu = QTextStream(style_docu)
-            self.fenetre_doc.setStyleSheet(stream_docu.readAll())
-            style_docu.close()
 
-            self.fenetre_doc.show()
+        if style_docu.exists():
+            if style_docu.open(QFile.OpenModeFlag.ReadOnly):
+                stream_docu = QTextStream(style_docu)
+                self.fenetre_doc.setStyleSheet(stream_docu.readAll())
+                style_docu.close()
+
+        self.fenetre_doc.show()
 
     def ouvrir_a_propos(self):
         # ouverture du stylesheet

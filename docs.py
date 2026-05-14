@@ -59,7 +59,7 @@ class DocumentationWindow(QMainWindow):
         self.liste.addItem("Loi de Kirchhoff")
         self.liste.addItem("Puissance électrique")
         for composante in toolbar_composantes.values():
-            self.liste.addItem(composante.nom)
+            self.liste.addItem(str(composante.nom))
 
         # texte à droite
         self.label = QLabel("Clique sur un sujet")
@@ -103,6 +103,6 @@ class DocumentationWindow(QMainWindow):
             return
 
         for composante in toolbar_composantes.values():
-            if texte_selectionne == composante.nom:
-                self.label.setText("<b>" + composante.nom + "\n\n" + "</b><br><br>" + composante.description)
+            if texte_selectionne == str(composante.nom):
+                self.label.setText("<b>" + str(composante.nom) + "\n\n" + "</b><br><br>" + str(composante.description))
                 return
