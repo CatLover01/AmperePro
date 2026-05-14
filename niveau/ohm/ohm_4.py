@@ -9,6 +9,7 @@ from niveau.definitions import Sujet
 
 DOSSIER_IMAGES = "images/niveau/ohm/4/"
 
+
 class CaseNumero(QPushButton):
     def __init__(self, index_case, parent_niveau):
         super().__init__("")
@@ -30,7 +31,6 @@ class NiveauOhm4(QWidget):
         self.numero_selectionne = None
         self.cases = []
         self.boutons_numeros = []
-
 
         self.circuits = [
             {
@@ -71,7 +71,6 @@ class NiveauOhm4(QWidget):
 
         top_layout.addWidget(aide)
         layout_exterieur.addLayout(top_layout)
-
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -225,6 +224,7 @@ class NiveauOhm4(QWidget):
             bouton.setStyleSheet("")
 
         # ouvrir la documentation
+
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt
@@ -251,7 +251,6 @@ class NiveauOhm4(QWidget):
                 return
 
         bonne_reponses = 0
-
 
         for i, circuit in enumerate(self.circuits):
             numero_place = int(self.cases[i].text())

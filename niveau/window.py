@@ -62,7 +62,6 @@ class NiveauWindow(QDialog):
         elif sujet == Sujet.Resistance and niveau == 5:
             widget = NiveauRE5(self.quitter, update_niveau)
 
-
         if widget is not None:
             layout = QVBoxLayout()
             layout.addWidget(widget)

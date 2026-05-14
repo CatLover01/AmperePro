@@ -164,7 +164,7 @@ class NiveauKirchoff4(QWidget):
             champ_reponse1 = QLineEdit()
             champ_reponse2 = QLineEdit()
 
-#            champ_reponse1.setInputMask("-9\I\u2081+9\I\u2083=0;_")
+            # champ_reponse1.setInputMask("-9\I\u2081+9\I\u2083=0;_")
             champ_reponse2.setInputMask("XXI\u2083XXI\u2081XXX=0;_")
 
             ligne_question.addWidget(champ_reponse1)
@@ -223,6 +223,7 @@ class NiveauKirchoff4(QWidget):
         main_layout.addLayout(bloc)
 
         # ouvrir la documentation
+
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt
@@ -240,6 +241,7 @@ class NiveauKirchoff4(QWidget):
 
         self.fenetre_doc.show()
         self.fenetre_doc.raise_()
+
     def valider(self):
         bonnes = 0
 

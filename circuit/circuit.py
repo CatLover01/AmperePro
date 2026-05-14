@@ -1,3 +1,5 @@
+from dataclasses import asdict
+
 from PySide6.QtCore import QSize, QPointF, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
@@ -9,12 +11,12 @@ import numpy as np
 from button import ToolTipButton
 from .fil import Fil
 from .noeud import Noeud
-from composantes import toolbar_composantes, Composante, Type
-from sauvegarde import Sauvegarde
+from composantes import toolbar_composantes, Composante, TypeComposante
+from sauvegarde import Sauvegarde, FilDTO, NoeudDTO
 
 
 class Circuit(QGraphicsScene):
-    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str, mat: list | None):
+    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str | None):
         super().__init__()
         self.main_window = mainwindow
         self.scene_size = QSize(500, 500)
@@ -47,13 +49,28 @@ class Circuit(QGraphicsScene):
         self.fil_complet = False
         self.nouveau_fil = None
 
-        if mat is None:
+        if id is None:
             fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
             self.fils = [fil_base]
+
+            # Note: on guarde le circuit de base mais quand les fils pourront être ajouter sans toucher un autre fil, on pourra enlever la fonction si dessus
+            # self.fils = []
+            # self.noeuds = []
+            # self.mat_points = []
         else:
-            self.mat_points = np.array(mat)
-            # TODO: générer les fils a partir de la matrice?
-            self.fils = []
+            circuit = sauvegarde.get_circuit(id)
+            noeuds: list[Noeud] = []
+            fils: list[Fil] = []
+            for noeud in circuit.noeuds:
+                noeuds.append(Noeud.from_dto(noeud))
+            for fil in circuit.fils:
+                fils.append(Fil.from_dto(fil, self))
+
+            self.noeuds = noeuds
+            self.fils = fils
+
+            # TODO(hugo): je ne trouve pas la fonction pour générer la matrice a partir des fils et noeuds
+            # self.mat_points = np.array(...)
 
         self.sauvegarde = sauvegarde
         self.id = id
@@ -117,8 +134,18 @@ class Circuit(QGraphicsScene):
             else:
                 # Si l'utilisateur a dismiss(quitter) le dialog pour le nom du circuit, on annuler la création du circuit
                 return
-        else:
-            self.sauvegarde.modifie_circuit(self.id, self.mat_points.tolist())
+
+        fils, noeuds = self.serialiser_circuit()
+        self.sauvegarde.modifie_circuit(self.id, fils, noeuds)
+
+    def serialiser_circuit(self) -> tuple[list[FilDTO], list[NoeudDTO]]:
+        # Map internal object id to index (on devrait probablement avoir un id pour chaque noeud / fil / composante)
+        noeud_to_index = {n: i for i, n in enumerate(self.noeuds)}
+        fil_to_index = {f: i for i, f in enumerate(self.fils)}
+
+        fils = [f.to_dto(noeud_to_index) for f in self.fils]
+        noeuds = [n.to_dto(fil_to_index, noeud_to_index) for n in self.noeuds]
+        return fils, noeuds
 
     def rollback_possible(self):
         # à partir du moment où un élément est dans opérations, on peut rollback
@@ -242,8 +269,7 @@ class Circuit(QGraphicsScene):
 
         return ligne
 
-    # TODO: quand on pourra charger les saves, enlever cette méthode et avoir en tout temps la save de la matrice de
-    # base pour la charger comme n'importe quel circuit
+    # TODO: quand on pourra ajouter des fils sans qu'ils soient attachés à d'autres fils, enlever cette méthode
     def dessiner_circuit_base(self, largeur_circuit: int, hauteur_circuit: int):
         gauche = self.largeur / 2 - largeur_circuit / 2
         droite = self.largeur / 2 + largeur_circuit / 2
@@ -479,8 +505,8 @@ class Circuit(QGraphicsScene):
     # pour un seul noeud
     # À partir de ça, les ampérages et différences de potentiels pourront être calculés selon delta V = RI
     def calculer_voltage(self):
-        mat_A = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
-        mat_B = np.zeros((len(self.noeuds) - 1, 1))
+        mat_a = np.zeros((len(self.noeuds) - 1, len(self.noeuds) - 1))
+        mat_b = np.zeros((len(self.noeuds) - 1, 1))
 
         noeud_zero = self.noeuds[-1]
         noeud_zero._voltage = 0
@@ -490,14 +516,14 @@ class Circuit(QGraphicsScene):
                 j_voisin = info[1]
                 fil = info[0]
 
-                mat_A[i, j_noeud] += 1 / fil.resistance
-                mat_B[i, 0] -= fil.tension / fil.resistance
+                mat_a[i, j_noeud] += 1 / fil.resistance
+                mat_b[i, 0] -= fil.tension / fil.resistance
                 if self.noeuds[j_voisin] != noeud_zero:
-                    mat_A[i, j_voisin] -= 1 / fil.resistance
+                    mat_a[i, j_voisin] -= 1 / fil.resistance
 
-        mat_X = np.linalg.solve(mat_A, mat_B)
-        for i in range(len(mat_X)):
-            self.noeuds[i].voltage = mat_X[i][0]
+        mat_x = np.linalg.solve(mat_a, mat_b)
+        for i in range(len(mat_x)):
+            self.noeuds[i].voltage = mat_x[i][0]
 
     def clic_droit_fil(self):
         # Annule le fil entrain d'être dessiné et enlève ses références dans la matrice points
@@ -844,7 +870,7 @@ class Circuit(QGraphicsScene):
             self.rollback_possible()
 
     def clic_droit_composante(self):
-        liste_refusee = [Type.Amperemetre, Type.Voltmetre]
+        liste_refusee = [TypeComposante.Amperemetre, TypeComposante.Voltmetre]
         if self.composante_selectionnee.type not in liste_refusee:
             self.image_composante.setRotation(self.image_composante.rotation() + 90)
 
@@ -893,7 +919,7 @@ class Circuit(QGraphicsScene):
 
         # Essaye dans l'autre sens si cest un amperemetre ou voltmetre et que ca fonctionne pas deja
         if ((
-                self.composante_selectionnee.type == Type.Amperemetre or self.composante_selectionnee.type == Type.Voltmetre)
+                self.composante_selectionnee.type == TypeComposante.Amperemetre or self.composante_selectionnee.type == TypeComposante.Voltmetre)
                 and self.image_composante.rotation() == 0 and self.accepter_positionnement is False):
             self.image_composante.setRotation(90)
             self.valider_position()
@@ -919,7 +945,7 @@ class Circuit(QGraphicsScene):
                         self.zones_surbrillance = None
 
                     image = composante.image_item
-                    point_milieu = image._pos()
+                    point_milieu = image.pos()
                     # si la souris recouvre une composante, on le signale en la mettant en rouge.
                     coin_sup_gauche_x = point_milieu.x() - self.taille_grid
                     coin_sup_gauche_y = point_milieu.y() - self.taille_grid
@@ -980,8 +1006,8 @@ class Circuit(QGraphicsScene):
     def modifier_composante(self, position: QPointF):
         grid_pos = self.pos_selon_grid(position)
         composante = self.verifier_collision_fil(grid_pos)
-        a_modifier = [Type.Resistor, Type.Batterie, Type.Interrupteur]
-        a_afficher = [Type.Amperemetre, Type.Voltmetre]
+        a_modifier = [TypeComposante.Resistor, TypeComposante.Batterie, TypeComposante.Interrupteur]
+        a_afficher = [TypeComposante.Amperemetre, TypeComposante.Voltmetre]
         # il n'y a que ces composantes qui ont quelque chose à modifier
         if composante.type in a_modifier:
             ancienne_valeur, genre = composante.double_clique_gauche(self.taille_grid)
@@ -1002,7 +1028,7 @@ class Circuit(QGraphicsScene):
         composante = self.verifier_collision_fil(pos)
 
         if isinstance(composante,
-                      Composante) and composante.type != Type.Amperemetre and composante.type != Type.Voltmetre:
+                      Composante) and composante.type != TypeComposante.Amperemetre and composante.type != TypeComposante.Voltmetre:
             composante.tourner()
             self.operations.append(3)
             self.tournes.append(composante)

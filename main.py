@@ -9,7 +9,7 @@ from niveau.window import NiveauWindow
 from niveau.definitions import Sujet, DetailNiveau, INFO_NIVEAUX
 from a_propos import AProposWindow
 from docs import DocumentationWindow
-from sauvegarde import Sauvegarde, CircuitLibre
+from sauvegarde import Sauvegarde, CircuitDTO
 from circuit.circuit import Circuit, GraphicsView
 
 
@@ -168,7 +168,7 @@ class AmperePro(QMainWindow):
             self.change_mode(Mode.Libre)
 
     def afficher_mode_libre(self, main_layout):
-        circuit_libres = self.sauvegarde.circuits_libre()
+        circuit_libres = self.sauvegarde.get_circuits()
         for circuit in circuit_libres:
             circuit_button = RightClickButton(lambda: self.afficher_supprimer_circuit(circuit.id))
             circuit_button.setText(circuit.nom)
@@ -237,7 +237,7 @@ class AmperePro(QMainWindow):
                 barre_progression.setMaximum(total_points)
                 barre_progression.setValue(progressions[i])
                 # Conversion en int pour éviter de garder les décimals pour la beauté
-                barre_progression.setFormat(str(int(progressions[i]/total_points * 100)) + " %")
+                barre_progression.setFormat(str(int(progressions[i] / total_points * 100)) + " %")
 
             # TODO: blocker l'utilisateur si il a en bas de 60% au niveau précédent?
             bouton_niveau = ToolTipButton(description, "niveau " + str(i + 1))
@@ -267,15 +267,13 @@ class AmperePro(QMainWindow):
     def retour_sujets(self):
         self.change_mode(Mode.Niveau)
 
-    def add_circuit(self, circuit: CircuitLibre | None):
-        matrix = None
+    def add_circuit(self, circuit: CircuitDTO | None):
         id = None
 
         if circuit is not None:
-            matrix = circuit.matrix
             id = circuit.id
 
-        self.nouveau_circuit = Circuit(self, self.sauvegarde, id, matrix)
+        self.nouveau_circuit = Circuit(self, self.sauvegarde, id)
         self.nouveau_circuit.creer_toolbar()
         self.setCentralWidget(self.nouveau_circuit.graphics_view)
         self.setMenuBar(self.nouveau_circuit.barre_menu)

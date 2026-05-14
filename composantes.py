@@ -7,8 +7,10 @@ from PySide6.QtGui import QPixmap, Qt, QFontMetrics
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
 
+from sauvegarde import ComposanteDTO
 
-class Type(Enum):
+
+class TypeComposante(Enum):
     Batterie = 1
     LED = 2
     Resistor = 3
@@ -19,7 +21,7 @@ class Type(Enum):
 
 
 class Composante(ABC):
-    def __init__(self, type: Type, nom: str, image_toolbar: str, image_circuit: str,
+    def __init__(self, type: TypeComposante, nom: str, image_toolbar: str, image_circuit: str,
                  description: str, tension: int = 0, resistance: int = 0):
         self._type = type
         self._nom = nom
@@ -84,10 +86,20 @@ class Composante(ABC):
         self.points_fil = []
         self.poins_cote = []
 
+    def to_dto(self) -> ComposanteDTO:
+        return ComposanteDTO(self.type.value, self.tension, self.resistance)
+
+    @classmethod
+    def from_dto(cls, dto: ComposanteDTO):
+        composante = toolbar_composantes[TypeComposante(dto.type)]()
+        composante.tension = dto.tension
+        composante.resistance = dto.resistance
+        return composante
+
 
 class Batterie(Composante):
     def __init__(self):
-        super().__init__(Type.Batterie, "Batterie", "images/circuit/batterie.png",
+        super().__init__(TypeComposante.Batterie, "Batterie", "images/circuit/batterie.png",
                          "images/circuit/batterie.png",
                          "- Fournit l’énergie électrique au circuit. <br>"
                          "- Crée une différence de potentiel (tension). <br>"
@@ -140,11 +152,9 @@ class Batterie(Composante):
         self.tension = ancienne_valeur
 
 
-
-
 class LED(Composante):
     def __init__(self):
-        super().__init__(Type.LED, "LED", "images/circuit/led.png",
+        super().__init__(TypeComposante.LED, "LED", "images/circuit/led.png",
                          "images/circuit/led.png",
                          "- Diode qui émet de la lumière quand le courant passe dans le bon sens <br>"
                          "- Elle a une polarité : anode (+) et cathode (-). <br>"
@@ -154,7 +164,7 @@ class LED(Composante):
 
 class Resistor(Composante):
     def __init__(self):
-        super().__init__(Type.Resistor, "Résistor", "images/circuit/resistor.png",
+        super().__init__(TypeComposante.Resistor, "Résistor", "images/circuit/resistor.png",
                          "images/circuit/resistor.png",
                          "- Composante qui limite le courant. <br>"
                          "- Unité : Ohms (Ω) <br>"
@@ -210,7 +220,7 @@ class Resistor(Composante):
 
 class Diode(Composante):
     def __init__(self):
-        super().__init__(Type.Diode, "Diode", "images/circuit/diode.png",
+        super().__init__(TypeComposante.Diode, "Diode", "images/circuit/diode.png",
                          "images/circuit/diode.png",
                          "- Laisse passer le courant dans un seul sens ( en résumé ). <br>"
                          "- Polarité importante. <br>"
@@ -220,7 +230,7 @@ class Diode(Composante):
 
 class Interrupteur(Composante):
     def __init__(self):
-        super().__init__(Type.Interrupteur, "Interrupteur", "images/circuit/interrupteur_ouvert.png",
+        super().__init__(TypeComposante.Interrupteur, "Interrupteur", "images/circuit/interrupteur_ouvert.png",
                          "images/circuit/interrupteur_ouvert.png",
                          "- Sert à ouvrir ou fermer un circuit. <br>"
                          "- Ouvert : le courant ne passe pas. <br>"
@@ -248,7 +258,7 @@ class Interrupteur(Composante):
 
 class Voltmetre(Composante):
     def __init__(self):
-        super().__init__(Type.Voltmetre, "Voltmètre", "images/circuit/voltmetre.png",
+        super().__init__(TypeComposante.Voltmetre, "Voltmètre", "images/circuit/voltmetre.png",
                          "images/circuit/voltmetre.png",
                          "- Sert à mesurer la tension (différence de potentiel) entre deux points. <br> "
                          "- Unité : Volt (V). <br> "
@@ -279,7 +289,7 @@ class Voltmetre(Composante):
         texte = QLabel(voltage, parent=fenetre)
         texte.setStyleSheet("color: #000000")
 
-        #s'assure que le texte ne sorte pas ou n'overlap pas le "v"
+        # s'assure que le texte ne sorte pas ou n'overlap pas le "v"
         longueur_max = 186
         position_x = 5
         taille_police_initiale = 50
@@ -289,19 +299,19 @@ class Voltmetre(Composante):
         taille_texte = verification.boundingRect(texte.text()).width()
         if taille_texte >= longueur_max:
             while taille_texte >= longueur_max:
-                taille_police_initiale -=1
+                taille_police_initiale -= 1
                 police.setPointSizeF(taille_police_initiale)
                 verification = QFontMetrics(police)
                 taille_texte = verification.boundingRect(texte.text()).width()
 
         else:
-            position_x = longueur_max/2 - taille_texte/2
+            position_x = longueur_max / 2 - taille_texte / 2
 
         police.setPointSizeF(taille_police_initiale)
         texte.setFont(police)
         texte.setGeometry(position_x, 0, taille_texte + 4, 110)
 
-        #Affiche un V dans le voltmetre
+        # Affiche un V dans le voltmetre
         texte_volt = QLabel("V", parent=fenetre)
         texte_volt.setStyleSheet("font-size: 50pt; color: #363535")
         texte_volt.setGeometry(4, 0, 232, 110)
@@ -313,7 +323,7 @@ class Voltmetre(Composante):
 
 class Amperemetre(Composante):
     def __init__(self):
-        super().__init__(Type.Amperemetre, "Ampèremètre", "images/circuit/amperemetre.png",
+        super().__init__(TypeComposante.Amperemetre, "Ampèremètre", "images/circuit/amperemetre.png",
                          "images/circuit/amperemetre.png",
                          "- Sert à mesurer le courant électrique qui traverse une branche. <br>"
                          "- Unité : Ampères (A). <br> "
@@ -375,12 +385,13 @@ class Amperemetre(Composante):
         texte.raise_()
         fenetre.exec()
 
+
 # afin de permettre aux copies d'être uniques, cela n'appelle plus la classe mais crée un objet de la classe
 toolbar_composantes = {
-    Type.Batterie: Batterie,
-    Type.LED: LED,
-    Type.Resistor: Resistor,
-    Type.Diode: Diode,
-    Type.Interrupteur: Interrupteur,
-    Type.Voltmetre: Voltmetre,
-    Type.Amperemetre: Amperemetre}
+    TypeComposante.Batterie: Batterie,
+    TypeComposante.LED: LED,
+    TypeComposante.Resistor: Resistor,
+    TypeComposante.Diode: Diode,
+    TypeComposante.Interrupteur: Interrupteur,
+    TypeComposante.Voltmetre: Voltmetre,
+    TypeComposante.Amperemetre: Amperemetre}
