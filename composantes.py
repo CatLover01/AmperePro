@@ -1,11 +1,9 @@
-import math
-from collections.abc import Callable
 from enum import Enum
 from typing import override
 from abc import ABC
 
 from PySide6.QtCore import QRect, Qt
-from PySide6.QtGui import QPixmap, Qt, QFontMetrics, QColorConstants
+from PySide6.QtGui import QPixmap, Qt, QFontMetrics
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QDoubleSpinBox
 
@@ -24,16 +22,17 @@ class TypeComposante(Enum):
 
 class Composante(ABC):
     def __init__(self, type: TypeComposante, nom: str, image_toolbar: str, image_circuit: str,
-                 description: str, tension: int = 0, resistance: int = 0):
+                 description: str, tension: float = 0, resistance: float = 0.000001):
         self._type = type
         self._nom = nom
         self._description = description
         self._image_toolbar = image_toolbar
         self._image_circuit = image_circuit
         self.points_fil = []
-        self.poins_cote = []
+        self.points_cote = []
         self.items = []
         self.image_item = None
+        self.fil = None
 
         # Fait partie de chaque composante pour pouvoir faire les calculs plus tard
         self.tension = tension
@@ -86,7 +85,7 @@ class Composante(ABC):
     def nettoyer(self):
         self.items = []
         self.points_fil = []
-        self.poins_cote = []
+        self.points_cote = []
 
     def to_dto(self) -> ComposanteDTO:
         return ComposanteDTO(self.type.value, self.tension, self.resistance)
@@ -109,14 +108,6 @@ class Batterie(Composante):
                          "- Permet au courant de circuler dans le circuit.",
                          10
                          )
-
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.fil = None
-        self.tension = 10
-        self.resistance = 0.000001
 
     # Ouvre une fenetre pour changer la tension
     @override
@@ -173,11 +164,6 @@ class LED(Composante):
                          "- On met souvent une résistance en série une LED pour évitr trop de courant"
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.fil = None
 
 class Resistor(Composante):
     def __init__(self):
@@ -190,13 +176,6 @@ class Resistor(Composante):
                          "- V en Volts, R en Ohms, I en Ampères",
                          0, 1000
                          )
-
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.fil = None
-        self.resistance = 1000
 
     # ouvre un dialog pour changer la resistance
     @override
@@ -252,12 +231,6 @@ class Diode(Composante):
                          "- Utile pour bloquer le retour de courant ou redresser un signal "
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.fil = None
-
 
 class Interrupteur(Composante):
     def __init__(self):
@@ -269,11 +242,6 @@ class Interrupteur(Composante):
                          )
 
         self.ouvert = True
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.fil = None
 
     @override
     def double_clique_gauche(self, taille_grid):
@@ -291,17 +259,6 @@ class Interrupteur(Composante):
         # pour permettre logique uniforme dans modification
         return 0, 3
 
-# ajoute le prefixe m(milli), mu(lettre grecque) ou n(nano)
-def prefixe_valeur(valeur):
-    if valeur > 0.1:
-        return "", 1
-    elif valeur > 0.0001:
-        return "μ", 1000
-    elif valeur > 0:
-        return "n", 1000000
-    else:
-        return "", 1
-
 
 class Voltmetre(Composante):
     def __init__(self):
@@ -310,16 +267,9 @@ class Voltmetre(Composante):
                          "- Sert à mesurer la tension (différence de potentiel) entre deux points. <br> "
                          "- Unité : Volt (V). <br> "
                          "- Se branche en parallèle aux bornes de la composante dont on veut mesurer la tension. <br>"
-                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit."
+                         "- Idéalement, la résistance dans le voltmètre est très grande pour ne pas affecter le circuit.",
+                         resistance=999999999999
                          )
-
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.fil = None
-        self.voltage = 0
-        self.resistance = 999999999999
 
     @override
     def double_clique_gauche(self, _):
@@ -339,8 +289,8 @@ class Voltmetre(Composante):
         fond.setGeometry(4, 0, 232, 110)
 
         # Affiche un prefixe + V dans l'amperemetre
-        prefixe, mult = prefixe_valeur(self.voltage)
-        voltage_texte = str(round(self.voltage * mult, 4))
+        prefixe, mult = prefixe_valeur(self.tension)
+        voltage_texte = str(round(self.tension * mult, 4))
         texte_unite = QLabel(prefixe + "V", parent=fenetre)
         texte_unite.setStyleSheet("font-size: 30pt; color: #363535")
         texte_unite.setGeometry(4, 0, 232, 110)
@@ -385,11 +335,6 @@ class Amperemetre(Composante):
                          "- Idéalement, la résistance dans l'ampèremètre est très faible."
                          )
 
-        self.points_fil = []
-        self.poins_cote = []
-        self.items = []
-        self.image_item = None
-        self.fil = None
         self.amperage = 0
 
     @override
@@ -449,6 +394,18 @@ class Amperemetre(Composante):
 
         texte.raise_()
         fenetre.exec()
+
+
+# ajoute le prefixe m(milli), mu(lettre grecque) ou n(nano)
+def prefixe_valeur(valeur):
+    if valeur > 0.1:
+        return "", 1
+    elif valeur > 0.0001:
+        return "μ", 1000
+    elif valeur > 0:
+        return "n", 1000000
+    else:
+        return "", 1
 
 
 # afin de permettre aux copies d'être uniques, cela n'appelle plus la classe mais crée un objet de la classe
