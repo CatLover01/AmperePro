@@ -1,10 +1,8 @@
-from dataclasses import asdict
-
 from PySide6.QtCore import QSize, QPointF, QLineF
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
                                QHBoxLayout, QToolBar, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog,
-                               QGraphicsLineItem, QSizePolicy)
+                               QGraphicsLineItem)
 import math
 import numpy as np
 
@@ -12,16 +10,15 @@ from button import ToolTipButton
 from .fil import Fil
 from .noeud import Noeud
 from composantes import toolbar_composantes, Composante, TypeComposante
-from sauvegarde import Sauvegarde
 from .calculateur_courant import calculer_circuit
 from sauvegarde import Sauvegarde, FilDTO, NoeudDTO
 
 
 class Circuit(QGraphicsScene):
-    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str, mat: list | None):
+    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str):
         super().__init__()
         self.main_window = mainwindow
-        self.scene_size = QSize(500, 500)
+        self.scene_size = QSize(540, 500)
         self.graphics_view = GraphicsView(self, mainwindow)
         self.main_window.setCentralWidget(self.graphics_view)
         self.graphics_view.setMinimumSize(self.scene_size)
@@ -349,10 +346,10 @@ class Circuit(QGraphicsScene):
                 liste.append(num)
             print(liste)
 
-        print("===============================================================================")
+        print("=" * 70)
 
     # trouve ce qui est dans le grid à la position donnée
-    def verifier_collision(self, pos):
+    def verifier_collision(self, pos: QPointF):
         x, y = self.pos_selon_grid(pos)
         pos_i, pos_j = self.pos_to_mat(x, y)
 
@@ -364,7 +361,8 @@ class Circuit(QGraphicsScene):
             return False
         elif max_i >= pos_i >= 0 and max_j >= pos_j >= 0:
             touche = self.mat_points[pos_i, pos_j]
-            if touche is not None and isinstance(touche, object):
+            if touche is not None and (
+                    isinstance(touche, Noeud) or isinstance(touche, Composante) or isinstance(touche, Fil)):
                 return touche
 
         return None
@@ -492,7 +490,6 @@ class Circuit(QGraphicsScene):
 
             # lorsque le fil n'est pas complet, crée un nouveau pivot au fil pour que l'usager puisse changer de sens
             if not est_premier_point and not sur_pivot and not touche_fil_noeud:
-
                 debut_ligne, fin_ligne, points_apres_pivot = mettre_fil_mat(self.lignes[-1], self.nouveau_fil)
                 ligne = self.ajouter_ligne(fin_ligne.x(), fin_ligne.y(), fin_ligne.x(), fin_ligne.y())
 
@@ -699,7 +696,7 @@ class Circuit(QGraphicsScene):
         return mat_i, mat_j
 
     # retourne la position d'un point selon les positions possibles créées par le grid
-    def pos_selon_grid(self, pos: QPointF) -> QPointF:
+    def pos_selon_grid(self, pos: QPointF):
         x = round(pos.x() / self.taille_grid) * self.taille_grid
         x = max(min(x, math.floor(self.scene_size.width() / self.taille_grid) * self.taille_grid), 0)
         y = round(pos.y() / self.taille_grid) * self.taille_grid
@@ -942,8 +939,8 @@ class Circuit(QGraphicsScene):
             for point in points_vide:
                 collision = self.verifier_collision(point)
                 if collision is not None and collision != 0:
-                        self.accepter_positionnement = False
-                        break
+                    self.accepter_positionnement = False
+                    break
 
         self.couleur_image()
 
@@ -951,7 +948,6 @@ class Circuit(QGraphicsScene):
         if ((self.composante_selectionnee.type == TypeComposante.Amperemetre or
              self.composante_selectionnee.type == TypeComposante.Voltmetre)
                 and self.image_composante.rotation() == 0 and self.accepter_positionnement is False):
-
             self.image_composante.setRotation(90)
             self.valider_position()
             self.image_composante.setRotation(0)

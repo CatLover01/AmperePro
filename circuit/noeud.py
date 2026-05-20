@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from sauvegarde import NoeudDTO
 
-# Évite circular dependency pour avoir le type Circuit + Fil
+# Évite dépendance circulaire pour avoir le type Circuit + Fil
 if TYPE_CHECKING:
     from circuit.circuit import Circuit
     from circuit.fil import Fil
