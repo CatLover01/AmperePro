@@ -37,8 +37,7 @@ class Noeud:
     # Rajoute un fil lié et l'autre noeud qui touche au fil
     def ajouter_info(self, fil: Fil, noeud_voisin: Noeud):
         nouveau_voisin = [fil, noeud_voisin]
-        if nouveau_voisin not in self._info_voisins:
-            self._info_voisins.append(nouveau_voisin)
+        self._info_voisins.append(nouveau_voisin)
 
     # Enlève les informations relatives à un fil
     def enlever_info_fil(self, fil: Fil):

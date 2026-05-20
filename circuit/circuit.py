@@ -416,7 +416,7 @@ class Circuit(QGraphicsScene):
 
         if not self.dessine:
             # lorsque le fil est pas démarré et que le clic démarre à un fil, un nouveau fil est commencé
-            if isinstance(fil_touche, Fil):
+            if isinstance(fil_touche, Fil) or isinstance(fil_touche, Noeud):
                 self.dessine = True
                 ligne = self.ajouter_ligne(x, y, x, y)
                 self.lignes.append(ligne)
@@ -475,6 +475,8 @@ class Circuit(QGraphicsScene):
             self.points_avant_pivot = []
             self.dessine = False
             self.ajouts.append(self.nouveau_fil)
+
+            self.nouveau_fil.calculs()
             self.nouveau_fil = None
 
             self.operations.append(1)
@@ -765,7 +767,6 @@ class Circuit(QGraphicsScene):
             self.removeItem(self.image_composante)
             self.image_composante = None
 
-
         self.selection = "main"
 
     def clic_gauche_main(self):
@@ -815,7 +816,7 @@ class Circuit(QGraphicsScene):
     # Refait les calculs du courant
     def update_courant(self):
         if len(self.fils) > 1:
-            calculer_circuit(self.fils)
+            calculer_circuit(self.fils, self.noeuds)
 
         else:
             fil = self.fils[0]

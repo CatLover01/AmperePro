@@ -15,6 +15,8 @@ def avancer_noeud(noeud_debut, dernier_fil, noeuds_eviter, fils_visites, cible):
             if noeud == cible:
                 prochain_fil = fil
                 prochain_noeud = noeud
+
+                # Sens normal si le nouveau noeud est le dernier noeud du fil
                 if fil.noeuds[1] == noeud:
                     sens = 1
                 else:
@@ -25,7 +27,7 @@ def avancer_noeud(noeud_debut, dernier_fil, noeuds_eviter, fils_visites, cible):
             if noeud not in noeuds_eviter and (prochain_fil is None or fil not in fils_visites):
                 prochain_fil = fil
                 prochain_noeud = noeud
-                if fil.noeuds[0] == noeud:
+                if fil.noeuds[1] == noeud:
                     sens = 1
                 else:
                     sens = -1
@@ -88,7 +90,7 @@ def trouver_mailles(fils):
     return mailles, sens_mailles
 
 
-def calculer_circuit(fils):
+def calculer_circuit(fils, noeuds):
     mailles, sens_mailles = trouver_mailles(fils)
 
     mat_A = np.zeros((len(mailles), len(fils)))
@@ -105,27 +107,22 @@ def calculer_circuit(fils):
             mat_A[i, j] += sens * fil.resistance
             mat_B[i, 0] += sens * fil.tension
 
-    fils_dans_noeuds = []
-    for fil in fils:
-        if fil not in fils_dans_noeuds:
-            equation = np.zeros((1, len(fils)))
-            noeud = fil.noeuds[0]
-            for info in noeud.info_voisins:
-                fil_voisin = info[0]
+    # Ajoute les equations des noeuds selon la loi des noeuds dans les matrices
+    for i in range(len(noeuds)):
+        # Le premier noeud va être calculé dans les prochains noeuds, donc redondant
+        if i == 0:
+            continue
 
-                # entrant - sortant = 0 donc faut trouver le sens du fil en fonction du noeud
-                # Si la fin du fil c'est le noeud, ca entre sinon ca sort
-                if fil_voisin.noeuds[1] == noeud:
-                    sens = 1
-                else:
-                    sens = -1
+        noeud = noeuds[i]
 
-                fils_dans_noeuds.append(fil_voisin)
-                j = fils.index(fil_voisin)
-                equation[0, j] = sens
+        equation = np.zeros((1, len(fils)))
+        for info in noeud.info_voisins:
+            fil_voisin = info[0]
+            j = fils.index(fil_voisin)
+            equation[0, j] = 1 if fil_voisin.noeuds[1] == noeud else -1
 
-            mat_A = np.append(mat_A, equation, axis=0)
-            mat_B = np.append(mat_B, [[0]], axis=0)
+        mat_A = np.append(mat_A, equation, axis=0)
+        mat_B = np.append(mat_B, [[0]], axis=0)
 
     x = np.linalg.lstsq(mat_A, mat_B, rcond=None)[0]
     for i in range(len(x)):

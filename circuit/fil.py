@@ -25,7 +25,7 @@ class Fil:
 
         self.composantes = []
         self.tension = 0
-        self.resistance = 0.0000000001
+        self.resistance = 0
         self.amperage = 0
 
     @property
@@ -71,12 +71,9 @@ class Fil:
     def definir_amperage(self, nouveau_amperage):
         self.amperage = nouveau_amperage
 
-
         # Les lignes deviennent rouges s'il y a court circuit
         pen = self.lignes[0].pen()
-        # print(nouveau_amperage)
         if abs(nouveau_amperage) > 100:
-            # print(self)
             pen.setColor(QColorConstants.Red)
             for ligne in self.lignes:
                 ligne.setPen(pen)
@@ -91,14 +88,13 @@ class Fil:
             # enlever ensuite le abs
             if composante.type == TypeComposante.Amperemetre:
                 composante.amperage = abs(nouveau_amperage)
-                # print(nouveau_amperage)
             elif composante.type == TypeComposante.Voltmetre:
                 voltage = self.resistance * nouveau_amperage
                 composante.voltage = abs(voltage)
 
     # Calcul la tension et la résistance relative dans le fil
     def calculs(self):
-        self.resistance = 0.0000000001
+        self.resistance = 0
         self.tension = 0
         for composante in self.composantes:
             if not composante.type == TypeComposante.Amperemetre and not composante.type == TypeComposante.Voltmetre:
@@ -132,7 +128,7 @@ class Fil:
     # Ajoute un noeud au fil, ce qui sépare le fil en deux fils distincts
     def ajouter_noeud(self, pos: QPointF, noeud: Noeud):
         index_point = self.points.index(pos)
-        points_avant = self.points[:index_point]
+        points_avant = self.points[:index_point + 1]
         points_apres = self.points[index_point + 1:]
 
         for i in range(len(self.lignes)):
@@ -162,35 +158,32 @@ class Fil:
                 pos_comp = self.composantes[i].points_fil[1]
                 index_comp_points = self.points.index(pos_comp)
 
-                if index_point > index_comp_points:
-                    comp_avant = self.composantes[:i]
-                    comp_apres = self.composantes[i:]
+                if index_point < index_comp_points:
+                    comp_avant = self.composantes[:i + 1]
+                    comp_apres = self.composantes[i + 1:]
                     break
 
-            if comp_apres == []:
-                comp_avant = self.composantes.copy()
+            if comp_avant == []:
+                comp_apres = self.composantes.copy()
 
             self.composantes = comp_apres + comp_avant
 
             self.noeuds = [noeud, noeud]
+            noeud.ajouter_info(self, noeud)
+            noeud.ajouter_info(self, noeud)
 
         else:
             comp_avant = []
             comp_apres = []
-            for i in range(len(self.composantes)):
-                pos_comp = self.composantes[i].points_fil[1]
-                index_comp_points = self.points.index(pos_comp)
-
-                if index_point > index_comp_points:
-                    comp_avant = self.composantes[:i+1]
-                    comp_apres = self.composantes[i+1:]
-                    break
-
-            if comp_apres == []:
-                comp_avant = self.composantes.copy()
+            for composante in self.composantes:
+                pos_comp = composante.points_fil[1]
+                if pos_comp in points_avant:
+                    comp_avant.append(composante)
+                else:
+                    comp_apres.append(composante)
 
             nouveau_fil = Fil(self.scene, points_apres.copy(), lignes_apres.copy())
-            nouveau_fil.noeuds = [self.noeuds[1], noeud]
+            nouveau_fil.noeuds = [noeud, self.noeuds[1]]
             nouveau_fil.composantes = comp_apres.copy()
             for comp in comp_apres:
                 comp.fil = nouveau_fil
@@ -198,15 +191,14 @@ class Fil:
 
             for point_apres in points_apres:
                 i, j = self.scene.pos_to_mat(point_apres.x(), point_apres.y())
-                if not isinstance(self.scene.mat_points[i, j], Composante):
+                if (not isinstance(self.scene.mat_points[i, j], Composante)
+                        and not isinstance(self.scene.mat_points[i, j], Noeud)):
                     self.scene.mat_points[i, j] = nouveau_fil
 
-
-            self.noeuds[0].enlever_info_fil(self)
+            self.noeuds[0].info_voisins.remove([self, self.noeuds[1]])
             self.noeuds[0].ajouter_info(self, noeud)
 
-            if self.noeuds[0] != self.noeuds[1]:
-                self.noeuds[1].enlever_info_fil(self)
+            self.noeuds[1].info_voisins.remove([self, self.noeuds[0]])
             self.noeuds[1].ajouter_info(nouveau_fil, noeud)
 
             noeud.ajouter_info(self, self.noeuds[0])
@@ -216,6 +208,9 @@ class Fil:
             self.noeuds = [self.noeuds[0], noeud]
             self.points = points_avant.copy()
             self.lignes = lignes_avant.copy()
+
+            nouveau_fil.calculs()
+            self.calculs()
 
     # TODO faire en sorte que les noeuds soient pas retirés si ils sont connectés à plus de deux fils
     def enlever_fil(self):
