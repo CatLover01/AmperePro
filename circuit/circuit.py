@@ -174,7 +174,7 @@ class Circuit(QGraphicsScene):
         elif dernier == 3:
             composante = self.tournes.pop()
             if isinstance(composante, Composante):
-                composante.tourner()
+                self.tourner_image_composante(composante.points_fil[1])
 
         else:
             # annuler la plus récente modification à une composante.
@@ -194,6 +194,8 @@ class Circuit(QGraphicsScene):
                 # dans ce cas, le rollback revient à faire l'action. Les autres valeurs sont inutiles,
                 # elles n'ont été stockées que par soucis d'unicité de la liste
                 collision.double_clique_gauche(self.taille_grid)
+                collision.fil.calculs()
+                self.update_courant()
 
         self.operations.pop()
         self.rollback_possible()

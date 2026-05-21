@@ -4,8 +4,7 @@ from abc import ABC
 
 from PySide6.QtCore import QRect, Qt
 from PySide6.QtGui import QPixmap, Qt, QFontMetrics
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
-    QDoubleSpinBox
+from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QDoubleSpinBox
 
 from sauvegarde import ComposanteDTO
 
