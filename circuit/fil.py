@@ -32,6 +32,12 @@ class Fil:
         self.resistance = resistance
         self.amperage = 0
 
+        # 0 si y'a pas de diode, 1 si y'a une diode dans le sens du fil, -1 si dans le sens inverse et ignorer
+        # va être True s'il y a une diode dans chaque sens
+        self.sens_diode = 0
+        # Si diode dans chaque sens, voltmetre present
+        self.ignorer = False
+
     def to_dto(self, noeud_to_index: dict) -> FilDTO:
         points = [[p.x(), p.y()] for p in self.points]
         composantes = [composante.to_dto() for composante in self.composantes]
@@ -78,8 +84,12 @@ class Fil:
     def calculs(self):
         self.resistance = 0
         self.tension = 0
+        self.sens_diode = 0
+        self.ignorer = False
         for composante in self.composantes:
+            # Enlever plus tard ils vont avoir un sens comme les autres composantes
             if not composante.type == TypeComposante.Amperemetre and not composante.type == TypeComposante.Voltmetre:
+
                 index_point_depart = self.points.index(composante.points_fil[0])
                 index_point_fin = self.points.index(composante.points_fil[-1])
 
@@ -89,11 +99,18 @@ class Fil:
             else:
                 sens_comp = 1
 
+            if composante.type == TypeComposante.Diode:
+                if self.sens_diode != 0 and self.sens_diode != sens_comp:
+                    self.ignorer = True
+                self.sens_diode = sens_comp
+
+            elif composante.type == TypeComposante.Interrupteur and composante.ouvert:
+                self.ignorer = True
+
             self.resistance += composante.resistance
             self.tension += composante.tension * sens_comp
 
     def ajouter_composante(self, composante):
-
         def index_comp(index_point):
             for i in range(len(self.composantes)):
                 pos_comp = self.composantes[i].points_fil[1]

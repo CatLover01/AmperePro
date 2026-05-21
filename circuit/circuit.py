@@ -480,6 +480,7 @@ class Circuit(QGraphicsScene):
             self.operations.append(1)
             self.rollback_possible()
 
+            self.main_click()
             self.update_courant()
 
         else:
@@ -818,12 +819,23 @@ class Circuit(QGraphicsScene):
         else:
             fil = self.fils[0]
             try:
-                fil.definir_amperage(fil.tension / fil.resistance)
+                amperes = fil.tension / fil.resistance
+                fil.definir_amperage(amperes)
+                if fil.sens_diode * amperes < 0 or fil.ignorer is True:
+                    fil.definir_amperage(0)
+
             except ZeroDivisionError:
                 if fil.tension == 0:
                     fil.definir_amperage(0)
                 else:
-                    fil.definir_amperage(999999999999999999)
+                    amperes = 99999999999999
+                    if fil.tension < 0:
+                        amperes *= -1
+
+                    if fil.sens_diode * amperes < 0 or fil.ignorer is True:
+                        amperes = 0
+
+                    fil.definir_amperage(amperes)
 
     def inserer_composante(self, composante: Composante):
         if self.image_composante:
@@ -903,7 +915,7 @@ class Circuit(QGraphicsScene):
 
     def points_composante(self, rotation: float):
         x_mult, y_mult = (round(-math.cos(math.radians(rotation))),
-                          round(math.sin(math.radians(rotation))))
+                          round(-math.sin(math.radians(rotation))))
 
         milieu = self.image_composante.scenePos()
         # Les points du milieu qui doivent etre connecté au fil

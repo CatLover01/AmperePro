@@ -22,7 +22,7 @@ class TypeComposante(Enum):
 
 class Composante(ABC):
     def __init__(self, type: TypeComposante, nom: str, image_toolbar: str, image_circuit: str,
-                 description: str, tension: float = 0, resistance: float = 0.000001):
+                 description: str, tension: float = 0, resistance: float = 0):
         self._type = type
         self._nom = nom
         self._description = description
@@ -106,7 +106,7 @@ class Batterie(Composante):
                          "- Crée une différence de potentiel (tension). <br>"
                          "- Possède une borne positive (+) et négative (-). <br>"
                          "- Permet au courant de circuler dans le circuit.",
-                         10
+                         10, 0.000001
                          )
 
     # Ouvre une fenetre pour changer la tension
@@ -235,21 +235,23 @@ class Diode(Composante):
 class Interrupteur(Composante):
     def __init__(self):
         super().__init__(TypeComposante.Interrupteur, "Interrupteur", "images/circuit/interrupteur_ouvert.png",
-                         "images/circuit/interrupteur_ouvert.png",
+                         "images/circuit/interrupteur_ferme.png",
                          "- Sert à ouvrir ou fermer un circuit. <br>"
                          "- Ouvert : le courant ne passe pas. <br>"
                          "- Fermé : le courant peut passer ( si le circuit est complet )."
                          )
 
-        self.ouvert = True
+        self.ouvert = False
 
     @override
     def double_clique_gauche(self, taille_grid):
         if self.ouvert:
-            image_path = "images/circuit/interrupteur_ferme.png"
+            image_path = self.image_circuit
+            self.fil.ignorer = False
         else:
             # Image circuit est ouvert par défault dans la classe de base
-            image_path = self.image_circuit
+            image_path = "images/circuit/interrupteur_ouvert.png"
+            self.fil.ignorer = True
 
         self.ouvert = not self.ouvert
 

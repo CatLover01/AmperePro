@@ -90,6 +90,35 @@ def trouver_mailles(fils):
     return mailles, sens_mailles
 
 
+def enlever_fil(mat_A, mat_B, mailles, sens_mailles, fils, fil_enlever):
+    j = fils.index(fil_enlever)
+
+    # On enleve la tension du fil dans les mailles ou il est present
+    for i in range(len(mailles)):
+        mat_A[i, j] = 0
+        if fil_enlever in mailles[i]:
+            index_fil_maille = mailles[i].index(fil_enlever)
+            mat_B[i, 0] -= sens_mailles[i][index_fil_maille] * fil_enlever.tension
+
+    # On enleve la presence du fil dans toutes les equations
+    mat_A[:, j] = 0
+
+
+def envoyer_resultats(mat_A, mat_B, mailles, sens_mailles, fils):
+
+    x = np.linalg.lstsq(mat_A, mat_B, rcond=None)[0]
+    for i in range(len(x)):
+        fil = fils[i]
+        amperage = x[i][0]
+        # Si c'est pas du meme sens que les diode, enleve le fil de la matrice et recalcule
+        if fil.sens_diode * amperage < 0:
+            enlever_fil(mat_A, mat_B, mailles, sens_mailles, fils, fil)
+            envoyer_resultats(mat_A, mat_B, mailles, sens_mailles, fils)
+            break
+        else:
+            fil.definir_amperage(amperage)
+
+
 def calculer_circuit(fils, noeuds):
     mailles, sens_mailles = trouver_mailles(fils)
 
@@ -124,7 +153,9 @@ def calculer_circuit(fils, noeuds):
         mat_A = np.append(mat_A, equation, axis=0)
         mat_B = np.append(mat_B, [[0]], axis=0)
 
-    x = np.linalg.lstsq(mat_A, mat_B, rcond=None)[0]
-    for i in range(len(x)):
-        fil = fils[i]
-        fil.definir_amperage(x[i][0])
+    for fil in fils:
+        # On enleve les fils a ignorer
+        if fil.ignorer:
+            enlever_fil(mat_A, mat_B, mailles, sens_mailles, fils, fil)
+
+    envoyer_resultats(mat_A, mat_B, mailles, sens_mailles, fils)
