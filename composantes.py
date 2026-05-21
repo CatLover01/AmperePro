@@ -402,9 +402,11 @@ def prefixe_valeur(valeur):
     if valeur > 0.1:
         return "", 1
     elif valeur > 0.0001:
-        return "μ", 1000
+        return "m", 1000
+    elif valeur > 0.0000001:
+        return "μ", 1000000
     elif valeur > 0:
-        return "n", 1000000
+        return "n", 1000000000
     else:
         return "", 1
 
