@@ -35,6 +35,47 @@ def avancer_noeud(noeud_debut, dernier_fil, noeuds_eviter, fils_visites, cible):
     return prochain_fil, prochain_noeud, sens, False
 
 
+def trouver_cycle(cible, fils_cycle, sens_fils, fils_visites, noeuds_cycle, sequence_noeuds):
+    index_sequence = len(sequence_noeuds) - 1
+    noeud_present = noeuds_cycle[-1]
+    try:
+        dernier_fil = fils_cycle[-1]
+    except IndexError:
+        dernier_fil = None
+
+    while True:
+        noeuds_eviter = noeuds_cycle[:] + sequence_noeuds[index_sequence]
+
+        nouveau_fil, nouveau_noeud, nouveau_sens, fini = avancer_noeud(noeud_present, dernier_fil,
+                                                                       noeuds_eviter, fils_visites, cible)
+
+        if fini:
+            fils_cycle.append(nouveau_fil)
+            sens_fils.append(nouveau_sens)
+            break
+
+        if nouveau_fil is not None:
+            sequence_noeuds.append([])
+            sequence_noeuds[index_sequence].append(nouveau_noeud)
+            noeud_present = nouveau_noeud
+            index_sequence += 1
+            fils_cycle.append(nouveau_fil)
+            noeuds_cycle.append(nouveau_noeud)
+            sens_fils.append(nouveau_sens)
+            dernier_fil = nouveau_fil
+
+        else:
+            sequence_noeuds.pop()
+            fils_cycle.pop()
+            noeuds_cycle.pop()
+            sens_fils.pop()
+            noeud_present = noeuds_cycle[-1]
+            index_sequence -= 1
+            dernier_fil = fils_cycle[-1]
+
+    return fils_cycle, sens_fils
+
+
 def trouver_mailles(fils):
     mailles = []
     sens_mailles = []
@@ -45,43 +86,13 @@ def trouver_mailles(fils):
             # On commence a noeud present et on veut se rendre a cible.
             cible = fil_base.noeuds[0]
             noeud_present = fil_base.noeuds[1]
-            dernier_fil = fil_base
             sequence_noeuds = [[noeud_present], []]
-            index_sequence = 1
             sens_fils = [1]
             fils_cycle = [fil_base]
             # Probablement changer present = noeuds_cycle[-1] pour sequence[-2][-1]
             noeuds_cycle = [noeud_present]
 
-            while True:
-                noeuds_eviter = noeuds_cycle[:] + sequence_noeuds[index_sequence]
-
-                nouveau_fil, nouveau_noeud, nouveau_sens, fini = avancer_noeud(noeud_present, dernier_fil,
-                                                                               noeuds_eviter, fils_visites, cible)
-
-                if fini:
-                    fils_cycle.append(nouveau_fil)
-                    sens_fils.append(nouveau_sens)
-                    break
-
-                if nouveau_fil is not None:
-                    sequence_noeuds.append([])
-                    sequence_noeuds[index_sequence].append(nouveau_noeud)
-                    noeud_present = nouveau_noeud
-                    index_sequence += 1
-                    fils_cycle.append(nouveau_fil)
-                    noeuds_cycle.append(nouveau_noeud)
-                    sens_fils.append(nouveau_sens)
-                    dernier_fil = nouveau_fil
-
-                else:
-                    sequence_noeuds.pop()
-                    fils_cycle.pop()
-                    noeuds_cycle.pop()
-                    sens_fils.pop()
-                    noeud_present = noeuds_cycle[-1]
-                    index_sequence -= 1
-                    dernier_fil = fils_cycle[-1]
+            maille, sens_fils = trouver_cycle(cible, fils_cycle, sens_fils, fils_visites, noeuds_cycle, sequence_noeuds)
 
             fils_visites += fils_cycle
             mailles.append(fils_cycle)
@@ -95,7 +106,6 @@ def enlever_fil(mat_A, mat_B, mailles, sens_mailles, fils, fil_enlever):
 
     # On enleve la tension du fil dans les mailles ou il est present
     for i in range(len(mailles)):
-        mat_A[i, j] = 0
         if fil_enlever in mailles[i]:
             index_fil_maille = mailles[i].index(fil_enlever)
             mat_B[i, 0] -= sens_mailles[i][index_fil_maille] * fil_enlever.tension
