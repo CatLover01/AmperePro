@@ -17,6 +17,7 @@ class NiveauKirchoff2(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.questions_widgets = []
+        self.fenetre_doc = None
 
         # affichage bouton aide
         layout_exterieur = QVBoxLayout()
@@ -112,6 +113,46 @@ class NiveauKirchoff2(QWidget):
 
         main_layout.addLayout(boutons)
 
+    @property
+    def questions_widgets(self):
+        return self._questions_widgets
+
+    @questions_widgets.setter
+    def questions_widgets(self, question):
+        self._questions_widgets = question
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def questions(self):
+        return self._questions
+
+    @questions.setter
+    def questions(self, questions):
+        self._questions = questions
+
     def ajouter_question(self, main_layout, image_path, texte_question, type_question, bonne_reponse):
         bloc = QHBoxLayout()
         bloc.setSpacing(20)
@@ -181,7 +222,6 @@ class NiveauKirchoff2(QWidget):
         main_layout.addLayout(bloc)
 
         # ouvrir la documentation
-
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt

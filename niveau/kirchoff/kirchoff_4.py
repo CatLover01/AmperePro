@@ -13,6 +13,7 @@ class NiveauKirchoff4(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.questions_widgets = []
+        self.fenetre_doc = None
 
         # affichage bouton aide
         layout_exterieur = QVBoxLayout()
@@ -80,6 +81,7 @@ class NiveauKirchoff4(QWidget):
         for question in self.questions:
             self.ajouter_question(
                 main_layout,
+                "image/niveau/kirchoff/4/circuit_1.png",
                 question["question"],
                 question["type"],
                 question["reponse"],
@@ -110,6 +112,46 @@ class NiveauKirchoff4(QWidget):
         boutons.addStretch()
 
         main_layout.addLayout(boutons)
+
+    @property
+    def questions_widgets(self):
+        return self._questions_widgets
+
+    @questions_widgets.setter
+    def questions_widgets(self, question):
+        self._questions_widgets = question
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def questions(self):
+        return self._questions
+
+    @questions.setter
+    def questions(self, questions):
+        self._questions = questions
 
     def ajouter_question(self, main_layout, image_path, texte_question, type_question, bonne_reponse):
         bloc = QHBoxLayout()
@@ -211,7 +253,8 @@ class NiveauKirchoff4(QWidget):
             champ_reponse1 = QLineEdit()
             ligne_question.addWidget(champ_reponse1)
 
-        self.questions_widgets.append((groupe, bonne_reponse))
+        self.questions_widgets.append(groupe)
+        self.questions_widgets.append(bonne_reponse)
 
         bloc.addLayout(ligne_question)
         bloc.addWidget(image_label)

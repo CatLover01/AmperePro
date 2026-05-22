@@ -169,7 +169,7 @@ class Circuit(QGraphicsScene):
             composante = self.composantes_jetes.pop()
             if isinstance(composante, Composante):
                 self.image_composante = composante.image_item
-                self.inserer_composante(composante)
+                self.inserer_composante(composante, False)
 
         elif dernier == 3:
             composante = self.tournes.pop()
@@ -839,10 +839,10 @@ class Circuit(QGraphicsScene):
 
                     fil.definir_amperage(amperes)
 
-    def inserer_composante(self, composante: Composante):
+    def inserer_composante(self, composante: Composante, rollback : bool):
         if self.image_composante:
             composante.image_item = self.image_composante
-
+            self.addItem(composante.image_item)
             points_fil, points_cote = self.points_composante(self.image_composante.rotation())
             composante.points_fil = points_fil
             composante.points_cote = points_cote
@@ -902,12 +902,13 @@ class Circuit(QGraphicsScene):
             # on retourne à la main
             self.main_click()
 
-            # on update les infos liées à l'ajout pour le rollback
-            self.operations.append(1)
-            self.ajouts.append(point_milieu)
-            self.rollback_possible()
+            # on update les infos liées à l'ajout pour le rollback si on ne vient pas du rollback
+            if rollback:
+                self.operations.append(1)
+                self.ajouts.append(point_milieu)
+                self.rollback_possible()
 
-            # On recalcul le courant
+            # On recalcule le courant
             self.update_courant()
 
     def clic_droit_composante(self):
@@ -1018,10 +1019,19 @@ class Circuit(QGraphicsScene):
             self.retirer_elements(composante)
             self.zones_surbrillance = None
 
-            # TODO: retirer la composante du fil. C'est impératif que cela redevienne un fil à l'emplacement de la composante.
-            # TODO: possibilité de poursuivre la méthode nettoyer composante (si une autre manière est choisie aucun problème)
-            composante.nettoyer()
+            for point in composante.points_fil:
+                i, j = self.pos_to_mat(point.x(), point.y())
+                i, j = self.agrandir_matrice(i, j)
+                self.mat_points[i, j] = composante.fil
 
+            for point in composante.points_cote:
+                i, j = self.pos_to_mat(point.x(), point.y())
+                i, j = self.agrandir_matrice(i, j)
+                self.mat_points[i, j] = None
+
+            composante.fil.retirer_composante(composante)
+
+            self.update_courant()
             # on ajuste pour rollback si on provient de clic gauche et pas du rollback (si rollback = True)
             if rollback:
                 self.composantes_jetes.append(composante)
@@ -1097,7 +1107,7 @@ class GraphicsView(QGraphicsView):
                 # TODO: si on souhaite utiliser la main, connecter cela à def clic_gauche_main
 
             elif self.scene.selection == "composante" and self.scene.accepter_positionnement:
-                self.scene.inserer_composante(self.scene.composante_selectionnee)
+                self.scene.inserer_composante(self.scene.composante_selectionnee, True)
 
             elif self.scene.selection == "poubelle" and self.scene.zones_surbrillance:
                 self.scene.jeter_element(position_scene, True)
