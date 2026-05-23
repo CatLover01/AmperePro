@@ -174,10 +174,6 @@ class NiveauKirchoff3(QWidget):
         champ_reponse = QLineEdit()
         champ_reponse.setFixedWidth(140)
 
-        regex = QRegularExpression("^[I0-9+=-]*$")
-        validator = QRegularExpressionValidator(regex)
-        champ_reponse.setValidator(validator)
-
         ligne_question.addStretch()
         ligne_question.addWidget(label_question)
         ligne_question.addSpacing(10)
