@@ -1,4 +1,4 @@
-from PySide6.QtCore import QSize, QPointF, QLineF
+from PySide6.QtCore import QSize, QPointF, QLineF, QPoint
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
                                QHBoxLayout, QToolBar, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog,
@@ -18,14 +18,15 @@ class Circuit(QGraphicsScene):
     def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str):
         super().__init__()
         self.main_window = mainwindow
-        self.scene_size = QSize(540, 500)
+        self.scene_size = QSize(2000, 2000)
+        self.largeur = self.scene_size.width()
+        self.hauteur = self.scene_size.height()
+
         self.graphics_view = GraphicsView(self, mainwindow)
         self.main_window.setCentralWidget(self.graphics_view)
         self.graphics_view.setMinimumSize(self.scene_size)
         self.graphics_view.setScene(self)
 
-        self.largeur = self.scene_size.width()
-        self.hauteur = self.scene_size.height()
         # La distance entre chaque ligne dans le grid
         self.taille_grid = 20
 
@@ -86,7 +87,7 @@ class Circuit(QGraphicsScene):
 
         # pour les composantes
         self.toolbar = None
-        self.selection = None
+        self.selection = "main"
         self.composante_selectionnee = None
         self.image_composante = None
         self.couleur_recouvre = None
@@ -123,6 +124,9 @@ class Circuit(QGraphicsScene):
         quitter_action.setShortcut("Ctrl+Q")
         quitter_action.triggered.connect(self.main_window.close)
         self.menu_naviguer.addAction(quitter_action)
+
+        # Fils ayant un voltmetre
+        self.fils_voltmetre = []
 
     def sauvegarder_triggered(self):
         # Si l'id est None, on demande un nom pour le circuit + on le créé
@@ -241,7 +245,6 @@ class Circuit(QGraphicsScene):
     # Dessine le fond et le grid
     def dessiner_fond_grid(self):
         self.setBackgroundBrush(QColorConstants.White)
-        self.setSceneRect(0, 0, self.largeur, self.hauteur)
 
         pen = QPen(QColorConstants.Gray)
 
@@ -523,7 +526,6 @@ class Circuit(QGraphicsScene):
             self.rapetisser_matrice()
 
             self.dessine = False
-            self.lignes = []
             self.dernier_point = None
 
     # Vérifie si i et j sont hors de la matrice, si c'est le cas, agrandit la matrice pour pouvoir les inclure
@@ -816,7 +818,7 @@ class Circuit(QGraphicsScene):
     # Refait les calculs du courant
     def update_courant(self):
         if len(self.fils) > 1:
-            calculer_circuit(self.fils, self.noeuds)
+            calculer_circuit(self.fils, self.noeuds, self.fils_voltmetre)
 
         else:
             fil = self.fils[0]
@@ -894,6 +896,10 @@ class Circuit(QGraphicsScene):
 
             fil.ajouter_composante(composante)
             composante.fil = fil
+            if composante.type == TypeComposante.Voltmetre and len(fil.composantes) == 1:
+                self.fils_voltmetre.append(fil)
+            elif fil in self.fils_voltmetre:
+                self.fils_voltmetre.remove(fil)
 
             # on reset les variables liées à l'ajout de composantes
             self.accepter_modification = False
@@ -1018,8 +1024,17 @@ class Circuit(QGraphicsScene):
             self.retirer_elements(composante)
             self.zones_surbrillance = None
 
-            # TODO: retirer la composante du fil. C'est impératif que cela redevienne un fil à l'emplacement de la composante.
-            # TODO: possibilité de poursuivre la méthode nettoyer composante (si une autre manière est choisie aucun problème)
+            # TODO: faire en sorte que lamperemetre et voltmetre ont un sens sinon ca marche pas remettre leurs points
+            for point_fil in composante.points_fil:
+                i, j = self.pos_to_mat(point_fil.x(), point_fil.y())
+                self.mat_points[i, j] = composante.fil
+            for point_cote in composante.points_cote:
+                i, j = self.pos_to_mat(point_cote.x(), point_cote.y())
+                self.mat_points[i, j] = None
+
+            composante.fil.composantes.remove(composante)
+            composante.fil.calculs()
+            self.update_courant()
             composante.nettoyer()
 
             # on ajuste pour rollback si on provient de clic gauche et pas du rollback (si rollback = True)
@@ -1085,6 +1100,12 @@ class GraphicsView(QGraphicsView):
         super().__init__(scene)
         self.scene = scene
         self.viewport().setMouseTracking(True)
+        self.bouge_vue = False
+        self.derniere_pos = QPoint(0, 0)
+
+        self.setSceneRect(0, 0, 10000, 10000)
+        self.horizontalScrollBar().setValue(self.scene.largeur / 2 + self.scene.main_window.width())
+        self.verticalScrollBar().setValue(self.scene.hauteur / 2 + self.scene.main_window.height())
 
     def mousePressEvent(self, event):
         position_scene = self.mapToScene(event.position().toPoint())
@@ -1093,8 +1114,8 @@ class GraphicsView(QGraphicsView):
                 self.scene.clic_gauche_fil(position_scene)
 
             elif self.scene.selection == "main":
-                pass
-                # TODO: si on souhaite utiliser la main, connecter cela à def clic_gauche_main
+                self.bouge_vue = True
+                self.derniere_pos = event.position().toPoint()
 
             elif self.scene.selection == "composante" and self.scene.accepter_positionnement:
                 self.scene.inserer_composante(self.scene.composante_selectionnee)
@@ -1113,12 +1134,31 @@ class GraphicsView(QGraphicsView):
         position_scene = self.mapToScene(event.position().toPoint())
         if self.scene.selection == "fil" and self.scene.dessine:
             self.scene.continuer_dessin(position_scene)
-        elif self.scene.selection == "composante" and self.scene.accepter_modification == True:
+
+        elif self.scene.selection == "composante" and self.scene.accepter_modification is True:
             position_scene = self.mapToScene(event.position().toPoint())
             self.scene.deplacer_composante(position_scene)
             self.scene.valider_position()
+
         elif self.scene.selection == "poubelle":
             self.scene.signaler_effacement(position_scene)
+
+        elif self.scene.selection == "main" and self.bouge_vue:
+            diff_pos = event.position().toPoint() - self.derniere_pos
+            pos_vue_x = self.horizontalScrollBar().value() - diff_pos.x()
+            pos_vue_y = self.verticalScrollBar().value() - diff_pos.y()
+
+            # Ajuste la position de la souris et empêche que la vue sorte de la scene
+            self.horizontalScrollBar().setValue(min(pos_vue_x, self.scene.largeur - self.scene.main_window.width()))
+            self.verticalScrollBar().setValue(min(pos_vue_y, self.scene.hauteur - self.scene.main_window.height()))
+
+            self.derniere_pos = event.position().toPoint()
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.bouge_vue = False
+        else:
+            super().mouseReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -1130,3 +1170,7 @@ class GraphicsView(QGraphicsView):
             if self.scene.selection == "main":
                 position_scene = self.mapToScene(event.position().toPoint())
                 self.scene.tourner_image_composante(position_scene)
+
+    def wheelEvent(self, event):
+        # Empêche que la molette soit utilisée pour éviter que l'utilisateur sort des limites
+        pass

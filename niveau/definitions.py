@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Sujet(Enum):
-    Ohm = "Loi d'ohm"
+    Ohm = "Loi d'Ohm"
     Resistance = "Résistance équivalente"
     Kirchoff = "Loi de Kirchoff"
 
@@ -63,7 +63,7 @@ INFO_NIVEAUX = {
             DetailNiveau.PointTotal: 6,
         },
         2: {
-            DetailNiveau.Description: "Trouve une résistance inconnue à partir de Req",
+            DetailNiveau.Description: "Trouve une résistance inconnue à partir de Réq",
             DetailNiveau.PointTotal: 5,
         },
         3: {

@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtGui import QColorConstants
 
+import composantes
 from sauvegarde import FilDTO
 
 # Évite dépendance circulaire pour avoir le type Circuit
@@ -76,9 +77,6 @@ class Fil:
             # enlever ensuite le abs
             if composante.type == TypeComposante.Amperemetre:
                 composante.amperage = abs(nouveau_amperage)
-            elif composante.type == TypeComposante.Voltmetre:
-                voltage = self.resistance * nouveau_amperage
-                composante.voltage = abs(voltage)
 
     # Calcul la tension et la résistance relative dans le fil
     def calculs(self):
@@ -99,12 +97,16 @@ class Fil:
             else:
                 sens_comp = 1
 
-            if composante.type == TypeComposante.Diode:
+            if composante.type == TypeComposante.Voltmetre:
+                self.ignorer = True
+
+            elif composante.type == TypeComposante.Diode:
                 if self.sens_diode != 0 and self.sens_diode != sens_comp:
                     self.ignorer = True
                 self.sens_diode = sens_comp
 
             elif composante.type == TypeComposante.Interrupteur and composante.ouvert:
+                print(3)
                 self.ignorer = True
 
             self.resistance += composante.resistance
