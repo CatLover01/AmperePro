@@ -126,6 +126,11 @@ class Fil:
         self.composantes.insert(index_comp(index_milieu), composante)
         self.calculs()
 
+    def retirer_composante(self, composante):
+        if composante in self.composantes:
+            self.composantes.remove(composante)
+
+
     # Ajoute un noeud au fil, ce qui sépare le fil en deux fils distincts
     def ajouter_noeud(self, pos: QPointF, noeud: Noeud):
         index_point = self.points.index(pos)

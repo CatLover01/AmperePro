@@ -173,7 +173,7 @@ class Circuit(QGraphicsScene):
             composante = self.composantes_jetes.pop()
             if isinstance(composante, Composante):
                 self.image_composante = composante.image_item
-                self.inserer_composante(composante)
+                self.inserer_composante(composante, False)
 
         elif dernier == 3:
             composante = self.tournes.pop()
@@ -841,10 +841,10 @@ class Circuit(QGraphicsScene):
 
                     fil.definir_amperage(amperes)
 
-    def inserer_composante(self, composante: Composante):
+    def inserer_composante(self, composante: Composante, rollback : bool):
         if self.image_composante:
             composante.image_item = self.image_composante
-
+            self.addItem(composante.image_item)
             points_fil, points_cote = self.points_composante(self.image_composante.rotation())
             composante.points_fil = points_fil
             composante.points_cote = points_cote
@@ -908,12 +908,13 @@ class Circuit(QGraphicsScene):
             # on retourne à la main
             self.main_click()
 
-            # on update les infos liées à l'ajout pour le rollback
-            self.operations.append(1)
-            self.ajouts.append(point_milieu)
-            self.rollback_possible()
+            # on update les infos liées à l'ajout pour le rollback si on ne vient pas du rollback
+            if rollback:
+                self.operations.append(1)
+                self.ajouts.append(point_milieu)
+                self.rollback_possible()
 
-            # On recalcul le courant
+            # On recalcule le courant
             self.update_courant()
 
     def clic_droit_composante(self):
@@ -1028,6 +1029,7 @@ class Circuit(QGraphicsScene):
             for point_fil in composante.points_fil:
                 i, j = self.pos_to_mat(point_fil.x(), point_fil.y())
                 self.mat_points[i, j] = composante.fil
+
             for point_cote in composante.points_cote:
                 i, j = self.pos_to_mat(point_cote.x(), point_cote.y())
                 self.mat_points[i, j] = None
@@ -1118,7 +1120,7 @@ class GraphicsView(QGraphicsView):
                 self.derniere_pos = event.position().toPoint()
 
             elif self.scene.selection == "composante" and self.scene.accepter_positionnement:
-                self.scene.inserer_composante(self.scene.composante_selectionnee)
+                self.scene.inserer_composante(self.scene.composante_selectionnee, True)
 
             elif self.scene.selection == "poubelle" and self.scene.zones_surbrillance:
                 self.scene.jeter_element(position_scene, True)

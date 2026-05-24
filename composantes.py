@@ -86,6 +86,7 @@ class Composante(ABC):
         self.points_fil = []
         self.points_cote = []
 
+
     def to_dto(self) -> ComposanteDTO:
         return ComposanteDTO(self.type.value, self.tension, self.resistance)
 

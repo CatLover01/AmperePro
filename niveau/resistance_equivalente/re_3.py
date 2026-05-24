@@ -12,7 +12,7 @@ class NiveauRE3(QWidget):
 
         self.retour_callback = retour_callback
         self.update_niveau = update_niveau
-
+        self.fenetre_doc = None
         self.questions_widgets = []
 
         # image + réponse
@@ -46,7 +46,7 @@ class NiveauRE3(QWidget):
 
         # Titre
         titre = QLabel("Résistance équivalente - niveau 3")
-        titre.setAlignment(Qt.AlignCenter)
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         police = QFont()
         police.setPointSize(28)
@@ -60,7 +60,7 @@ class NiveauRE3(QWidget):
             "Calcule la résistance équivalente de chaque circuit."
         )
 
-        consigne.setAlignment(Qt.AlignCenter)
+        consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         main_layout.addWidget(consigne)
 
@@ -85,6 +85,46 @@ class NiveauRE3(QWidget):
 
         main_layout.addLayout(boutons)
 
+    @property
+    def questions_widgets(self):
+        return self._questions_widgets
+
+    @questions_widgets.setter
+    def questions_widgets(self, question):
+        self._questions_widgets = question
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def questions(self):
+        return self._questions
+
+    @questions.setter
+    def questions(self, questions):
+        self._questions = questions
+
     def ajouter_question(self, layout, image_path, bonne_reponse):
 
         bloc = QVBoxLayout()
@@ -105,7 +145,7 @@ class NiveauRE3(QWidget):
                 "Image introuvable : " + image_path
             )
 
-        image_label.setAlignment(Qt.AlignCenter)
+        image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         bloc.addWidget(image_label)
 
@@ -114,7 +154,7 @@ class NiveauRE3(QWidget):
             "Quelle est la résistance équivalente dans ce circuit ?"
         )
 
-        question.setAlignment(Qt.AlignCenter)
+        question.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         question.setFont(QFont("", 14))
 
@@ -131,7 +171,7 @@ class NiveauRE3(QWidget):
 
         bloc.addWidget(
             input_field,
-            alignment=Qt.AlignCenter
+            alignment=Qt.AlignmentFlag.AlignCenter
         )
 
         layout.addLayout(bloc)
@@ -173,8 +213,8 @@ class NiveauRE3(QWidget):
                 if round(valeur * 100) / 100 == bonne_rep:
                     bonnes += 1
 
-            except:
-                pass
+            except ValueError:
+                continue
 
         QMessageBox.information(
             self,
