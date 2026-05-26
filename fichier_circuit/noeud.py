@@ -5,8 +5,8 @@ from sauvegarde import NoeudDTO
 
 # Évite dépendance circulaire pour avoir le type Circuit + Fil
 if TYPE_CHECKING:
-    from circuit.circuit import Circuit
-    from circuit.fil import Fil
+    from fichier_circuit.circuit import Circuit
+    from fichier_circuit.fil import Fil
 
 from PySide6.QtCore import QPointF
 
@@ -19,6 +19,30 @@ class Noeud:
         self._info_voisins: list[list[Fil | Noeud]] = info_voisins
         self._pos = pos
 
+    @property
+    def pos(self):
+        return self._pos
+
+    @pos.setter
+    def pos(self, pos: QPointF):
+        self._pos = pos
+
+    @property
+    def info_voisins(self):
+        return self._info_voisins
+
+    @info_voisins.setter
+    def info_voisins(self, info_voisins: list[list[Fil | Noeud]]):
+        self._info_voisins = info_voisins
+
+    @property
+    def voltage(self):
+        return self._voltage
+
+    @voltage.setter
+    def voltage(self, voltage: float):
+        self._voltage = voltage
+
     def to_dto(self, fil_to_index: dict, noeud_to_index: dict) -> NoeudDTO:
         return NoeudDTO(
             [self._pos.x(), self._pos.y()],
@@ -29,10 +53,6 @@ class Noeud:
     @classmethod
     def from_dto(cls, dto: NoeudDTO) -> Noeud:
         return cls(QPointF(dto.pos[0], dto.pos[1]), dto.voisins, dto.voltage)
-
-    @property
-    def info_voisins(self) -> list[list[Fil | Noeud]]:
-        return self._info_voisins
 
     # Rajoute un fil lié et l'autre noeud qui touche au fil
     def ajouter_info(self, fil: Fil, noeud_voisin: Noeud):

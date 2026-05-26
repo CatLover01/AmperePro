@@ -7,25 +7,51 @@ import math
 import numpy as np
 
 from button import ToolTipButton
-from .fil import Fil
-from .noeud import Noeud
+from fichier_circuit.fil import Fil
+from fichier_circuit.noeud import Noeud
 from composantes import toolbar_composantes, Composante, TypeComposante
-from .calculateur_courant import calculer_circuit
+from fichier_circuit.calculateur_courant import calculer_circuit
 from sauvegarde import Sauvegarde, FilDTO, NoeudDTO
 
 
 class Circuit(QGraphicsScene):
-    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id: str):
+    def __init__(self, mainwindow, sauvegarde: Sauvegarde, id_circuit: str):
         super().__init__()
         self.main_window = mainwindow
         self.scene_size = QSize(2000, 2000)
         self.largeur = self.scene_size.width()
         self.hauteur = self.scene_size.height()
 
-        self.graphics_view = GraphicsView(self, mainwindow)
-        self.main_window.setCentralWidget(self.graphics_view)
-        self.graphics_view.setMinimumSize(self.scene_size)
-        self.graphics_view.setScene(self)
+        self.dessine = False
+        self.dernier_point = None
+
+        self.lignes: list[QGraphicsLineItem] = []
+        self.noeuds: list[Noeud] = []
+        self.points_avant_pivot = []
+        self.fil_complet = False
+        self.nouveau_fil = None
+
+        # listes pour le rollback
+        self.ajouts = []
+        self.composantes_jetes = []
+        self.fils_jetes = []
+        self.modifications = []
+        # les ajouts seront 1, les jetés seront 2, composantes tournées seront 3 et composantes modifiées seront 4
+        self.operations = []
+        self.tournes = []
+
+        # pour les composantes
+        self.toolbar = None
+        self._selection = "main"
+        self.composante_selectionnee = None
+        self.image_composante = None
+        self.couleur_recouvre = None
+        self.accepter_modification = True
+        self.accepter_positionnement = False
+        self.zones_surbrillance = None
+        self.composante_surbrillance = None
+        self.grid_par_dessus = []
+
 
         # La distance entre chaque ligne dans le grid
         self.taille_grid = 20
@@ -37,19 +63,13 @@ class Circuit(QGraphicsScene):
         largeur_fil_base = 200
         hauteur_fil_base = 140
 
-        self.debut_matrice_i = None
-        self.debut_matrice_j = None
 
-        self.dessine = False
-        self.dernier_point = None
+        self.graphics_view = GraphicsView(self)
+        self.main_window.setCentralWidget(self.graphics_view)
+        self.graphics_view.setMinimumSize(self.scene_size)
+        self.graphics_view.setScene(self)
 
-        self.lignes: list[QGraphicsLineItem] = []
-        self.noeuds: list[Noeud] = []
-        self.points_avant_pivot = []
-        self.fil_complet = False
-        self.nouveau_fil = None
-
-        if id is None:
+        if id_circuit is None:
             fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
             self.fils = [fil_base]
 
@@ -58,7 +78,7 @@ class Circuit(QGraphicsScene):
             # self.noeuds = []
             # self.mat_points = []
         else:
-            circuit = sauvegarde.get_circuit(id)
+            circuit = sauvegarde.get_circuit(id_circuit)
             noeuds: list[Noeud] = []
             fils: list[Fil] = []
             for noeud in circuit.noeuds:
@@ -73,30 +93,7 @@ class Circuit(QGraphicsScene):
             # self.mat_points = np.array(...)
 
         self.sauvegarde = sauvegarde
-        self.id = id
-
-        # listes pour le rollback
-        self.ajouts = []
-        self.composantes_jetes = []
-        self.fils_jetes = []
-        self.dernier_jete = []
-        self.modifications = []
-        # les ajouts seront 1, les jetés seront 2, composantes tournées seront 3 et composantes modifiées seront 4
-        self.operations = []
-        self.tournes = []
-
-        # pour les composantes
-        self.toolbar = None
-        self.selection = "main"
-        self.composante_selectionnee = None
-        self.image_composante = None
-        self.couleur_recouvre = None
-        self.accepter_modification = True
-        self.accepter_positionnement = False
-        self.zones_surbrillance = None
-        self.composante_surbrillance = None
-        self.zones_blanches = []
-        self.grid_par_dessus = []
+        self.id = id_circuit
 
         # Menubar
         self.barre_menu = self.main_window.menuBar()
@@ -127,6 +124,222 @@ class Circuit(QGraphicsScene):
 
         # Fils ayant un voltmetre
         self.fils_voltmetre = []
+
+    @property
+    def taille_grid(self):
+        return self._taille_grid
+
+    @taille_grid.setter
+    def taille_grid(self, taille):
+        self._taille_grid = taille
+
+    @property
+    def mat_i0(self):
+        return self._mat_i0
+
+    @mat_i0.setter
+    def mat_i0(self, mat_i0):
+        self._mat_i0 = mat_i0
+
+    @property
+    def mat_j0(self):
+        return self._mat_j0
+
+    @mat_j0.setter
+    def mat_j0(self, mat_j0):
+        self._mat_j0 = mat_j0
+
+    @property
+    def dessine(self):
+        return self._dessine
+
+    @dessine.setter
+    def dessine(self, dessine):
+        self._dessine = dessine
+
+    @property
+    def dernier_point(self):
+        return self._dernier_point
+
+    @dernier_point.setter
+    def dernier_point(self, dernier_point):
+        self._dernier_point = dernier_point
+
+    @property
+    def lignes(self):
+        return self._lignes
+
+    @lignes.setter
+    def lignes(self, lignes):
+        self._lignes = lignes
+
+    @property
+    def noeuds(self):
+        return self._noeuds
+
+    @noeuds.setter
+    def noeuds(self, noeuds):
+        self._noeuds = noeuds
+
+    @property
+    def points_avant_pivot(self):
+        return self._points_avant_pivot
+
+    @points_avant_pivot.setter
+    def points_avant_pivot(self, points_avant_pivot):
+        self._points_avant_pivot = points_avant_pivot
+
+    @property
+    def fil_complet(self):
+        return self._fil_complet
+
+    @fil_complet.setter
+    def fil_complet(self, fil_complet):
+        self._fil_complet = fil_complet
+
+    @property
+    def nouveau_fil(self):
+        return self._nouveau_fil
+
+    @nouveau_fil.setter
+    def nouveau_fil(self, nouveau_fil):
+        self._nouveau_fil = nouveau_fil
+
+    @property
+    def fils(self):
+        return self._fils
+
+    @fils.setter
+    def fils(self, fils):
+        self._fils = fils
+
+    @property
+    def sauvegarde(self):
+        return self._sauvegarde
+
+    @sauvegarde.setter
+    def sauvegarde(self, sauvegarder):
+        self._sauvegarde = sauvegarder
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, id_id):
+        self._id = id_id
+
+    @property
+    def ajouts(self):
+        return self._ajouts
+
+    @ajouts.setter
+    def ajouts(self, ajouts):
+        self._ajouts = ajouts
+
+    @property
+    def composantes_jetes(self):
+        return self._composantes_jetes
+
+    @composantes_jetes.setter
+    def composantes_jetes(self, composantes_jetes):
+        self._composantes_jetes = composantes_jetes
+
+    @property
+    def fils_jetes(self):
+        return self._fils_jetes
+
+    @fils_jetes.setter
+    def fils_jetes(self, fils_jetes):
+        self._fils_jetes = fils_jetes
+
+    @property
+    def modifications(self):
+        return self._modifications
+
+    @modifications.setter
+    def modifications(self, modifications):
+        self._modifications = modifications
+
+    @property
+    def operations(self):
+        return self._operations
+
+    @operations.setter
+    def operations(self, operations):
+        self._operations = operations
+
+    @property
+    def selection(self):
+        return self._selection
+
+    @selection.setter
+    def selection(self, selection):
+        self._selection = selection
+
+    @property
+    def composante_selectionnee(self):
+        return self._composante_selectionnee
+
+    @composante_selectionnee.setter
+    def composante_selectionnee(self, composante_selectionnee):
+        self._composante_selectionnee = composante_selectionnee
+
+    @property
+    def image_composante(self):
+        return self._image_composante
+
+    @image_composante.setter
+    def image_composante(self, image_composante):
+        self._image_composante = image_composante
+
+    @property
+    def accepter_modification(self):
+        return self._accepter_modification
+
+    @accepter_modification.setter
+    def accepter_modification(self, accepter_modification):
+        self._accepter_modification = accepter_modification
+
+    @property
+    def accepter_positionnement(self):
+        return self._accepter_positionnement
+
+    @accepter_positionnement.setter
+    def accepter_positionnement(self, accepter_positionnement):
+        self._accepter_positionnement = accepter_positionnement
+
+    @property
+    def zones_surbrillance(self):
+        return self._zones_surbrillance
+
+    @zones_surbrillance.setter
+    def zones_surbrillance(self, zones_surbrillance):
+        self._zones_surbrillance = zones_surbrillance
+
+    @property
+    def grid_par_dessus(self):
+        return self._grid_par_dessus
+
+    @grid_par_dessus.setter
+    def grid_par_dessus(self, grid_par_dessus):
+        self._grid_par_dessus = grid_par_dessus
+
+    @property
+    def allouer_fermeture(self):
+        return self._allouer_fermeture
+
+    @allouer_fermeture.setter
+    def allouer_fermeture(self, allouer_fermeture):
+        self._allouer_fermeture = allouer_fermeture
+
+    @property
+    def fils_voltmetre(self):
+        return self._fils_voltmetre
+
+    @fils_voltmetre.setter
+    def fils_voltmetre(self, fil_avant_voltmetre):
+        self._fils_voltmetre = fil_avant_voltmetre
 
     def sauvegarder_triggered(self):
         # Si l'id est None, on demande un nom pour le circuit + on le créé
@@ -374,9 +587,9 @@ class Circuit(QGraphicsScene):
 
     def clic_gauche_fil(self, pos: QPointF):
         # return tous les points dans le grid selon la ligne
-        def get_points_ligne(debut_ligne: QPointF, fin_ligne: QPointF) -> list[QPointF]:
-            diff_x = fin_ligne.x() - debut_ligne.x()
-            diff_y = fin_ligne.y() - debut_ligne.y()
+        def get_points_ligne(debut_ligne_clic: QPointF, fin_ligne_clic: QPointF) -> list[QPointF]:
+            diff_x = fin_ligne_clic.x() - debut_ligne_clic.x()
+            diff_y = fin_ligne_clic.y() - debut_ligne_clic.y()
             if abs(diff_x) > abs(diff_y):
                 sens_x = 1
                 if diff_x < 0:
@@ -390,29 +603,29 @@ class Circuit(QGraphicsScene):
 
             nb_points = round((diff_x * sens_x + diff_y * sens_y) / self.taille_grid)
 
-            points = []
+            points_clic = []
             for k in range(nb_points):
                 pos_x = debut_ligne.x() + (k + 1) * self.taille_grid * sens_x
                 pos_y = debut_ligne.y() + (k + 1) * self.taille_grid * sens_y
-                points.append(QPointF(pos_x, pos_y))
+                points_clic.append(QPointF(pos_x, pos_y))
 
-            return points
+            return points_clic
 
         # met une reference au fil partout où il touche dans la matrice points
-        def mettre_fil_mat(ligne: QGraphicsLineItem, fil: Fil):
-            debut_ligne = ligne.line().p1()
-            fin_ligne = ligne.line().p2()
-            points = get_points_ligne(debut_ligne, fin_ligne)
+        def mettre_fil_mat(ligne_clic: QGraphicsLineItem, fil_clic: Fil):
+            debut_ligne_clic = ligne_clic.line().p1()
+            fin_ligne_clic = ligne_clic.line().p2()
+            points_clic = get_points_ligne(debut_ligne, fin_ligne)
 
             i_fin, j_fin = self.pos_to_mat(points[-1].x(), points[-1].y())
             self.agrandir_matrice(i_fin, j_fin)
 
-            for point in points:
-                i, j = self.pos_to_mat(point.x(), point.y())
+            for point_clic in points_clic:
+                i, j = self.pos_to_mat(point_clic.x(), point_clic.y())
                 if not isinstance(self.mat_points[i, j], Fil) and not isinstance(self.mat_points[i, j], Noeud):
-                    self.mat_points[i, j] = fil
+                    self.mat_points[i, j] = fil_clic
 
-            return debut_ligne, fin_ligne, points
+            return debut_ligne_clic, fin_ligne_clic, points_clic
 
         fil_touche = self.verifier_collision(pos)
         x, y = self.pos_selon_grid(pos)
@@ -763,7 +976,6 @@ class Circuit(QGraphicsScene):
             self.clic_droit_fil()
 
         if self.image_composante:
-            composante = self.composante_selectionnee
             self.removeItem(self.zones_surbrillance)
             self.zones_surbrillance = None
             self.removeItem(self.image_composante)
@@ -863,7 +1075,6 @@ class Circuit(QGraphicsScene):
             zone_blanche.setZValue(1)
             zone_blanche.setBrush(QColor(255, 255, 255))
             self.addItem(zone_blanche)
-            self.zones_blanches.append(zone_blanche)
 
             composante.items.append(zone_blanche)
 
@@ -1098,7 +1309,7 @@ class Circuit(QGraphicsScene):
 
 class GraphicsView(QGraphicsView):
 
-    def __init__(self, scene, main_window):
+    def __init__(self, scene):
         super().__init__(scene)
         self.scene = scene
         self.viewport().setMouseTracking(True)

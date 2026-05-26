@@ -3,17 +3,16 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtGui import QColorConstants
 
-import composantes
 from sauvegarde import FilDTO
 
 # Évite dépendance circulaire pour avoir le type Circuit
 if TYPE_CHECKING:
-    from circuit.circuit import Circuit
+    from fichier_circuit.circuit import Circuit
 
 from PySide6.QtCore import QLineF, QPointF
 from PySide6.QtWidgets import QGraphicsLineItem
 
-from circuit.noeud import Noeud
+from fichier_circuit.noeud import Noeud
 from composantes import Composante, TypeComposante
 
 
@@ -38,6 +37,81 @@ class Fil:
         self.sens_diode = 0
         # Si diode dans chaque sens, voltmetre present
         self.ignorer = False
+
+
+
+    @property
+    def points(self):
+        return self._points
+
+    @points.setter
+    def points(self, points):
+        self._points = points
+
+    @property
+    def noeuds(self):
+        return self._noeuds
+
+    @noeuds.setter
+    def noeuds(self, noeuds):
+        self._noeuds = noeuds
+
+    @property
+    def lignes(self):
+        return self._lignes
+
+    @lignes.setter
+    def lignes(self, lignes):
+        self._lignes = lignes
+
+    @property
+    def composantes(self):
+        return self._composantes
+
+    @composantes.setter
+    def composantes(self, composante):
+        self._composantes = composante
+
+    @property
+    def tension(self):
+        return self._tension
+
+    @tension.setter
+    def tension(self, tension):
+        self._tension = tension
+
+    @property
+    def resistance(self):
+        return self._resistance
+
+    @resistance.setter
+    def resistance(self, resistance):
+        self._resistance = resistance
+
+    @property
+    def amperage(self):
+        return self._amperage
+
+    @amperage.setter
+    def amperage(self, amperage):
+        self._amperage = amperage
+
+    @property
+    def sens_diode(self):
+        return self._sens_diode
+
+    @sens_diode.setter
+    def sens_diode(self, sens_diode):
+        self._sens_diode = sens_diode
+
+    @property
+    def ignorer(self):
+        return self._ignorer
+
+    @ignorer.setter
+    def ignorer(self, ignorer):
+        self._ignorer = ignorer
+
 
     def to_dto(self, noeud_to_index: dict) -> FilDTO:
         points = [[p.x(), p.y()] for p in self.points]
