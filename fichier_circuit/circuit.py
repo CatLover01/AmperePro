@@ -1240,8 +1240,7 @@ class Circuit(QGraphicsScene):
         if composante == self.composante_surbrillance:
             return
 
-        image = composante.image_item
-        point_milieu = image.scenePos()
+        point_milieu = composante.points_fil[1]
 
         # si la souris recouvre une composante, on le signale en la mettant en rouge.
         coin_sup_gauche_x = point_milieu.x() - self.taille_grid

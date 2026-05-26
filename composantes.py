@@ -11,12 +11,11 @@ from sauvegarde import ComposanteDTO
 
 class TypeComposante(Enum):
     Batterie = 1
-    LED = 2
-    Resistor = 3
-    Diode = 4
-    Interrupteur = 5
-    Voltmetre = 6
-    Amperemetre = 7
+    Resistor = 2
+    Diode = 3
+    Interrupteur = 4
+    Voltmetre = 5
+    Amperemetre = 6
 
 
 class Composante(ABC):
@@ -152,16 +151,6 @@ class Batterie(Composante):
 
     def rollback(self, ancienne_valeur):
         self.tension = ancienne_valeur
-
-
-class LED(Composante):
-    def __init__(self):
-        super().__init__(TypeComposante.LED, "LED", "images/circuit/led.png",
-                         "images/circuit/led.png",
-                         "- Diode qui émet de la lumière quand le courant passe dans le bon sens <br>"
-                         "- Elle a une polarité : anode (+) et cathode (-). <br>"
-                         "- On met souvent une LED en série avec une résistance pour éviter trop de courant"
-                         )
 
 
 class Resistor(Composante):
@@ -424,7 +413,6 @@ def prefixe_valeur(valeur):
 # afin de permettre aux copies d'être uniques, cela n'appelle plus la classe mais crée un objet de la classe
 toolbar_composantes = {
     TypeComposante.Batterie: Batterie,
-    TypeComposante.LED: LED,
     TypeComposante.Resistor: Resistor,
     TypeComposante.Diode: Diode,
     TypeComposante.Interrupteur: Interrupteur,
