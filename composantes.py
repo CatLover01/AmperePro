@@ -344,7 +344,7 @@ class Amperemetre(Composante):
                          "- Idéalement, la résistance dans l'ampèremètre est très faible."
                          )
 
-        self.item_signes = None
+        self.item_comp = None
         self.amperage = 0
 
     @override

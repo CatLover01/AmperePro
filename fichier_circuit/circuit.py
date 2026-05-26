@@ -1022,7 +1022,6 @@ class Circuit(QGraphicsScene):
                 pixmap = QPixmap(self.composante_selectionnee.image_circuit)
                 pixmap_scalise = pixmap.scaled(self.taille_grid * 2, self.taille_grid * 2)
                 self.image_composante = QGraphicsPixmapItem(pixmap_scalise)
-                self.accepter_modification = True
 
                 self.image_composante.setPos(self.taille_grid, self.taille_grid)
                 self.image_composante.setOffset(-self.taille_grid, -self.taille_grid)
@@ -1242,7 +1241,8 @@ class Circuit(QGraphicsScene):
             return
 
         image = composante.image_item
-        point_milieu = image.pos()
+        point_milieu = image.scenePos()
+
         # si la souris recouvre une composante, on le signale en la mettant en rouge.
         coin_sup_gauche_x = point_milieu.x() - self.taille_grid
         coin_sup_gauche_y = point_milieu.y() - self.taille_grid
@@ -1262,6 +1262,10 @@ class Circuit(QGraphicsScene):
         if isinstance(composante, Composante):
             # ménage visuel composante
             self.removeItem(composante.image_item)
+
+            if hasattr(composante, "item_comp"):
+                self.removeItem(composante.item_comp)
+
             self.annuler_signalement()
             self.retirer_elements(composante)
 
