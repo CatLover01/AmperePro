@@ -368,23 +368,24 @@ class Circuit(QGraphicsScene):
     def rollback_triggered(self):
         dernier = self.operations[-1]
         if dernier == 1:
+            # si la dernière opération est d'ajouter un élément, on le supprime grâce à sa position qu'on a enregistrée.
             dernier_ajout = self.ajouts.pop()
-            if isinstance(dernier_ajout, Fil):
-                print(dernier_ajout)
-                dernier_ajout.enlever_fil()
-                self.fils.remove(dernier_ajout)
-                # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
-            else:
-                self.jeter_element(dernier_ajout, False)
+            self.jeter_element(dernier_ajout, False)
 
         elif dernier == 2:
             composante = self.composantes_jetes.pop()
+            #si c'est une composante, on la réinsère comme la première fois.
             if isinstance(composante, Composante):
                 self.image_composante = composante.image_item
                 self.inserer_composante(composante, False)
+            else:
+                pass
 
         elif dernier == 3:
+            # on veut annuler le fait d'avoir tourner une composante de 180 degrés. Cela revient à la tourner à nouveau.
             composante = self.tournes.pop()
+            # le isinstance rassure python mais c'est une certitude puisque le cas contraire ne se serait pas rendu
+            # jusqu'au rollback.
             if isinstance(composante, Composante):
                 self.tourner_image_composante(composante.points_fil[1], False)
 
@@ -685,7 +686,8 @@ class Circuit(QGraphicsScene):
             self.lignes = []
             self.points_avant_pivot = []
             self.dessine = False
-            self.ajouts.append(self.nouveau_fil)
+            point_a_garder = points[math.floor(len(points)/2)]
+            self.ajouts.append(point_a_garder)
 
             self.nouveau_fil.calculs()
             self.nouveau_fil = None
@@ -1290,11 +1292,15 @@ class Circuit(QGraphicsScene):
 
         elif isinstance(composante, Fil):
             #ménage visuel
-            #self.removeItem(composante)
+            # on supprime d'abord les composantes du fil
+            for element in composante.composantes.copy():
+                self.jeter_element(element.points_fil[1], False)
+
+            composante.enlever_fil()
             self.annuler_signalement()
 
             if rollback:
-                self.fils_jetes.append(composante)
+                self.composantes_jetes.append(composante)
                 self.operations.append(2)
 
     def deplacer_composante(self, position):
