@@ -391,7 +391,7 @@ class Circuit(QGraphicsScene):
         elif dernier == 3:
             composante = self.tournes.pop()
             if isinstance(composante, Composante):
-                self.tourner_image_composante(composante.points_fil[1])
+                self.tourner_image_composante(composante.points_fil[1], False)
 
         else:
             # annuler la plus récente modification à une composante.
@@ -605,8 +605,8 @@ class Circuit(QGraphicsScene):
 
             points_clic = []
             for k in range(nb_points):
-                pos_x = debut_ligne.x() + (k + 1) * self.taille_grid * sens_x
-                pos_y = debut_ligne.y() + (k + 1) * self.taille_grid * sens_y
+                pos_x = debut_ligne_clic.x() + (k + 1) * self.taille_grid * sens_x
+                pos_y = debut_ligne_clic.y() + (k + 1) * self.taille_grid * sens_y
                 points_clic.append(QPointF(pos_x, pos_y))
 
             return points_clic
@@ -615,9 +615,9 @@ class Circuit(QGraphicsScene):
         def mettre_fil_mat(ligne_clic: QGraphicsLineItem, fil_clic: Fil):
             debut_ligne_clic = ligne_clic.line().p1()
             fin_ligne_clic = ligne_clic.line().p2()
-            points_clic = get_points_ligne(debut_ligne, fin_ligne)
+            points_clic = get_points_ligne(debut_ligne_clic, fin_ligne_clic)
 
-            i_fin, j_fin = self.pos_to_mat(points[-1].x(), points[-1].y())
+            i_fin, j_fin = self.pos_to_mat(points_clic[-1].x(), points_clic[-1].y())
             self.agrandir_matrice(i_fin, j_fin)
 
             for point_clic in points_clic:
@@ -1290,7 +1290,7 @@ class Circuit(QGraphicsScene):
             else:
                 composante.double_clique_gauche(self.taille_grid)
 
-    def tourner_image_composante(self, position: QPointF):
+    def tourner_image_composante(self, position: QPointF, rollback: bool):
         x, y = self.pos_selon_grid(position)
         collision = self.verifier_collision(QPointF(x, y))
 
@@ -1301,8 +1301,10 @@ class Circuit(QGraphicsScene):
             collision.points_fil.reverse()
             collision.points_cote.reverse()
             collision.fil.calculs()
-            self.operations.append(3)
-            self.tournes.append(collision)
+
+            if rollback:
+                self.operations.append(3)
+                self.tournes.append(collision)
 
             self.update_courant()
 
@@ -1382,7 +1384,7 @@ class GraphicsView(QGraphicsView):
         elif event.button() == Qt.MouseButton.RightButton:
             if self.scene.selection == "main":
                 position_scene = self.mapToScene(event.position().toPoint())
-                self.scene.tourner_image_composante(position_scene)
+                self.scene.tourner_image_composante(position_scene, True)
 
     def wheelEvent(self, event):
         # Empêche que la molette soit utilisée pour éviter que l'utilisateur sort des limites
