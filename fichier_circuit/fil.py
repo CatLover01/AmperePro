@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from PySide6.QtGui import QColorConstants
+from PySide6.QtGui import QColorConstants, QColor
 
 from sauvegarde import FilDTO
 
@@ -37,8 +37,6 @@ class Fil:
         self.sens_diode = 0
         # Si diode dans chaque sens, voltmetre present
         self.ignorer = False
-
-
 
     @property
     def points(self):
@@ -138,7 +136,7 @@ class Fil:
         # Les lignes deviennent rouges s'il y a court circuit
         pen = self.lignes[0].pen()
         if abs(nouveau_amperage) > 100:
-            pen.setColor(QColorConstants.Red)
+            pen.setColor(QColor(253,153,39))
             for ligne in self.lignes:
                 ligne.setPen(pen)
         else:
@@ -160,6 +158,12 @@ class Fil:
             return -1
         else:
             return 1
+
+    def signaler_effacement(self):
+        pen = self.lignes[0].pen()
+        pen.setColor(QColor(218,44,44))
+        for ligne in self.lignes:
+            ligne.setPen(pen)
 
     # Calcul la tension et la résistance relative dans le fil
     def calculs(self):

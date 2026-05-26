@@ -48,7 +48,8 @@ class Circuit(QGraphicsScene):
         self.couleur_recouvre = None
         self.accepter_modification = True
         self.accepter_positionnement = False
-        self.zones_surbrillance = None
+        self.zones_surbrillance = []
+        self.fils_surbrillance = []
         self.composante_surbrillance = None
         self.grid_par_dessus = []
 
@@ -315,6 +316,14 @@ class Circuit(QGraphicsScene):
         self._zones_surbrillance = zones_surbrillance
 
     @property
+    def fils_surbrillance(self):
+        return self._fils_surbrillance
+
+    @fils_surbrillance.setter
+    def fils_surbrillance(self, fils_surbrillance):
+        self._fils_surbrillance = fils_surbrillance
+
+    @property
     def grid_par_dessus(self):
         return self._grid_par_dessus
 
@@ -365,6 +374,7 @@ class Circuit(QGraphicsScene):
         if dernier == 1:
             dernier_ajout = self.ajouts.pop()
             if isinstance(dernier_ajout, Fil):
+                print(dernier_ajout)
                 dernier_ajout.enlever_fil()
                 self.fils.remove(dernier_ajout)
                 # TODO : mettre à jour la vérification de collisions pour fils après qu'un ait été retiré
@@ -965,8 +975,7 @@ class Circuit(QGraphicsScene):
             self.clic_droit_fil()
 
         if self.image_composante:
-            self.removeItem(self.zones_surbrillance)
-            self.zones_surbrillance = None
+            self.annuler_signalement()
             self.removeItem(self.image_composante)
             self.image_composante = None
 
@@ -1203,49 +1212,66 @@ class Circuit(QGraphicsScene):
     def signaler_effacement(self, position_scene: QPointF):
         x, y = self.pos_selon_grid(position_scene)
         composante = self.verifier_collision(QPointF(x, y))
-        if composante:
-            if isinstance(composante, Composante):
-                # si la composante est déjà surbrillée, rien ne sert de faire ça
-                if composante != self.composante_surbrillance:
-                    print(1231)
-                    if self.zones_surbrillance:
-                        self.removeItem(self.zones_surbrillance)
-                        self.zones_surbrillance = None
 
-                    image = composante.image_item
-                    point_milieu = image.pos()
-                    # si la souris recouvre une composante, on le signale en la mettant en rouge.
-                    coin_sup_gauche_x = point_milieu.x() - self.taille_grid
-                    coin_sup_gauche_y = point_milieu.y() - self.taille_grid
-                    zone_rouge = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
-                                                   self.taille_grid * 2)
-                    zone_rouge.setOpacity(1)
-                    zone_rouge.setZValue(1)
-                    zone_rouge.setBrush(QColor(218, 44, 44))
-                    self.composante_surbrillance = composante
-                    self.zones_surbrillance = zone_rouge
-                    self.addItem(zone_rouge)
-            else:
-                # TODO: raisonnement pour fil
-                pass
+        if isinstance(composante, Composante):
+            # on met la composante sous la souris en rouge
+            self.composante_rouge(composante)
+
+        elif isinstance(composante, Fil):
+            # si on est sur un fil, celui-ci et toute ses composantes deviennent rouge.
+            fil = composante
+            if len(self.fils) != 1:
+                fil.signaler_effacement()
+                self.fils_surbrillance.append(fil)
+                for element in fil.composantes:
+                    self.composante_rouge(element)
 
         else:
-            if self.zones_surbrillance:
-                self.removeItem(self.zones_surbrillance)
-                self.zones_surbrillance = None
-                self.composante_surbrillance = None
+            # si on est sur rien, on s'assure que rien n'est surbrillé
+            # cela se passe également si on est sur un noeud pour éviter la confusion de l'utilisateur et du programme
+            self.annuler_signalement()
 
-    def jeter_element(self, position, rollback):
+    def annuler_signalement(self):
+        if self.zones_surbrillance:
+            for zone in self.zones_surbrillance:
+                self.removeItem(zone)
+            self.zones_surbrillance = []
+            self.composante_surbrillance = None
+        if self.fils_surbrillance:
+            for fil in self.fils_surbrillance:
+                fil.definir_amperage(fil.amperage)
+
+
+    def composante_rouge(self, composante : Composante,):
+            if composante == self.composante_surbrillance:
+                return
+
+            image = composante.image_item
+            point_milieu = image.pos()
+            # si la souris recouvre une composante, on le signale en la mettant en rouge.
+            coin_sup_gauche_x = point_milieu.x() - self.taille_grid
+            coin_sup_gauche_y = point_milieu.y() - self.taille_grid
+            zone_rouge = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
+                                           self.taille_grid * 2)
+            zone_rouge.setOpacity(1)
+            zone_rouge.setZValue(1)
+            zone_rouge.setBrush(QColor(218, 44, 44))
+            self.composante_surbrillance = composante
+            self.zones_surbrillance.append(zone_rouge)
+            self.addItem(zone_rouge)
+
+
+    def jeter_element(self, position : QPointF, rollback : bool):
         x, y = self.pos_selon_grid(position)
         composante = self.verifier_collision(QPointF(x, y))
+
         if isinstance(composante, Composante):
             # ménage visuel composante
             self.removeItem(composante.image_item)
-            self.removeItem(self.zones_surbrillance)
+            self.annuler_signalement()
             self.retirer_elements(composante)
-            self.zones_surbrillance = None
 
-            # TODO: faire en sorte que lamperemetre et voltmetre ont un sens sinon ca marche pas remettre leurs points
+            # les fils redeviennent des fils
             for point_fil in composante.points_fil:
                 i, j = self.pos_to_mat(point_fil.x(), point_fil.y())
                 self.mat_points[i, j] = composante.fil
@@ -1264,6 +1290,16 @@ class Circuit(QGraphicsScene):
             if rollback:
                 self.composantes_jetes.append(composante)
                 self.operations.append(2)
+
+        elif isinstance(composante, Fil):
+            #ménage visuel
+            #self.removeItem(composante)
+            self.annuler_signalement()
+
+            if rollback:
+                self.fils_jetes.append(composante)
+                self.operations.append(2)
+
 
     def deplacer_composante(self, position):
         x, y = self.pos_selon_grid(position)

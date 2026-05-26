@@ -20,9 +20,9 @@ class TypeComposante(Enum):
 
 
 class Composante(ABC):
-    def __init__(self, type: TypeComposante, nom: str, image_toolbar: str, image_circuit: str,
+    def __init__(self, type_composante: TypeComposante, nom: str, image_toolbar: str, image_circuit: str,
                  description: str, tension: float = 0, resistance: float = 0):
-        self._type = type
+        self._type = type_composante
         self._nom = nom
         self._description = description
         self._image_toolbar = image_toolbar
