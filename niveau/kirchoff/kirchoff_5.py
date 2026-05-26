@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QMessageBox, QScrollArea, QGridLayout
 )
 
+
 class NiveauKirchoff5(QWidget):
     def __init__(self, retour_callback, update_niveau):
         super().__init__()
@@ -152,7 +153,6 @@ class NiveauKirchoff5(QWidget):
     @reponse_i3.setter
     def reponse_i3(self, reponse_i3):
         self._reponse_i3 = reponse_i3
-
 
     # ouvrir la documentation
     def ouvrir_aide(self):

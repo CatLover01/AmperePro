@@ -1,7 +1,7 @@
 from PySide6.QtCore import QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox, QSizePolicy
+    QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
 
 from button import RightClickButton, ToolTipButton

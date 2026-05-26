@@ -110,7 +110,6 @@ class Fil:
     def ignorer(self, ignorer):
         self._ignorer = ignorer
 
-
     def to_dto(self, noeud_to_index: dict) -> FilDTO:
         points = [[p.x(), p.y()] for p in self.points]
         composantes = [composante.to_dto() for composante in self.composantes]
@@ -136,7 +135,7 @@ class Fil:
         # Les lignes deviennent rouges s'il y a court circuit
         pen = self.lignes[0].pen()
         if abs(nouveau_amperage) > 100:
-            pen.setColor(QColor(253,153,39))
+            pen.setColor(QColor(253, 153, 39))
             for ligne in self.lignes:
                 ligne.setPen(pen)
         else:
@@ -147,7 +146,6 @@ class Fil:
         for composante in self.composantes:
             if composante.type == TypeComposante.Amperemetre:
                 composante.amperage = nouveau_amperage * self.trouver_sens(composante, self.points)
-
 
     @staticmethod
     def trouver_sens(composante, points):
@@ -161,7 +159,7 @@ class Fil:
 
     def signaler_effacement(self):
         pen = self.lignes[0].pen()
-        pen.setColor(QColor(218,44,44))
+        pen.setColor(QColor(218, 44, 44))
         for ligne in self.lignes:
             ligne.setPen(pen)
 
@@ -206,7 +204,6 @@ class Fil:
         if composante in self.composantes:
             self.composantes.remove(composante)
 
-
     # Ajoute un noeud au fil, ce qui sépare le fil en deux fils distincts
     def ajouter_noeud(self, pos: QPointF, noeud: Noeud):
         index_point = self.points.index(pos)
@@ -248,7 +245,7 @@ class Fil:
                     comp_apres = self.composantes[i + 1:]
                     break
 
-            if comp_avant == []:
+            if not comp_avant:
                 comp_apres = self.composantes.copy()
 
             self.composantes = comp_apres + comp_avant

@@ -53,7 +53,6 @@ class Circuit(QGraphicsScene):
         self.composante_surbrillance = None
         self.grid_par_dessus = []
 
-
         # La distance entre chaque ligne dans le grid
         self.taille_grid = 20
 
@@ -64,7 +63,6 @@ class Circuit(QGraphicsScene):
         largeur_fil_base = 200
         hauteur_fil_base = 140
 
-
         self.graphics_view = GraphicsView(self)
         self.main_window.setCentralWidget(self.graphics_view)
         self.graphics_view.setMinimumSize(self.scene_size)
@@ -74,10 +72,8 @@ class Circuit(QGraphicsScene):
             fil_base, self.mat_points = self.dessiner_circuit_base(largeur_fil_base, hauteur_fil_base)
             self.fils = [fil_base]
 
-            # Note: on guarde le circuit de base mais quand les fils pourront être ajouter sans toucher un autre fil, on pourra enlever la fonction si dessus
-            # self.fils = []
-            # self.noeuds = []
-            # self.mat_points = []
+            # Note: on garde le circuit de base mais quand les fils pourront être ajouter sans toucher un autre fil,
+            # on pourra enlever la fonction si dessus
         else:
             circuit = sauvegarde.get_circuit(id_circuit)
             noeuds: list[Noeud] = []
@@ -346,7 +342,7 @@ class Circuit(QGraphicsScene):
             if nom and ok:
                 self.id = self.sauvegarde.creation_circuit_libre(nom)
             else:
-                # Si l'utilisateur a dismiss(quitter) le dialog pour le nom du circuit, on annuler la création du circuit
+                # Si l'utilisateur a dismiss(quitter) le dialog pour le nom du circuit on annuler la création du circuit
                 return
 
         fils, noeuds = self.serialiser_circuit()
@@ -1082,7 +1078,7 @@ class Circuit(QGraphicsScene):
 
                     fil.definir_amperage(amperes)
 
-    def inserer_composante(self, composante: Composante, rollback : bool):
+    def inserer_composante(self, composante: Composante, rollback: bool):
         if self.image_composante:
             points_fil, points_cote = self.points_composante(self.image_composante.rotation())
             composante.points_fil = points_fil
@@ -1241,27 +1237,25 @@ class Circuit(QGraphicsScene):
             for fil in self.fils_surbrillance:
                 fil.definir_amperage(fil.amperage)
 
+    def composante_rouge(self, composante: Composante):
+        if composante == self.composante_surbrillance:
+            return
 
-    def composante_rouge(self, composante : Composante,):
-            if composante == self.composante_surbrillance:
-                return
+        image = composante.image_item
+        point_milieu = image.pos()
+        # si la souris recouvre une composante, on le signale en la mettant en rouge.
+        coin_sup_gauche_x = point_milieu.x() - self.taille_grid
+        coin_sup_gauche_y = point_milieu.y() - self.taille_grid
+        zone_rouge = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
+                                       self.taille_grid * 2)
+        zone_rouge.setOpacity(1)
+        zone_rouge.setZValue(1)
+        zone_rouge.setBrush(QColor(218, 44, 44))
+        self.composante_surbrillance = composante
+        self.zones_surbrillance.append(zone_rouge)
+        self.addItem(zone_rouge)
 
-            image = composante.image_item
-            point_milieu = image.pos()
-            # si la souris recouvre une composante, on le signale en la mettant en rouge.
-            coin_sup_gauche_x = point_milieu.x() - self.taille_grid
-            coin_sup_gauche_y = point_milieu.y() - self.taille_grid
-            zone_rouge = QGraphicsRectItem(coin_sup_gauche_x, coin_sup_gauche_y, self.taille_grid * 2,
-                                           self.taille_grid * 2)
-            zone_rouge.setOpacity(1)
-            zone_rouge.setZValue(1)
-            zone_rouge.setBrush(QColor(218, 44, 44))
-            self.composante_surbrillance = composante
-            self.zones_surbrillance.append(zone_rouge)
-            self.addItem(zone_rouge)
-
-
-    def jeter_element(self, position : QPointF, rollback : bool):
+    def jeter_element(self, position: QPointF, rollback: bool):
         x, y = self.pos_selon_grid(position)
         composante = self.verifier_collision(QPointF(x, y))
 
@@ -1299,7 +1293,6 @@ class Circuit(QGraphicsScene):
             if rollback:
                 self.fils_jetes.append(composante)
                 self.operations.append(2)
-
 
     def deplacer_composante(self, position):
         x, y = self.pos_selon_grid(position)

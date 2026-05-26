@@ -59,6 +59,7 @@ class ChoixCircuit(QWidget):
         else:
             self.choix = None
 
+
 class NiveauRE1(QWidget):
     def __init__(self, retour_callback, update_niveau):
         super().__init__()

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
 
 
 class NiveauRE2(QWidget):
-    def __init__(self, retour_callback=None, update_niveau = False):
+    def __init__(self, retour_callback=None, update_niveau=False):
         super().__init__()
 
         self.retour_callback = retour_callback

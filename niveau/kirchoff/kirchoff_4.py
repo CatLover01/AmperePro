@@ -193,6 +193,8 @@ class NiveauKirchoff4(QWidget):
 
             groupe.setExclusive(True)
 
+            self.questions_widgets.append(groupe)
+
             ligne_question.addWidget(btn_a)
             ligne_question.addWidget(btn_b)
             ligne_question.addWidget(btn_c)
@@ -253,7 +255,6 @@ class NiveauKirchoff4(QWidget):
             champ_reponse1 = QLineEdit()
             ligne_question.addWidget(champ_reponse1)
 
-        self.questions_widgets.append(groupe)
         self.questions_widgets.append(bonne_reponse)
 
         bloc.addLayout(ligne_question)

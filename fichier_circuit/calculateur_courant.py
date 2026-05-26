@@ -174,7 +174,7 @@ def calculer_circuit(fils, noeuds, fils_voltmetre):
                 equation[0, j] = 1 if fil_voisin.noeuds[1] == noeud else -1
 
         mat_a = np.append(mat_a, equation, axis=0)
-        mat_b = np.append(mat_b, [[0]], axis=0)
+        mat_b = np.append(mat_b, np.array([[0]]), axis=0)
 
     x = np.linalg.lstsq(mat_a, mat_b, rcond=None)[0]
     recalculer = False
