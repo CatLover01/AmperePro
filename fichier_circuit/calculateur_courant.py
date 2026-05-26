@@ -130,7 +130,7 @@ def get_voltage(fil_voltage, fils_courant):
         diff_potentiel -= sens * fil.resistance * fil.amperage
         diff_potentiel += sens * fil.tension
 
-    return diff_potentiel
+    return diff_potentiel * fil_voltage.trouver_sens(fil_voltage.composantes[0], fil_voltage.points)
 
 
 def calculer_circuit(fils, noeuds, fils_voltmetre):

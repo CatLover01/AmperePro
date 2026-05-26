@@ -18,7 +18,7 @@ from composantes import Composante, TypeComposante
 
 class Fil:
     def __init__(self, circuit: Circuit, points: list[QPointF], lignes: list[QGraphicsLineItem], composantes=None,
-                 tension: float = 0, resistance: float = 0):
+                 tension: float = 0, resistance: float = 0.00001):
         if composantes is None:
             composantes = []
 
@@ -147,10 +147,19 @@ class Fil:
                 ligne.setPen(pen)
 
         for composante in self.composantes:
-            # TODO Pouvoir changer le sens des voltmetres et amperemetres et que ca paraisse
-            # enlever ensuite le abs
             if composante.type == TypeComposante.Amperemetre:
-                composante.amperage = abs(nouveau_amperage)
+                composante.amperage = nouveau_amperage * self.trouver_sens(composante, self.points)
+
+
+    @staticmethod
+    def trouver_sens(composante, points):
+        index_point_depart = points.index(composante.points_fil[0])
+        index_point_fin = points.index(composante.points_fil[-1])
+
+        if index_point_depart > index_point_fin:
+            return -1
+        else:
+            return 1
 
     # Calcul la tension et la résistance relative dans le fil
     def calculs(self):
@@ -159,17 +168,7 @@ class Fil:
         self.sens_diode = 0
         self.ignorer = False
         for composante in self.composantes:
-            # Enlever plus tard ils vont avoir un sens comme les autres composantes
-            if not composante.type == TypeComposante.Amperemetre and not composante.type == TypeComposante.Voltmetre:
-
-                index_point_depart = self.points.index(composante.points_fil[0])
-                index_point_fin = self.points.index(composante.points_fil[-1])
-
-                sens_comp = 1
-                if index_point_depart > index_point_fin:
-                    sens_comp = -1
-            else:
-                sens_comp = 1
+            sens_comp = self.trouver_sens(composante, self.points)
 
             if composante.type == TypeComposante.Voltmetre:
                 self.ignorer = True
@@ -180,7 +179,6 @@ class Fil:
                 self.sens_diode = sens_comp
 
             elif composante.type == TypeComposante.Interrupteur and composante.ouvert:
-                print(3)
                 self.ignorer = True
 
             self.resistance += composante.resistance

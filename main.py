@@ -1,7 +1,7 @@
 from PySide6.QtCore import QFile, QTextStream
 from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
-    QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
+    QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox, QSizePolicy
 from enum import Enum
 
 from button import RightClickButton, ToolTipButton
@@ -299,7 +299,8 @@ class AmperePro(QMainWindow):
             id_circuit = circuit.id
 
         self.nouveau_circuit = Circuit(self, self.sauvegarde, id_circuit)
-        self.setMinimumSize(540,500)
+        self.setMinimumSize(540, 500)
+
         self.nouveau_circuit.creer_toolbar()
         self.setCentralWidget(self.nouveau_circuit.graphics_view)
         self.setMenuBar(self.nouveau_circuit.barre_menu)

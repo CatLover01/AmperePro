@@ -86,7 +86,6 @@ class Composante(ABC):
         self.points_fil = []
         self.points_cote = []
 
-
     def to_dto(self) -> ComposanteDTO:
         return ComposanteDTO(self.type.value, self.tension, self.resistance)
 
@@ -273,6 +272,7 @@ class Voltmetre(Composante):
                          "très grande pour ne pas affecter le circuit."
                          )
 
+        self.item_comp = None
         self.diff_potentiel = 0
 
     @override
@@ -344,6 +344,7 @@ class Amperemetre(Composante):
                          "- Idéalement, la résistance dans l'ampèremètre est très faible."
                          )
 
+        self.item_signes = None
         self.amperage = 0
 
     @override
@@ -362,7 +363,7 @@ class Amperemetre(Composante):
         fond = QLabel(parent=fenetre)
         fond.setStyleSheet("QLabel { background-color : #9e9a75; }")
         fond.setGeometry(4, 0, 232, 110)
-        if self.amperage > 1000:
+        if abs(self.amperage) > 1000:
             texte = QLabel("COURT CIRCUIT", parent=fenetre)
             texte.setStyleSheet("font-size: 25pt; color: #EE0000")
             texte.setGeometry(4, 0, 232, 110)
@@ -407,6 +408,7 @@ class Amperemetre(Composante):
 
 # ajoute le prefixe m(milli), mu(lettre grecque) ou n(nano)
 def prefixe_valeur(valeur):
+    valeur = abs(valeur)
     if valeur > 0.1:
         return "", 1
     elif valeur > 0.0001:

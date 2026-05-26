@@ -2,7 +2,7 @@ from PySide6.QtCore import QSize, QPointF, QLineF, QPoint
 from PySide6.QtGui import QColorConstants, QPen, Qt, QAction, QIcon, QPixmap, QColor
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView, QPushButton, QDialog,
                                QHBoxLayout, QToolBar, QGraphicsPixmapItem, QGraphicsRectItem, QInputDialog,
-                               QGraphicsLineItem)
+                               QGraphicsLineItem, QGraphicsItemGroup)
 import math
 import numpy as np
 
@@ -121,9 +121,6 @@ class Circuit(QGraphicsScene):
         quitter_action.setShortcut("Ctrl+Q")
         quitter_action.triggered.connect(self.main_window.close)
         self.menu_naviguer.addAction(quitter_action)
-
-        # Fils ayant un voltmetre
-        self.fils_voltmetre = []
 
     @property
     def taille_grid(self):
@@ -332,14 +329,6 @@ class Circuit(QGraphicsScene):
     @allouer_fermeture.setter
     def allouer_fermeture(self, allouer_fermeture):
         self._allouer_fermeture = allouer_fermeture
-
-    @property
-    def fils_voltmetre(self):
-        return self._fils_voltmetre
-
-    @fils_voltmetre.setter
-    def fils_voltmetre(self, fil_avant_voltmetre):
-        self._fils_voltmetre = fil_avant_voltmetre
 
     def sauvegarder_triggered(self):
         # Si l'id est None, on demande un nom pour le circuit + on le créé
@@ -1004,21 +993,47 @@ class Circuit(QGraphicsScene):
                 self.removeItem(self.image_composante)
                 self.image_composante = None
 
-            pixmap = QPixmap(self.composante_selectionnee.image_circuit)
-            pixmap_scalise = pixmap.scaled(self.taille_grid * 2, self.taille_grid * 2)
-            self.image_composante = QGraphicsPixmapItem(pixmap_scalise)
-            self.image_composante.setPos(self.taille_grid, self.taille_grid)
-            self.image_composante.setOffset(-self.taille_grid, -self.taille_grid)
+            types_signes = [TypeComposante.Amperemetre, TypeComposante.Voltmetre]
+            if self.composante_selectionnee.type in types_signes:
+                self.image_composante = QGraphicsItemGroup()
+
+                pixmap_signes = QPixmap("images/circuit/signes.png")
+                signes_scalise = pixmap_signes.scaled(self.taille_grid * 2, self.taille_grid * 2)
+                item_signes = QGraphicsPixmapItem(signes_scalise)
+                item_signes.setOffset(-self.taille_grid, -self.taille_grid)
+                self.composante_selectionnee.image_item = item_signes
+                self.image_composante.addToGroup(item_signes)
+
+                image_comp = QPixmap(self.composante_selectionnee.image_circuit)
+                image_comp_scalise = image_comp.scaled(self.taille_grid * 2, self.taille_grid * 2)
+                item_img_comp = QGraphicsPixmapItem(image_comp_scalise)
+                item_img_comp.setOffset(-self.taille_grid, -self.taille_grid)
+                self.composante_selectionnee.item_comp = item_img_comp
+                self.image_composante.addToGroup(item_img_comp)
+
+                self.image_composante.setPos(self.taille_grid, self.taille_grid)
+                perimetre = item_signes.boundingRect()
+            else:
+                pixmap = QPixmap(self.composante_selectionnee.image_circuit)
+                pixmap_scalise = pixmap.scaled(self.taille_grid * 2, self.taille_grid * 2)
+                self.image_composante = QGraphicsPixmapItem(pixmap_scalise)
+                self.accepter_modification = True
+
+                self.image_composante.setPos(self.taille_grid, self.taille_grid)
+                self.image_composante.setOffset(-self.taille_grid, -self.taille_grid)
+                self.composante_selectionnee.image_item = self.image_composante
+
+                perimetre = self.image_composante.boundingRect()
+
             self.image_composante.setZValue(3)
             self.addItem(self.image_composante)
-            self.accepter_modification = True
 
-            perimetre = self.image_composante.boundingRect()
             self.couleur_recouvre = QGraphicsRectItem(perimetre, self.image_composante)
             self.couleur_recouvre.setOpacity(0.3)
             self.couleur_recouvre.setZValue(1)
             self.couleur_recouvre.setBrush(QColor(218, 44, 44))
             self.addItem(self.couleur_recouvre)
+            self.accepter_modification = True
 
     def fil_click(self):
         self.selection = "fil"
@@ -1030,7 +1045,12 @@ class Circuit(QGraphicsScene):
     # Refait les calculs du courant
     def update_courant(self):
         if len(self.fils) > 1:
-            calculer_circuit(self.fils, self.noeuds, self.fils_voltmetre)
+            fils_voltmetre = []
+            for fil in self.fils:
+                if len(fil.composantes) == 1 and fil.composantes[0].type == TypeComposante.Voltmetre:
+                    fils_voltmetre.append(fil)
+
+            calculer_circuit(self.fils, self.noeuds, fils_voltmetre)
 
         else:
             fil = self.fils[0]
@@ -1055,8 +1075,6 @@ class Circuit(QGraphicsScene):
 
     def inserer_composante(self, composante: Composante, rollback : bool):
         if self.image_composante:
-            composante.image_item = self.image_composante
-            self.addItem(composante.image_item)
             points_fil, points_cote = self.points_composante(self.image_composante.rotation())
             composante.points_fil = points_fil
             composante.points_cote = points_cote
@@ -1107,10 +1125,6 @@ class Circuit(QGraphicsScene):
 
             fil.ajouter_composante(composante)
             composante.fil = fil
-            if composante.type == TypeComposante.Voltmetre and len(fil.composantes) == 1:
-                self.fils_voltmetre.append(fil)
-            elif fil in self.fils_voltmetre:
-                self.fils_voltmetre.remove(fil)
 
             # on reset les variables liées à l'ajout de composantes
             self.accepter_modification = False
@@ -1129,9 +1143,12 @@ class Circuit(QGraphicsScene):
             self.update_courant()
 
     def clic_droit_composante(self):
-        liste_refusee = [TypeComposante.Amperemetre, TypeComposante.Voltmetre]
-        if self.composante_selectionnee.type not in liste_refusee:
-            self.image_composante.setRotation(self.image_composante.rotation() + 90)
+        rotation_initiale = self.image_composante.rotation()
+        self.image_composante.setRotation(rotation_initiale + 90)
+
+        types_signes = [TypeComposante.Amperemetre, TypeComposante.Voltmetre]
+        if self.composante_selectionnee.type in types_signes:
+            self.composante_selectionnee.item_comp.setRotation(-rotation_initiale - 90)
 
     def points_composante(self, rotation: float):
         x_mult, y_mult = (round(-math.cos(math.radians(rotation))),
@@ -1176,14 +1193,6 @@ class Circuit(QGraphicsScene):
 
         self.couleur_image()
 
-        # Essaye dans l'autre sens si cest un amperemetre ou voltmetre et que ca fonctionne pas deja
-        if ((self.composante_selectionnee.type == TypeComposante.Amperemetre or
-             self.composante_selectionnee.type == TypeComposante.Voltmetre)
-                and self.image_composante.rotation() == 0 and self.accepter_positionnement is False):
-            self.image_composante.setRotation(90)
-            self.valider_position()
-            self.image_composante.setRotation(0)
-
     def couleur_image(self):
         # vert si on peut placer la composante, rouge sinon
         if not self.accepter_positionnement:
@@ -1198,7 +1207,7 @@ class Circuit(QGraphicsScene):
             if isinstance(composante, Composante):
                 # si la composante est déjà surbrillée, rien ne sert de faire ça
                 if composante != self.composante_surbrillance:
-
+                    print(1231)
                     if self.zones_surbrillance:
                         self.removeItem(self.zones_surbrillance)
                         self.zones_surbrillance = None
@@ -1247,6 +1256,7 @@ class Circuit(QGraphicsScene):
 
             composante.fil.composantes.remove(composante)
             composante.fil.calculs()
+
             self.update_courant()
             composante.nettoyer()
 
@@ -1294,8 +1304,7 @@ class Circuit(QGraphicsScene):
         x, y = self.pos_selon_grid(position)
         collision = self.verifier_collision(QPointF(x, y))
 
-        if isinstance(collision,
-                      Composante) and collision.type != TypeComposante.Amperemetre and collision.type != TypeComposante.Voltmetre:
+        if isinstance(collision, Composante):
             collision.tourner()
 
             collision.points_fil.reverse()
