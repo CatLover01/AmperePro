@@ -304,18 +304,17 @@ class Fil:
     def enlever_fil(self):
         for point in self.points:
             i, j = self._circuit.pos_to_mat(point.x(), point.y())
-            self._circuit.mat_points[i, j] = None
+            if self._circuit.mat_points[i, j] == self:
+                self._circuit.mat_points[i, j] = None
 
         self._circuit.fils.remove(self)
         self._circuit.rapetisser_matrice()
 
         self.noeuds[0].enlever_info_fil(self)
-        if len(self.noeuds[0].info_voisins) <= 2:
-            self.noeuds[0].enlever_noeud(self._circuit)
+        self.noeuds[0].enlever_noeud(self._circuit)
 
         self.noeuds[1].enlever_info_fil(self)
-        if len(self.noeuds[1].info_voisins) <= 2:
-            self.noeuds[1].enlever_noeud(self._circuit)
+        self.noeuds[1].enlever_noeud(self._circuit)
 
         for ligne in self.lignes:
             self._circuit.removeItem(ligne)
