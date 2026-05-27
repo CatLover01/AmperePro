@@ -28,6 +28,7 @@ class NiveauKirchoff5(QWidget):
 
         self.setLayout(layout_exterieur)
 
+        # interface principale du niveau
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
@@ -57,6 +58,7 @@ class NiveauKirchoff5(QWidget):
         image_circuit.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(image_circuit)
 
+        # question 1
         layout_reponse = QGridLayout()
 
         self.reponse_i1 = QLineEdit()
@@ -173,6 +175,7 @@ class NiveauKirchoff5(QWidget):
         self.fenetre_doc.show()
         self.fenetre_doc.raise_()
 
+    # validation des reponses
     def valider_reponses(self):
         bonne_reponses = 0
         total = 3
@@ -185,6 +188,7 @@ class NiveauKirchoff5(QWidget):
         else:
             bonne_reponses += 0
 
+        #affichage du totales de bonne rep
         if bonne_reponses == total:
             QMessageBox.information(self, "Résultat", "Bravo ! Toutes les réponses sont bonnes.")
         else:

@@ -40,6 +40,7 @@ class NiveauKirchoff1(QWidget):
         main_layout.setContentsMargins(30, 20, 30, 20)
         main_layout.setSpacing(20)
 
+        # affichage principale
         titre = QLabel("kirchoff - niveau 1")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police_titre = QFont()
@@ -60,6 +61,8 @@ class NiveauKirchoff1(QWidget):
         main_layout.addWidget(consigne)
 
         main_layout.addSpacing(10)
+
+        #question 1
         lettre = ["A", "B", "C", "D", "E", "F"]
         q1_layout = QVBoxLayout()
 
@@ -78,6 +81,7 @@ class NiveauKirchoff1(QWidget):
             self.reponses.append((choix_de_reponse, lettre[i] in bonne_reponse_q1))
         main_layout.addLayout(q1_layout)
 
+        # question 2
         q2_layout = QVBoxLayout()
 
         circuit2 = QLabel(pixmap=QPixmap("images/niveau/kirchoff/1/circuit_2.png"))
@@ -95,6 +99,7 @@ class NiveauKirchoff1(QWidget):
             self.reponses.append((choix_de_reponse, lettre[i] in bonne_reponse_q2))
         main_layout.addLayout(q2_layout)
 
+        # bouton valider
         main_layout.addSpacing(20)
 
         boutons_layout = QHBoxLayout()
@@ -166,6 +171,7 @@ class NiveauKirchoff1(QWidget):
         self.fenetre_doc.show()
         self.fenetre_doc.raise_()
 
+    #validation des reponses
     def valider_reponses(self):
         bonne_reponses = 0
         total = len(self.reponses)
