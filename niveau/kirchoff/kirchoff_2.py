@@ -30,6 +30,7 @@ class NiveauKirchoff2(QWidget):
         top_layout.addWidget(aide)
         layout_exterieur.addLayout(top_layout)
 
+        # composante des question
         self.questions = [
             {
                 "image": DOSSIER_IMAGES + "circuit_1.png",
@@ -66,6 +67,7 @@ class NiveauKirchoff2(QWidget):
 
         ]
 
+        # interface du niveau
         main_layout = QVBoxLayout()
 
         titre = QLabel("Loi de Kirchoff - niveau 2 ")
@@ -79,6 +81,7 @@ class NiveauKirchoff2(QWidget):
         consigne.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(consigne)
 
+        # création/affichage des questions
         for question in self.questions:
             self.ajouter_question(
                 main_layout,
@@ -153,6 +156,7 @@ class NiveauKirchoff2(QWidget):
     def questions(self, questions):
         self._questions = questions
 
+    #création des questions
     def ajouter_question(self, main_layout, image_path, texte_question, type_question, bonne_reponse):
         bloc = QHBoxLayout()
         bloc.setSpacing(20)
@@ -222,6 +226,7 @@ class NiveauKirchoff2(QWidget):
         main_layout.addLayout(bloc)
 
         # ouvrir la documentation
+
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt
@@ -240,6 +245,7 @@ class NiveauKirchoff2(QWidget):
         self.fenetre_doc.show()
         self.fenetre_doc.raise_()
 
+    #validation des reponses
     def valider(self):
         bonne_reponses = 0
 
@@ -248,6 +254,7 @@ class NiveauKirchoff2(QWidget):
             if btn and btn.text() == bonne_rep:
                 bonne_reponses += 1
 
+        #affichage des bonnes réponses
         self.update_niveau(Sujet.Kirchoff, 2, bonne_reponses)
         QMessageBox.information(
             self,
