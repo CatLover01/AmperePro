@@ -277,10 +277,16 @@ class Fil:
                         and not isinstance(self._circuit.mat_points[i, j], Noeud)):
                     self._circuit.mat_points[i, j] = nouveau_fil
 
-            self.noeuds[0].info_voisins.remove([self, self.noeuds[1]])
+            try:
+                self.noeuds[0].info_voisins.remove([self, self.noeuds[1]])
+            except ValueError:
+                pass
             self.noeuds[0].ajouter_info(self, noeud)
 
-            self.noeuds[1].info_voisins.remove([self, self.noeuds[0]])
+            try:
+                self.noeuds[1].info_voisins.remove([self, self.noeuds[0]])
+            except ValueError:
+                pass
             self.noeuds[1].ajouter_info(nouveau_fil, noeud)
 
             noeud.ajouter_info(self, self.noeuds[0])
@@ -300,6 +306,7 @@ class Fil:
             i, j = self._circuit.pos_to_mat(point.x(), point.y())
             self._circuit.mat_points[i, j] = None
 
+        self._circuit.fils.remove(self)
         self._circuit.rapetisser_matrice()
 
         self.noeuds[0].enlever_info_fil(self)
@@ -310,8 +317,5 @@ class Fil:
         if len(self.noeuds[1].info_voisins) <= 2:
             self.noeuds[1].enlever_noeud(self._circuit)
 
-        for composante in self.composantes:
-            self._circuit.removeItem(composante.image_item)
-            self._circuit.retirer_elements(composante)
         for ligne in self.lignes:
             self._circuit.removeItem(ligne)

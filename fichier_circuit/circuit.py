@@ -695,7 +695,6 @@ class Circuit(QGraphicsScene):
             self.operations.append(1)
             self.rollback_possible()
 
-            self.main_click()
             self.update_courant()
 
         else:
@@ -713,10 +712,6 @@ class Circuit(QGraphicsScene):
                 self.lignes.append(ligne)
                 self.dernier_point = QPointF(fin_ligne.x(), fin_ligne.y())
                 self.continuer_dessin(pos)
-
-    def fil_accepte(self, position: QPointF):
-        # TODO: valider que l'on peut mettre un fil (pas de composantes, pas collé à un autre fil
-        pass
 
     def clic_droit_fil(self):
         # Annule le fil entrain d'être dessiné et enlève ses références dans la matrice points
@@ -776,7 +771,7 @@ class Circuit(QGraphicsScene):
         for i in reversed(range(len_i)):
             ligne_vide = True
             for j in range(len_j):
-                if isinstance(self.mat_points[i, j], Fil) or isinstance(self.mat_points[i, j], Noeud):
+                if self.mat_points[i, j] is not None:
                     ligne_vide = False
                     break
             if ligne_vide:
@@ -788,7 +783,7 @@ class Circuit(QGraphicsScene):
         for i in range(len_i):
             ligne_vide = True
             for j in range(len_j):
-                if isinstance(self.mat_points[0, j], Fil) or isinstance(self.mat_points[0, j], Noeud):
+                if self.mat_points[i, j] is not None:
                     ligne_vide = False
                     break
             if ligne_vide:
@@ -813,7 +808,7 @@ class Circuit(QGraphicsScene):
         for j in range(len_j):
             colonne_vide = True
             for i in range(len_i):
-                if isinstance(self.mat_points[i, 0], Fil) or isinstance(self.mat_points[i, 0], Noeud):
+                if self.mat_points[i, j] is not None:
                     colonne_vide = False
                     break
             if colonne_vide:
@@ -872,10 +867,11 @@ class Circuit(QGraphicsScene):
                             except IndexError:
                                 touche = 0
 
-                        if isinstance(touche, Fil) or isinstance(touche, Noeud):
+                        if touche != 0 and touche is not None:
                             x_avant = ligne_p2_x - self.taille_grid * sens_x
                             y_avant = ligne_p2_y - self.taille_grid * sens_y
-                            if touche == self.nouveau_fil or QPointF(x_avant, y_avant) == self.points_avant_pivot[0]:
+                            if (touche == self.nouveau_fil or QPointF(x_avant, y_avant) == self.points_avant_pivot[0]
+                                    or isinstance(touche, Composante)):
                                 ligne_p2_x = x_avant
                                 ligne_p2_y = y_avant
                             else:
@@ -1299,6 +1295,8 @@ class Circuit(QGraphicsScene):
             composante.enlever_fil()
             self.annuler_signalement()
 
+            self.update_courant()
+
             if rollback:
                 self.composantes_jetes.append(composante)
                 self.operations.append(2)
@@ -1382,7 +1380,7 @@ class GraphicsView(QGraphicsView):
             elif self.scene.selection == "composante" and self.scene.accepter_positionnement:
                 self.scene.inserer_composante(self.scene.composante_selectionnee, True)
 
-            elif self.scene.selection == "poubelle" and self.scene.zones_surbrillance:
+            elif self.scene.selection == "poubelle" and (self.scene.zones_surbrillance or self.scene.fils_surbrillance):
                 self.scene.jeter_element(position_scene, True)
 
         if event.button() == Qt.MouseButton.RightButton:

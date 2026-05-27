@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from fichier_circuit.circuit import Circuit
     from fichier_circuit.fil import Fil
 
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QPointF, QLineF
 
 
 class Noeud:
@@ -57,13 +57,14 @@ class Noeud:
     # Rajoute un fil lié et l'autre noeud qui touche au fil
     def ajouter_info(self, fil: Fil, noeud_voisin: Noeud):
         nouveau_voisin = [fil, noeud_voisin]
-        self._info_voisins.append(nouveau_voisin)
+        if nouveau_voisin not in self._info_voisins:
+            self._info_voisins.append(nouveau_voisin)
 
     # Enlève les informations relatives à un fil
     def enlever_info_fil(self, fil: Fil):
-        for k in range(len(self._info_voisins)):
-            if self._info_voisins[k][0] == fil:
-                del self._info_voisins[k]
+        for info in self._info_voisins:
+            if info[0] == fil:
+                self._info_voisins.remove(info)
                 break
 
     # Retire le noeud et merge les fils qui étaient séparés par ce noeud
@@ -71,17 +72,17 @@ class Noeud:
         # le premier fil doit finir par self sinon switch
         # le dernier fil doit commencer par self sinon switch
 
-        # TODO Ça marche pas TABARNAK
-        if len(self._info_voisins) == 1:
-            i, j = circuit.pos_to_mat(self._pos.x(), self._pos.y())
-            circuit.mat_points[i, j] = self._info_voisins[0][0]
-            circuit.noeuds.remove(self)
-            circuit.visualiser_matrice()
-
-        else:
+        if len(self._info_voisins) == 2:
             fil_depart = self._info_voisins[0][0]
+
             if fil_depart.noeuds[0] == self:
                 fil_depart.lignes.reverse()
+                # On doit aussi reverse les points des lignes
+                for ligne in fil_depart.lignes:
+                    p1 = ligne.line().p1()
+                    p2 = ligne.line().p2()
+                    ligne.setLine(QLineF(ligne.line().p2(), ligne.line().p1()))
+
                 fil_depart.noeuds.reverse()
                 fil_depart.composantes.reverse()
                 fil_depart.points.reverse()
@@ -89,29 +90,46 @@ class Noeud:
             fil_fin = self._info_voisins[1][0]
             if fil_fin.noeuds[1] == self:
                 fil_fin.lignes.reverse()
+                # On doit aussi reverse les points des lignes
+                for ligne in fil_fin.lignes:
+                    ligne.setLine(QLineF(ligne.line().p2(), ligne.line().p1()))
+
                 fil_fin.noeuds.reverse()
                 fil_fin.composantes.reverse()
                 fil_fin.points.reverse()
 
             # fil_depart va devenir le merge des deux fils
             fil_depart.lignes += fil_fin.lignes
-            fil_depart.noeuds[1] = fil_fin.noeuds[1]
-            fil_depart.composantes += fil_fin.composantes
-
-            fil_fin.points.append(self._pos)
             fil_depart.points += fil_fin.points
+            fil_depart.composantes += fil_fin.composantes
+            fil_depart.noeuds = [fil_depart.noeuds[0], fil_fin.noeuds[1]]
 
+            fil_depart.noeuds[0].enlever_info_fil(fil_fin)
             fil_depart.noeuds[0].enlever_info_fil(fil_depart)
             fil_depart.noeuds[0].ajouter_info(fil_depart, fil_depart.noeuds[1])
-            fil_depart.noeuds[1].enlever_info_fil(fil_fin)
-            fil_depart.noeuds[1].ajouter_info(fil_depart, fil_depart.noeuds[0])
 
-            circuit.fils.remove(fil_fin)
+            fil_depart.noeuds[1].enlever_info_fil(fil_fin)
+            fil_depart.noeuds[1].enlever_info_fil(fil_depart)
+            fil_depart.noeuds[1].ajouter_info(fil_depart, fil_depart.noeuds[0])
 
             for point in fil_fin.points:
                 i, j = circuit.pos_to_mat(point.x(), point.y())
-                circuit.mat_points[i, j] = fil_depart
+                touche = circuit.mat_points[i, j]
+                if touche == fil_fin or touche == self:
+                    circuit.mat_points[i, j] = fil_depart
 
             circuit.noeuds.remove(self)
+            circuit.fils.remove(fil_fin)
 
-            circuit.visualiser_matrice()
+            fil_depart.calculs()
+
+        elif len(self._info_voisins) == 1:
+            fil_restant = self._info_voisins[0][0]
+
+            fil_restant.noeuds = None
+
+            i, j = circuit.pos_to_mat(self._pos.x(), self._pos.y())
+            circuit.mat_points[i, j] = self._info_voisins[0][0]
+            self._info_voisins[0][0].points.append(self._pos)
+
+            print_matrice(circuit.mat_points, fil_restant.points, circuit)
