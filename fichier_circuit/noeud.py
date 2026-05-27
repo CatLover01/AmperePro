@@ -79,8 +79,6 @@ class Noeud:
                 fil_depart.lignes.reverse()
                 # On doit aussi reverse les points des lignes
                 for ligne in fil_depart.lignes:
-                    p1 = ligne.line().p1()
-                    p2 = ligne.line().p2()
                     ligne.setLine(QLineF(ligne.line().p2(), ligne.line().p1()))
 
                 fil_depart.noeuds.reverse()
@@ -112,14 +110,11 @@ class Noeud:
             fil_depart.noeuds[1].enlever_info_fil(fil_depart)
             fil_depart.noeuds[1].ajouter_info(fil_depart, fil_depart.noeuds[0])
 
-            if self.pos not in fil_fin.points:
-                fil_fin.points.append(self.pos)
             for point in fil_fin.points:
                 i, j = circuit.pos_to_mat(point.x(), point.y())
                 touche = circuit.mat_points[i, j]
                 if touche == fil_fin or touche == self:
                     circuit.mat_points[i, j] = fil_depart
-
 
             circuit.noeuds.remove(self)
             circuit.fils.remove(fil_fin)

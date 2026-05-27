@@ -13,7 +13,6 @@ class NiveauKirchoff4(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.questions_widgets = []
-        self.fenetre_doc = None
 
         # affichage bouton aide
         layout_exterieur = QVBoxLayout()
@@ -25,7 +24,7 @@ class NiveauKirchoff4(QWidget):
 
         top_layout.addWidget(aide)
         layout_exterieur.addLayout(top_layout)
-
+        self.setLayout(layout_exterieur)
         self.questions = [
             {
                 "question": "Coche un noeud valide",
@@ -63,6 +62,7 @@ class NiveauKirchoff4(QWidget):
 
         main_layout = QVBoxLayout()
 
+        #interface principale du niveau
         titre = QLabel("Loi de Kirchoff - niveau 4 ")
         titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         police = QFont()
@@ -78,16 +78,16 @@ class NiveauKirchoff4(QWidget):
         image_circuit.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         main_layout.addWidget(image_circuit)
 
+        # création des différentes questions
         for question in self.questions:
             self.ajouter_question(
                 main_layout,
-                "image/niveau/kirchoff/4/circuit_1.png",
+                "images/niveau/kirchoff/4/circuit_1.png",
                 question["question"],
                 question["type"],
                 question["reponse"],
             )
-        layout_exterieur = QVBoxLayout()
-        self.setLayout(layout_exterieur)
+
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -153,6 +153,7 @@ class NiveauKirchoff4(QWidget):
     def questions(self, questions):
         self._questions = questions
 
+    #ajouter les bon widget/choix de reponse selon self.question
     def ajouter_question(self, main_layout, image_path, texte_question, type_question, bonne_reponse):
         bloc = QHBoxLayout()
         bloc.setSpacing(20)
@@ -166,11 +167,9 @@ class NiveauKirchoff4(QWidget):
             )
         else:
             image_label.setText("Image introuvable : " + image_path)
-
             image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         ligne_question = QVBoxLayout()
-
         label_question = QLabel(texte_question)
 
         label_question.setWordWrap(True)
@@ -192,8 +191,6 @@ class NiveauKirchoff4(QWidget):
             groupe.addButton(btn_c)
 
             groupe.setExclusive(True)
-
-            self.questions_widgets.append(groupe)
 
             ligne_question.addWidget(btn_a)
             ligne_question.addWidget(btn_b)
@@ -219,7 +216,7 @@ class NiveauKirchoff4(QWidget):
             champ_reponse1 = QLineEdit()
             champ_reponse2 = QLineEdit()
 
-            # champ_reponse1.setInputMask("-9\I\u2081+9\I\u2083=0;_")
+            champ_reponse1.setInputMask(r"-9\I₁+9\I₃=0;_")
             champ_reponse2.setInputMask("XXI\u2083XXI\u2081XXX=0;_")
 
             ligne_question.addWidget(champ_reponse1)
@@ -255,7 +252,18 @@ class NiveauKirchoff4(QWidget):
             champ_reponse1 = QLineEdit()
             ligne_question.addWidget(champ_reponse1)
 
-        self.questions_widgets.append(bonne_reponse)
+        if type_question == "noeud":
+            self.questions_widgets.append((groupe,bonne_reponse,"radio"))
+        elif type_question == "mailles":
+            self.questions_widgets.append(((combo,combo2), bonne_reponse,"combo2"))
+        elif type_question == "equation":
+            self.questions_widgets.append(((champ_reponse1,champ_reponse2),bonne_reponse,"lineedit2"))
+        elif type_question == "isoler":
+            self.questions_widgets.append(((combo1,combo2), bonne_reponse,"combo2"))
+        elif type_question == "isolerNoeud":
+            self.questions_widgets.append((combo, bonne_reponse,"combo"))
+        elif type_question == "reponse":
+            self.questions_widgets.append((champ_reponse1,bonne_reponse,"lineedit"))
 
         bloc.addLayout(ligne_question)
         bloc.addWidget(image_label)
@@ -268,7 +276,6 @@ class NiveauKirchoff4(QWidget):
         main_layout.addLayout(bloc)
 
         # ouvrir la documentation
-
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt
@@ -290,11 +297,41 @@ class NiveauKirchoff4(QWidget):
     def valider(self):
         bonnes = 0
 
-        for groupe, bonne_rep in self.questions_widgets:
-            btn = groupe.checkedButton()
-            if btn and btn.text() == bonne_rep:
-                bonnes += 1
+        # validation des réponses selon le type de widget
+        for widget, bonne_rep, type_widget in self._questions_widgets:
+            if type_widget == "radio":
+                btn = widget.checkedButton()
+                if btn and btn.text() == bonne_rep:
+                    bonnes += 1
 
+            elif type_widget == "combo":
+                if widget.currentText() == bonne_rep:
+                    bonnes += 1
+
+            elif type_widget == "combo2":
+                combo1, combo2 = widget
+                if [combo1.currentText(), combo2.currentText()] == bonne_rep:
+                    bonnes += 1
+
+            elif type_widget == "lineedit":
+                if widget.text().replace(" ", "") == bonne_rep.replace(" ", ""):
+                    bonnes += 1
+
+            elif type_widget == "lineedit2":
+                champ1, champ2 = widget
+                reponses = [
+                    champ1.text().replace(" ", ""),
+                    champ2.text().replace(" ", "")
+                ]
+                bonnes_reponses = [
+                    bonne_rep[0].replace(" ", ""),
+                    bonne_rep[1].replace(" ", "")
+                ]
+
+                if reponses == bonnes_reponses:
+                    bonnes += 1
+
+        # affichage du nombres de bonne reponses
         QMessageBox.information(
             self,
             "Résultat",

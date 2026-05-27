@@ -32,6 +32,7 @@ class NiveauKirchoff3(QWidget):
 
         self.setLayout(layout_exterieur)
 
+        # interface du niveau
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
@@ -57,6 +58,7 @@ class NiveauKirchoff3(QWidget):
         consigne.setWordWrap(True)
         main_layout.addWidget(consigne)
 
+        #composante des questions
         self.questions = [
             {
                 "image": DOSSIER_IMAGES + "circuit_1.png",
@@ -80,11 +82,11 @@ class NiveauKirchoff3(QWidget):
                 "image": DOSSIER_IMAGES + "circuit_4.png",
                 "texte": "À partir du point D trouve l'éqaution d'une maille\n"
                          " sachant que I\u2081 = I\u2082 + I\u2083",
-                "reponse": "",  # à repenser
-            },
-
+                "reponse": "8-6-4+6I2-2I3",
+            }
         ]
 
+        # création/affichage des niveaux
         for question in self.questions:
             self.ajouter_question(
                 main_layout,
@@ -151,6 +153,7 @@ class NiveauKirchoff3(QWidget):
     def questions(self, questions):
         self._questions = questions
 
+    #création des niveaux
     def ajouter_question(self, main_layout, image_path, texte_question, bonne_reponse):
         bloc = QVBoxLayout()
         bloc.setSpacing(12)
@@ -187,6 +190,7 @@ class NiveauKirchoff3(QWidget):
 
         self.reponses.append((champ_reponse, bonne_reponse))
 
+    # laisser seulement un choix de reponse possible
     @staticmethod
     def normaliser_equation(eq):
         eq = eq.replace(" ", "")
@@ -216,6 +220,7 @@ class NiveauKirchoff3(QWidget):
         self.fenetre_doc.show()
         self.fenetre_doc.raise_()
 
+    # correction des reponses et affichage des bonnes rep totales
     def valider_reponses(self):
         bonne_reponses = 0
         total = len(self.reponses)
