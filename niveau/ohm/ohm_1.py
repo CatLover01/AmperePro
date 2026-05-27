@@ -13,6 +13,22 @@ class TrouButton(QPushButton):
         self.setMinimumWidth(220)
         self.clicked.connect(self.ouvrir_menu)
 
+    @property
+    def options(self):
+        return self._options
+
+    @options.setter
+    def options(self, options):
+        self._options = options
+
+    @property
+    def reponse_choisie(self):
+        return self._reponse_choisie
+
+    @reponse_choisie.setter
+    def reponse_choisie(self, reponse_choisie):
+        self._reponse_choisie = reponse_choisie
+
     def ouvrir_menu(self):
         menu = QMenu()
 
@@ -35,6 +51,7 @@ class NiveauOhm1(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.bonnes_reponses = {}
+        self.fenetre_doc = None
 
         layout_exterieur = QVBoxLayout()
         layout_exterieur.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -131,6 +148,38 @@ class NiveauOhm1(QWidget):
 
         main_layout.addLayout(boutons_layout)
 
+    @property
+    def bonnes_reponses(self):
+        return self._bonnes_reponses
+
+    @bonnes_reponses.setter
+    def bonnes_reponses(self, reponses):
+        self._bonnes_reponses = reponses
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
     def creer_section(self, main_layout, lettre, bonne_nom, bonne_unite, bonne_serie, bonne_parallele,
                       options_noms, options_unites, options_series, options_paralleles):
         titre_section = QLabel(lettre + " :")
@@ -160,7 +209,8 @@ class NiveauOhm1(QWidget):
 
         main_layout.addSpacing(10)
 
-    def ajouter_ligne(self, main_layout, texte, bouton):
+    @staticmethod
+    def ajouter_ligne(main_layout, texte, bouton):
         ligne = QHBoxLayout()
 
         label = QLabel(texte)

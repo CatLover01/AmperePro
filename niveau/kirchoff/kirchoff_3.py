@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, QRegularExpression
-from PySide6.QtGui import QFont, QPixmap, QRegularExpressionValidator
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QMessageBox, QScrollArea
@@ -17,6 +17,7 @@ class NiveauKirchoff3(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
+        self.fenetre_doc = None
 
         # affichage bouton aide
         layout_exterieur = QVBoxLayout()
@@ -31,6 +32,7 @@ class NiveauKirchoff3(QWidget):
 
         self.setLayout(layout_exterieur)
 
+        # interface du niveau
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         layout_exterieur.addWidget(scroll)
@@ -56,6 +58,7 @@ class NiveauKirchoff3(QWidget):
         consigne.setWordWrap(True)
         main_layout.addWidget(consigne)
 
+        #composante des questions
         self.questions = [
             {
                 "image": DOSSIER_IMAGES + "circuit_1.png",
@@ -79,11 +82,11 @@ class NiveauKirchoff3(QWidget):
                 "image": DOSSIER_IMAGES + "circuit_4.png",
                 "texte": "À partir du point D trouve l'éqaution d'une maille\n"
                          " sachant que I\u2081 = I\u2082 + I\u2083",
-                "reponse": "",  # à repenser
-            },
-
+                "reponse": "8-6-4+6I2-2I3",
+            }
         ]
 
+        # création/affichage des niveaux
         for question in self.questions:
             self.ajouter_question(
                 main_layout,
@@ -110,6 +113,47 @@ class NiveauKirchoff3(QWidget):
 
         main_layout.addLayout(boutons_layout)
 
+    @property
+    def reponses(self):
+        return self._reponses
+
+    @reponses.setter
+    def reponses(self, reponses):
+        self._reponses = reponses
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def questions(self):
+        return self._questions
+
+    @questions.setter
+    def questions(self, questions):
+        self._questions = questions
+
+    #création des niveaux
     def ajouter_question(self, main_layout, image_path, texte_question, bonne_reponse):
         bloc = QVBoxLayout()
         bloc.setSpacing(12)
@@ -133,10 +177,6 @@ class NiveauKirchoff3(QWidget):
         champ_reponse = QLineEdit()
         champ_reponse.setFixedWidth(140)
 
-        regex = QRegularExpression("^[I0-9+=-]*$")
-        validator = QRegularExpressionValidator(regex)
-        champ_reponse.setValidator(validator)
-
         ligne_question.addStretch()
         ligne_question.addWidget(label_question)
         ligne_question.addSpacing(10)
@@ -150,7 +190,9 @@ class NiveauKirchoff3(QWidget):
 
         self.reponses.append((champ_reponse, bonne_reponse))
 
-    def normaliser_equation(self, eq):
+    # laisser seulement un choix de reponse possible
+    @staticmethod
+    def normaliser_equation(eq):
         eq = eq.replace(" ", "")
 
         if "=" not in eq:
@@ -178,6 +220,7 @@ class NiveauKirchoff3(QWidget):
         self.fenetre_doc.show()
         self.fenetre_doc.raise_()
 
+    # correction des reponses et affichage des bonnes rep totales
     def valider_reponses(self):
         bonne_reponses = 0
         total = len(self.reponses)

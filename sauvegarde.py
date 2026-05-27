@@ -88,16 +88,16 @@ class Sauvegarde:
             progression[niveau - 1] = point
             write("data.json", asdict(self.data))
 
-    def delete_circuit(self, id: str):
+    def delete_circuit(self, id_circuit: str):
         for circuit in self.data.circuits:
-            if circuit.id == id:
+            if circuit.id == id_circuit:
                 self.data.circuits.remove(circuit)
                 write("data.json", asdict(self.data))
                 break
 
-    def get_circuit(self, id: str) -> CircuitDTO | None:
+    def get_circuit(self, id_circuit: str) -> CircuitDTO | None:
         for circuit in self.data.circuits:
-            if circuit.id == id:
+            if circuit.id == id_circuit:
                 return circuit
         return None
 
@@ -106,17 +106,17 @@ class Sauvegarde:
 
     # Retourne l'id générer
     def creation_circuit_libre(self, nom: str) -> str:
-        id = str(uuid.uuid4())
+        id_circuit = str(uuid.uuid4())
         date = int(datetime.datetime.now(datetime.UTC).timestamp())
-        nouveau_circuit = CircuitDTO(id, nom, [], [], date)
+        nouveau_circuit = CircuitDTO(id_circuit, nom, [], [], date)
 
         self.data.circuits.append(nouveau_circuit)
         write("data.json", asdict(self.data))
-        return id
+        return id_circuit
 
-    def modifie_circuit(self, id: str, fils: list[FilDTO], noeuds: list[NoeudDTO]) -> bool:
+    def modifie_circuit(self, id_circuit: str, fils: list[FilDTO], noeuds: list[NoeudDTO]) -> bool:
         for idx, circuit in enumerate(self.data.circuits):
-            if circuit.id != id:
+            if circuit.id != id_circuit:
                 continue
 
             date = int(datetime.datetime.now(datetime.UTC).timestamp())

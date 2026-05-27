@@ -1,5 +1,5 @@
-from PySide6.QtCore import QFile, QTextStream
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
+from PySide6.QtCore import QFile, QTextStream, QUrl
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QDesktopServices
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
@@ -10,7 +10,7 @@ from niveau.definitions import Sujet, DetailNiveau, INFO_NIVEAUX
 from a_propos import AProposWindow
 from docs import DocumentationWindow
 from sauvegarde import Sauvegarde, CircuitDTO
-from circuit.circuit import Circuit, GraphicsView
+from fichier_circuit.circuit import Circuit, GraphicsView
 
 
 class Mode(Enum):
@@ -32,7 +32,6 @@ class AmperePro(QMainWindow):
         self.setWindowIcon(QIcon("images/interface/app_logo_fond_bleu.png"))
         self.setMinimumSize(500, 500)
 
-        self.title = None
         self.fenetre_doc = None
         self.init_main_window()
 
@@ -72,6 +71,30 @@ class AmperePro(QMainWindow):
         self.nouveau_circuit = None
         self.toolbar = None
 
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre):
+        self._fenetre_doc = fenetre
+
+    @property
+    def sauvegarde(self):
+        return self._sauvegarde
+
+    @sauvegarde.setter
+    def sauvegarde(self, sauvegarde):
+        self._sauvegarde = sauvegarde
+
+    @property
+    def nouveau_circuit(self):
+        return self._nouveau_circuit
+
+    @nouveau_circuit.setter
+    def nouveau_circuit(self, nouveau_circuit):
+        self._nouveau_circuit = nouveau_circuit
+
     def init_main_window(self):
         main_layout = QVBoxLayout()
         main_widget = QWidget()
@@ -110,7 +133,8 @@ class AmperePro(QMainWindow):
         main_layout.addWidget(a_propos_button)
         a_propos_button.clicked.connect(self.ouvrir_a_propos)
 
-    def add_title(self) -> QLabel:
+    @staticmethod
+    def add_title() -> QLabel:
         title = QLabel("AmpèrePro")
         title.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         title.setStyleSheet("color:yellow")
@@ -160,11 +184,11 @@ class AmperePro(QMainWindow):
         retour_arriere.clicked.connect(self.init_main_window)
         main_layout.addWidget(retour_arriere)
 
-    def afficher_supprimer_circuit(self, id: str):
+    def afficher_supprimer_circuit(self, id_circuit: str):
         reponse = QMessageBox.question(self, "Supprimer Circuit",
                                        "Êtes vous sur de supprimer ce circuit?\nCette action est irreversible")
         if reponse == QMessageBox.StandardButton.Yes:
-            self.sauvegarde.delete_circuit(id)
+            self.sauvegarde.delete_circuit(id_circuit)
             # Reload la page pour que le circuit enlevé ne soit plus accessible
             self.change_mode(Mode.Libre)
 
@@ -269,12 +293,14 @@ class AmperePro(QMainWindow):
         self.change_mode(Mode.Niveau)
 
     def add_circuit(self, circuit: CircuitDTO | None):
-        id = None
+        id_circuit = None
 
         if circuit is not None:
-            id = circuit.id
+            id_circuit = circuit.id
 
-        self.nouveau_circuit = Circuit(self, self.sauvegarde, id)
+        self.nouveau_circuit = Circuit(self, self.sauvegarde, id_circuit)
+        self.setMinimumSize(540, 500)
+
         self.nouveau_circuit.creer_toolbar()
         self.setCentralWidget(self.nouveau_circuit.graphics_view)
         self.setMenuBar(self.nouveau_circuit.barre_menu)
@@ -333,9 +359,10 @@ class AmperePro(QMainWindow):
         self.menu_bar.addAction(self.quitter_action)
         self.toolbar.clear()
 
-    def telecharger_guide(self):
-        # TODO: je pense que le nom de la méthode est assez explicite
-        pass
+    @staticmethod
+    def telecharger_guide():
+        # on fait ouvrir le pdf du fichier pycharm dans une autre fenêtre sans le télécharger.
+        QDesktopServices.openUrl(QUrl.fromLocalFile("fichier_circuit/guide_mode_libre.pdf"))
 
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre
