@@ -10,7 +10,7 @@ from button import ToolTipButton
 from fichier_circuit.fil import Fil
 from fichier_circuit.noeud import Noeud
 from composantes import toolbar_composantes, Composante, TypeComposante
-from fichier_circuit.calculateur_courant import calculer_circuit
+from fichier_circuit.calculateur_courant import calculer_circuit, trouver_chemin
 from sauvegarde import Sauvegarde, FilDTO, NoeudDTO
 
 
@@ -1214,10 +1214,29 @@ class Circuit(QGraphicsScene):
             # si on est sur un fil, celui-ci et toute ses composantes deviennent rouge.
             fil = composante
             if len(self.fils) != 1:
-                fil.signaler_effacement()
-                self.fils_surbrillance.append(fil)
-                for element in fil.composantes:
-                    self.composante_rouge(element)
+
+                # Verifie si enlever le fil briserait le circuit pour
+                # empêcher l'utilisateur d'enlever des fils importants
+                brise_circuit = False
+                for fil_circuit in self.fils:
+                    if fil_circuit == fil:
+                        continue
+                    cible = fil_circuit.noeuds[1]
+                    noeuds_chemin = [fil_circuit.noeuds[0]]
+                    fils_possible = self.fils.copy()
+                    fils_possible.remove(fil)
+                    fils_possible.remove(fil_circuit)
+
+                    chemin, _ = trouver_chemin(cible, [], [], [], noeuds_chemin, fils_possible)
+                    if not chemin:
+                        brise_circuit = True
+                        break
+
+                if not brise_circuit:
+                    fil.signaler_effacement()
+                    self.fils_surbrillance.append(fil)
+                    for element in fil.composantes:
+                        self.composante_rouge(element)
 
         else:
             # si on est sur rien, on s'assure que rien n'est surbrillé

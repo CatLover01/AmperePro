@@ -101,7 +101,7 @@ def trouver_mailles(fils):
 
             maille, sens_fils = trouver_chemin(cible, fils_cycle, sens_fils, fils_visites, noeuds_cycle, fils)
 
-            if maille == []:
+            if not maille:
                 fils_bloques.append(fil_base)
             else:
                 fils_visites += fils_cycle

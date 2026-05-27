@@ -112,11 +112,14 @@ class Noeud:
             fil_depart.noeuds[1].enlever_info_fil(fil_depart)
             fil_depart.noeuds[1].ajouter_info(fil_depart, fil_depart.noeuds[0])
 
+            if self.pos not in fil_fin.points:
+                fil_fin.points.append(self.pos)
             for point in fil_fin.points:
                 i, j = circuit.pos_to_mat(point.x(), point.y())
                 touche = circuit.mat_points[i, j]
                 if touche == fil_fin or touche == self:
                     circuit.mat_points[i, j] = fil_depart
+
 
             circuit.noeuds.remove(self)
             circuit.fils.remove(fil_fin)
@@ -131,5 +134,3 @@ class Noeud:
             i, j = circuit.pos_to_mat(self._pos.x(), self._pos.y())
             circuit.mat_points[i, j] = self._info_voisins[0][0]
             self._info_voisins[0][0].points.append(self._pos)
-
-            print_matrice(circuit.mat_points, fil_restant.points, circuit)
