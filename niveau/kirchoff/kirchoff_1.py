@@ -1,8 +1,6 @@
-import random
-
-from PySide6.QtCore import Qt, QFile, QTextStream
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QMessageBox, \
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox, \
     QScrollArea, QCheckBox
 
 from niveau.definitions import Sujet
@@ -15,6 +13,7 @@ class NiveauKirchoff1(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
+        self.fenetre_doc = None
 
         # affichage bouton aide
         layout_exterieur = QVBoxLayout()
@@ -115,6 +114,38 @@ class NiveauKirchoff1(QWidget):
         boutons_layout.addStretch()
 
         main_layout.addLayout(boutons_layout)
+
+    @property
+    def reponses(self):
+        return self._reponses
+
+    @reponses.setter
+    def reponses(self, reponses):
+        self._reponses = reponses
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
 
     # ouvrir la documentation
     def ouvrir_aide(self):

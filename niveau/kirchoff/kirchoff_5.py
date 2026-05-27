@@ -5,8 +5,6 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QMessageBox, QScrollArea, QGridLayout
 )
 
-from niveau.definitions import Sujet
-
 
 class NiveauKirchoff5(QWidget):
     def __init__(self, retour_callback, update_niveau):
@@ -15,6 +13,7 @@ class NiveauKirchoff5(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
+        self.fenetre_doc = None
 
         # affichage bouton aide
         layout_exterieur = QVBoxLayout()
@@ -99,8 +98,63 @@ class NiveauKirchoff5(QWidget):
 
         main_layout.addLayout(boutons_layout)
 
-        # ouvrir la documentation
+    @property
+    def reponses(self):
+        return self._reponses
 
+    @reponses.setter
+    def reponses(self, reponses):
+        self._reponses = reponses
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def reponse_i1(self):
+        return self._fenetre_i1
+
+    @reponse_i1.setter
+    def reponse_i1(self, reponse_i1):
+        self._fenetre_i1 = reponse_i1
+
+    @property
+    def reponse_i2(self):
+        return self._reponse_i2
+
+    @reponse_i2.setter
+    def reponse_i2(self, reponse_i2):
+        self._reponse_i2 = reponse_i2
+
+    @property
+    def reponse_i3(self):
+        return self._reponse_i3
+
+    @reponse_i3.setter
+    def reponse_i3(self, reponse_i3):
+        self._reponse_i3 = reponse_i3
+
+    # ouvrir la documentation
     def ouvrir_aide(self):
         from docs import DocumentationWindow
         from PySide6.QtCore import QFile, QTextStream, Qt

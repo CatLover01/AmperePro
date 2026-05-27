@@ -7,11 +7,12 @@ from PySide6.QtWidgets import (
 
 
 class NiveauRE2(QWidget):
-    def __init__(self, retour_callback=None, update_niveau=None):
+    def __init__(self, retour_callback=None, update_niveau=False):
         super().__init__()
 
         self.retour_callback = retour_callback
         self.questions_widgets = []
+        self._fenetre_doc = None
 
         # (question, réponse)
         self.questions = [
@@ -88,6 +89,38 @@ class NiveauRE2(QWidget):
 
         main_layout.addLayout(boutons)
 
+    @property
+    def questions_widgets(self):
+        return self._questions_widgets
+
+    @questions_widgets.setter
+    def questions_widgets(self, question):
+        self._questions_widgets = question
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def questions(self):
+        return self._questions
+
+    @questions.setter
+    def questions(self, questions):
+        self._questions = questions
+
     def ajouter_question(self, layout, texte, bonne_reponse):
         bloc = QVBoxLayout()
 
@@ -132,8 +165,8 @@ class NiveauRE2(QWidget):
                 valeur = float(input_field.text())
                 if valeur == bonne_rep:
                     bonnes += 1
-            except:
-                pass
+            except ValueError:
+                continue
 
         QMessageBox.information(
             self,

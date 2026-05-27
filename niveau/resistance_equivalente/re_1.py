@@ -41,6 +41,14 @@ class ChoixCircuit(QWidget):
         layout.addWidget(self.btn_parallele)
         layout.addWidget(self.btn_mixte)
 
+    @property
+    def choix(self):
+        return self._choix
+
+    @choix.setter
+    def choix(self, choix):
+        self._choix = choix
+
     def mettre_a_jour_choix(self):
         if self.btn_serie.isChecked():
             self.choix = "série"
@@ -50,9 +58,6 @@ class ChoixCircuit(QWidget):
             self.choix = "mixte"
         else:
             self.choix = None
-
-    def get_choix(self):
-        return self.choix
 
 
 class NiveauRE1(QWidget):
@@ -126,6 +131,46 @@ class NiveauRE1(QWidget):
 
         main_layout.addLayout(boutons)
 
+    @property
+    def questions_widgets(self):
+        return self._questions_widgets
+
+    @questions_widgets.setter
+    def questions_widgets(self, question):
+        self._questions_widgets = question
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def questions(self):
+        return self._questions
+
+    @questions.setter
+    def questions(self, questions):
+        self._questions = questions
+
     def ajouter_question(self, layout, image_path, bonne_reponse):
         bloc = QVBoxLayout()
 
@@ -170,7 +215,7 @@ class NiveauRE1(QWidget):
         bonne_reponses = 0
 
         for widget, bonne_rep in self.questions_widgets:
-            if widget.get_choix() == bonne_rep:
+            if widget.choix == bonne_rep:
                 bonne_reponses += 1
 
         self.update_niveau(Sujet.Resistance, 1, bonne_reponses)

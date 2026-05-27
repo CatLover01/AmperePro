@@ -15,6 +15,7 @@ class NiveauOhm2(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.reponses = []
+        self.fenetre_doc = None
 
         layout_exterieur = QVBoxLayout()
         self.setLayout(layout_exterieur)
@@ -97,7 +98,48 @@ class NiveauOhm2(QWidget):
 
         main_layout.addLayout(boutons_layout)
 
-    def generer_questions(self):
+    @property
+    def reponses(self):
+        return self._reponses
+
+    @reponses.setter
+    def reponses(self, reponses):
+        self._reponses = reponses
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def questions(self):
+        return self._questions
+
+    @questions.setter
+    def questions(self, questions):
+        self._questions = questions
+
+    @staticmethod
+    def generer_questions():
         questions = []
 
         for _ in range(5):

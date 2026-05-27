@@ -18,6 +18,22 @@ class CaseNumero(QPushButton):
         self.setFixedSize(60, 45)
         self.clicked.connect(self.cliquer_case)
 
+    @property
+    def index_case(self):
+        return self._index_case
+
+    @index_case.setter
+    def index_case(self, index_case):
+        self._index_case = index_case
+
+    @property
+    def parent_niveau(self):
+        return self._parent_niveau
+
+    @parent_niveau.setter
+    def parent_niveau(self, parent_niveau):
+        self._parent_niveau = parent_niveau
+
     def cliquer_case(self):
         self.parent_niveau.placer_numero(self.index_case)
 
@@ -29,6 +45,7 @@ class NiveauOhm4(QWidget):
         self.update_niveau = update_niveau
         self.retour_callback = retour_callback
         self.numero_selectionne = None
+        self.fenetre_doc = None
         self.cases = []
         self.boutons_numeros = []
 
@@ -160,6 +177,62 @@ class NiveauOhm4(QWidget):
         boutons_bas.addStretch()
 
         main_layout.addLayout(boutons_bas)
+
+    @property
+    def numero_selectionne(self):
+        return self._numero_selectionne
+
+    @numero_selectionne.setter
+    def numero_selectionne(self, numero):
+        self._numero_selectionne = numero
+
+    @property
+    def update_niveau(self):
+        return self._update_niveau
+
+    @update_niveau.setter
+    def update_niveau(self, update_niveau):
+        self._update_niveau = update_niveau
+
+    @property
+    def retour_callback(self):
+        return self._retour_callback
+
+    @retour_callback.setter
+    def retour_callback(self, retour_callback):
+        self._retour_callback = retour_callback
+
+    @property
+    def fenetre_doc(self):
+        return self._fenetre_doc
+
+    @fenetre_doc.setter
+    def fenetre_doc(self, fenetre_doc):
+        self._fenetre_doc = fenetre_doc
+
+    @property
+    def cases(self):
+        return self._cases
+
+    @cases.setter
+    def cases(self, cases):
+        self._cases = cases
+
+    @property
+    def boutons_numeros(self):
+        return self._boutons_numeros
+
+    @boutons_numeros.setter
+    def boutons_numeros(self, boutons_numeros):
+        self._boutons_numeros = boutons_numeros
+
+    @property
+    def circuits(self):
+        return self._circuits
+
+    @circuits.setter
+    def circuits(self, circuits):
+        self._circuits = circuits
 
     def creer_bloc_circuit(self, index_circuit, image_path):
         bloc = QVBoxLayout()
