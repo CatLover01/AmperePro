@@ -1,5 +1,5 @@
-from PySide6.QtCore import QFile, QTextStream
-from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction
+from PySide6.QtCore import QFile, QTextStream, QUrl
+from PySide6.QtGui import Qt, QIcon, QPixmap, QFont, QAction, QDesktopServices
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QLabel, \
     QGraphicsView, QMenu, QProgressBar, QDialog, QMessageBox
 from enum import Enum
@@ -359,9 +359,10 @@ class AmperePro(QMainWindow):
         self.menu_bar.addAction(self.quitter_action)
         self.toolbar.clear()
 
-    def telecharger_guide(self):
-        # TODO: je pense que le nom de la méthode est assez explicite
-        pass
+    @staticmethod
+    def telecharger_guide():
+        # on fait ouvrir le pdf du fichier pycharm dans une autre fenêtre sans le télécharger.
+        QDesktopServices.openUrl(QUrl.fromLocalFile("fichier_circuit/guide_mode_libre.pdf"))
 
     def closeEvent(self, event):
         # change le "x" de la fenêtre du circuit libre

@@ -79,8 +79,6 @@ class Noeud:
                 fil_depart.lignes.reverse()
                 # On doit aussi reverse les points des lignes
                 for ligne in fil_depart.lignes:
-                    p1 = ligne.line().p1()
-                    p2 = ligne.line().p2()
                     ligne.setLine(QLineF(ligne.line().p2(), ligne.line().p1()))
 
                 fil_depart.noeuds.reverse()
@@ -132,4 +130,4 @@ class Noeud:
             circuit.mat_points[i, j] = self._info_voisins[0][0]
             self._info_voisins[0][0].points.append(self._pos)
 
-            print_matrice(circuit.mat_points, fil_restant.points, circuit)
+            #print_matrice(circuit.mat_points, fil_restant.points, circuit)

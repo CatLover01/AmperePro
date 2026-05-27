@@ -34,7 +34,6 @@ class Circuit(QGraphicsScene):
         # listes pour le rollback
         self.ajouts = []
         self.composantes_jetes = []
-        self.fils_jetes = []
         self.modifications = []
         # les ajouts seront 1, les jetés seront 2, composantes tournées seront 3 et composantes modifiées seront 4
         self.operations = []
@@ -85,9 +84,6 @@ class Circuit(QGraphicsScene):
 
             self.noeuds = noeuds
             self.fils = fils
-
-            # TODO(hugo): je ne trouve pas la fonction pour générer la matrice a partir des fils et noeuds
-            # self.mat_points = np.array(...)
 
         self.sauvegarde = sauvegarde
         self.id = id_circuit
@@ -240,14 +236,6 @@ class Circuit(QGraphicsScene):
         self._composantes_jetes = composantes_jetes
 
     @property
-    def fils_jetes(self):
-        return self._fils_jetes
-
-    @fils_jetes.setter
-    def fils_jetes(self, fils_jetes):
-        self._fils_jetes = fils_jetes
-
-    @property
     def modifications(self):
         return self._modifications
 
@@ -366,7 +354,8 @@ class Circuit(QGraphicsScene):
             self._annuler_action.setEnabled(False)
 
     def rollback_triggered(self):
-        dernier = self.operations[-1]
+        print(self.operations)
+        dernier = self.operations.pop()
         if dernier == 1:
             # si la dernière opération est d'ajouter un élément, on le supprime grâce à sa position qu'on a enregistrée.
             dernier_ajout = self.ajouts.pop()
@@ -379,7 +368,18 @@ class Circuit(QGraphicsScene):
                 self.image_composante = composante.image_item
                 self.inserer_composante(composante, False)
             else:
-                pass
+                liste_composantes = composante.pop()
+                lignes = composante.pop()
+                self.selection = "fil"
+                for i in range(len(lignes)):
+                    if i != 0:
+                        self.continuer_dessin(lignes[i])
+                    self.clic_gauche_fil(lignes[i], False)
+
+                for element in liste_composantes:
+                    print(element.image_item)
+                    self.image_composante = element.image_item
+                    self.inserer_composante(element, False)
 
         elif dernier == 3:
             # on veut annuler le fait d'avoir tourner une composante de 180 degrés. Cela revient à la tourner à nouveau.
@@ -410,7 +410,6 @@ class Circuit(QGraphicsScene):
                 collision.fil.calculs()
                 self.update_courant()
 
-        self.operations.pop()
         self.rollback_possible()
 
     def quitter_triggered(self):
@@ -441,7 +440,7 @@ class Circuit(QGraphicsScene):
 
         return self.allouer_fermeture
 
-    def sauvegarder_et_quitter(self, dialog):
+    def sauvegarder_et_quitter(self, dialog: QDialog):
         # sauvegarde le circuit et ferme tout
         dialog.close()
         self.sauvegarder_triggered()
@@ -581,7 +580,7 @@ class Circuit(QGraphicsScene):
 
         return None
 
-    def clic_gauche_fil(self, pos: QPointF):
+    def clic_gauche_fil(self, pos: QPointF, rollback: bool):
         # return tous les points dans le grid selon la ligne
         def get_points_ligne(debut_ligne_clic: QPointF, fin_ligne_clic: QPointF) -> list[QPointF]:
             diff_x = fin_ligne_clic.x() - debut_ligne_clic.x()
@@ -686,14 +685,16 @@ class Circuit(QGraphicsScene):
             self.lignes = []
             self.points_avant_pivot = []
             self.dessine = False
-            point_a_garder = points[math.floor(len(points)/2)]
-            self.ajouts.append(point_a_garder)
 
             self.nouveau_fil.calculs()
             self.nouveau_fil = None
 
-            self.operations.append(1)
-            self.rollback_possible()
+            # rollback
+            if rollback:
+                point_a_garder = points[math.floor(len(points) / 2)]
+                self.ajouts.append(point_a_garder)
+                self.operations.append(1)
+                self.rollback_possible()
 
             self.update_courant()
 
@@ -771,7 +772,7 @@ class Circuit(QGraphicsScene):
         for i in reversed(range(len_i)):
             ligne_vide = True
             for j in range(len_j):
-                if self.mat_points[i, j] is not None:
+                if self.mat_points[i,j] is not None:
                     ligne_vide = False
                     break
             if ligne_vide:
@@ -1077,12 +1078,13 @@ class Circuit(QGraphicsScene):
 
     def inserer_composante(self, composante: Composante, rollback: bool):
         if self.image_composante:
+            self.addItem(self.image_composante)
             points_fil, points_cote = self.points_composante(self.image_composante.rotation())
             composante.points_fil = points_fil
             composante.points_cote = points_cote
             point_milieu = points_fil[1]
             fil = self.verifier_collision(point_milieu)
-            # on enleve la surbrillance
+            # on enlève la surbrillance
             if self.couleur_recouvre is not None:
                 self.removeItem(self.couleur_recouvre)
                 self.couleur_recouvre = None
@@ -1287,19 +1289,41 @@ class Circuit(QGraphicsScene):
                 self.operations.append(2)
 
         elif isinstance(composante, Fil):
-            #ménage visuel
-            # on supprime d'abord les composantes du fil
-            for element in composante.composantes.copy():
-                self.jeter_element(element.points_fil[1], False)
+            copie_composantes = composante.composantes.copy()
+
+            for element in copie_composantes:
+                liste_surveiller = ["Ampèremètre", "Voltmètre"]
+                if element.nom in liste_surveiller:
+                    element.image_item.setPos(element.points_fil[1])
+
+            # ce qu'on garde en mémoire pour rollback
+            if rollback:
+                a_sauvegarder = []
+                for element in copie_composantes:
+                    a_sauvegarder.append(element)
+                lignes = self.sauvegarder_lignes_fil(composante)
+                a_sauvegarder.append(lignes)
+                a_sauvegarder.append(copie_composantes)
+                self.composantes_jetes.append(a_sauvegarder)
+                self.operations.append(2)
+
+            # on retire composantes et fil.
+            for element in copie_composantes:
+                self.jeter_element(element.image_item.pos(), False)
 
             composante.enlever_fil()
             self.annuler_signalement()
-
             self.update_courant()
 
-            if rollback:
-                self.composantes_jetes.append(composante)
-                self.operations.append(2)
+    @staticmethod
+    def sauvegarder_lignes_fil(fil):
+        lignes = []
+        for ligne in fil.lignes:
+            p1 = ligne.line().p1()
+            p2 = ligne.line().p2()
+            lignes.append(p1)
+            lignes.append(p2)
+        return lignes
 
     def deplacer_composante(self, position):
         x, y = self.pos_selon_grid(position)
@@ -1371,7 +1395,7 @@ class GraphicsView(QGraphicsView):
         position_scene = self.mapToScene(event.position().toPoint())
         if event.button() == Qt.MouseButton.LeftButton:
             if self.scene.selection == "fil":
-                self.scene.clic_gauche_fil(position_scene)
+                self.scene.clic_gauche_fil(position_scene, True)
 
             elif self.scene.selection == "main":
                 self.bouge_vue = True
